@@ -14,17 +14,17 @@ setup (name="euclidenv",
        package_dir={"": "python"},
        ext_package= "Euclid",
        scripts  = [ os.path.join("scripts","ELogin.sh"),
-                    os.path.join("scripts","ELogin.csh")],
+                    os.path.join("scripts","ELogin.csh"),
+                    os.path.join("scripts", "Euclid_group_login.sh"),
+                    os.path.join("scripts", "Euclid_group_login.csh"),
+                    os.path.join("scripts", "Euclid_group_login.bat"),
+                    os.path.join("scripts", "Euclid_group_setup.sh"),
+                    os.path.join("scripts", "Euclid_group_setup.csh"),
+                    os.path.join("scripts", "Euclid_group_setup.bat")
+                  ],
        data_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh")]),
                      ("/etc/profile.d", [os.path.join("data", "profile", "euclid.csh")]),
-                     ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")]),
-                     ("/opt/Euclid/env", [os.path.join("data", "env", "group_login.sh")]),
-                     ("/opt/Euclid/env", [os.path.join("data", "env", "group_login.csh")]),
-                     ("/opt/Euclid/env", [os.path.join("data", "env", "group_login.bat")]),
-                     ("/opt/Euclid/env", [os.path.join("data", "env", "group_setup.sh")]),
-                     ("/opt/Euclid/env", [os.path.join("data", "env", "group_setup.csh")]),
-                     ("/opt/Euclid/env", [os.path.join("data", "env", "group_setup.bat")])
-
+                     ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")])
                      ],
 
 #       options = {'bdist_rpm':{'post_install' : 'post_install',
