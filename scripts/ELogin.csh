@@ -1,0 +1,1 @@
+# main login script for the Euclid environment
