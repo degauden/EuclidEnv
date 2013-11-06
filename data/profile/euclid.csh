@@ -1,3 +1,12 @@
+if ( ! -e ${HOME}/.noEuclidLoginScript ) then
+
+  if (! $?EUCLID_SYS_CONFIG ) then
+    setenv EUCLID_SYS_CONFIG=/etc/sysconfig/euclid
+  endif
+
+endif
+
+
 if (! $?VO_LHCB_SW_DIR ) then
   setenv VO_LHCB_SW_DIR /opt/LHCb
 endif

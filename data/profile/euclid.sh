@@ -1,3 +1,13 @@
+if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
+
+  if [[ ! -n "$EUCLID_SYS_CONFIG" ]]; then
+    export EUCLID_SYS_CONFIG=/etc/sysconfig/euclid
+  fi
+
+
+fi
+
+
 if [[ ! -n "$VO_LHCB_SW_DIR" ]]; then
   export VO_LHCB_SW_DIR=/opt/LHCb
 fi
