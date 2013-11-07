@@ -1,42 +1,11 @@
 #!/bin/sh
 if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
 
-
-# default file to be tested in order
-# 1) $XDG_CONFIG_HOME/LHCb/default (if XDG_CONFIG_HOME exists)
-# 2) $HOME/.config/LHCb/default
-# 3) for f in $XDG_CONFIG_DIRS : $f/LHCb/default
-# 4) /etc/default/LHCb
-
-cfgfiles=""
-if [[  -n "$XDG_CONFIG_HOME" ]]; then
-  cfgfiles="$cfgfiles $XDG_CONFIG_HOME/LHCb/default"
-fi
-if [[ -n "$HOME" ]]; then
-  cfgfiles="$cfgfiles $HOME/.config/LHCb/default"
-fi
-
-if [[ -n "$XDG_CONFIG_DIRS" ]]; then
-  for d in $(echo $XDG_CONFIG_DIRS | tr -s ':' ' ')
-  do
-    cfgfiles="$cfgfiles $d/LHCb/default"
-  done
-  unset d
-fi
-cfgfiles="$cfgfiles /etc/default/LHCb"
-cfgfiles="$cfgfiles /etc/xdg/LHCb/default"
-
-
-for c in $cfgfiles
-do
-  if [[ -r $c ]]; then
-    eval `cat $c | sed -n -e '/^[^+]/s/\([^=]*\)[=]\(.*\)/\1="\2"; export \1;/gp'`
-    break;
+  if [[ ! -n "$EUCLID_CONFIG_FILE" ]]; then
+    confscr=`/usr/bin/which Euclid_config.sh`
+    . ${confscr} "$@"
+    unset confscr
   fi
-done
-
-unset c
-unset cfgfiles
 
   lbvers2=prod
   if [[ -e ${HOME}/.devLHCBLoginscript ]]; then

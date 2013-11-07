@@ -1,5 +1,11 @@
 if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
+  if ( ! $?EUCLID_CONFIG_FILE ) then
+    set confscr=`/usr/bin/which Euclid_config.csh`
+    source ${confscr} "${*:q}"
+    unset confscr    
+  endif
+  
   # shell part. has to deal with the shell settings. Pretty much everything but 
   # the environment variables. The script can be manually called from .tcshrc
   set shellscr=`/usr/bin/which Euclid_group_setup.csh`
