@@ -7,53 +7,31 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
     unset confscr
   fi
 
-  lbvers2=prod
-  if [[ -e ${HOME}/.devLHCBLoginscript ]]; then
-    lbvers2=dev
-  fi
-  if [[ -n "$LB_BANNER" ]]; then
-    cat ${LB_BANNER}
-    rm -f ${LB_BANNER}
-    unset LB_BANNER
+  if [[ -n "$E_BANNER" ]]; then
+    cat ${E_BANNER}
+    rm -f ${E_BANNER}
+    unset E_BANNER
   else
-    if [[ -n "$VO_LHCB_SW_DIR" ]]; then
-      if [[ -e ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/${lbvers2}/InstallArea/scripts/LbLogin.sh ]]; then
-        . ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/${lbvers2}/InstallArea/scripts/LbLogin.sh --quiet "$@"
-      else
-        if [[ -e ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh ]]; then
-          . ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh --quiet "$@"
+    
+    elogscr=`/usr/bin/which Elogin.sh`
+    if [[ -e ${elogscr} ]]; then
+      . ${elogscr} --quiet "$@"
+    fi
+
+    if [[ ! -n "$EUCLID_POST_DONE" ]]; then
+      if [[ -n "$EUCLID_POST_SCRIPT" ]]; then
+        epostscr=`/usr/bin/which $EUCLID_POST_SCRIPT.sh`
+        if [[ -r ${epostscr} ]]; then
+          . ${epostscr} "$@"
+          export EUCLID_POST_DONE=yes
         fi
-      fi
-    else
-      if [[ -e /opt/LHCb/lib/lhcb/LBSCRIPTS/${lbvers2}/InstallArea/scripts/LbLogin.sh ]]; then
-        . /opt/LHCb/lib/lhcb/LBSCRIPTS/${lbvers2}/InstallArea/scripts/LbLogin.sh --quiet "$@"
-      else
-        if [[ -e /opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh ]]; then
-          . /opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh --quiet "$@"
-        fi
+        unset epostscr
       fi
     fi
+      
   fi
-  export LBLOGIN_DONE=yes
-  unset lbvers2
 
-if [[ ! -n "$LHCB_POST_DONE" ]]; then
-  if [[ -n "$LHCB_POST_SCRIPT" ]]; then
-    if [[ -r $LHCB_POST_SCRIPT.sh ]]; then
-      . $LHCB_POST_SCRIPT.sh
-      export LHCB_POST_DONE=yes
-    fi
-  else
-    if [[ -n "$VO_LHCB_SW_DIR" ]]; then
-      if [[ -r $VO_LHCB_SW_DIR/lib/etc/postscript.sh ]]; then
-        . $VO_LHCB_SW_DIR/lib/etc/postscript.sh
-        export LHCB_POST_DONE=yes
-      fi
-    fi
-  fi
-fi
-
-
+  export ELOGIN_DONE=yes
 
 fi
 

@@ -3,71 +3,36 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
 
   if [[ ! -n "$EUCLID_CONFIG_FILE" ]]; then
     confscr=`/usr/bin/which Euclid_config.sh`
-    . ${confscr} "$@"
+    . ${confscr} "$@" > /dev/null 2>&1
     unset confscr
   fi
 
-  lbvers3=prod
-  if [[ -e ${HOME}/.devLHCBLoginscript ]]; then
-    lbvers3=dev
-  fi
-  if [[ -n "$LBLOGIN_DONE" ]]; then
-    if [[ -n "$VO_LHCB_SW_DIR" ]]; then
-      if [[ -e ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/${lbvers3}/InstallArea/scripts/LbLogin.sh ]]; then
-        . ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/${lbvers3}/InstallArea/scripts/LbLogin.sh --silent "$@" 2>&1 /dev/null
-      else
-        if [[ -e ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh ]]; then
-          . ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh --silent "$@" 2>&1 /dev/null
-        fi
-      fi
+  elogscr=`/usr/bin/which Elogin.sh`
+  if [[ -e ${elogscr} ]]; then
+    if [[ -n "$ELOGIN_DONE" ]]; then
+      # The login part has already been done. Only the shell (setup) part is redone.
+      # This is mandatory for the creation of a subshell.
+      . ${elogscr} --shell-only --silent "$@" > /dev/null 2>&1
     else
-      if [[ -e /opt/LHCb/lib/lhcb/LBSCRIPTS/${lbvers3}/InstallArea/scripts/LbLogin.sh ]]; then
-        . /opt/LHCb/lib/lhcb/LBSCRIPTS/${lbvers3}/InstallArea/scripts/LbLogin.sh --silent "$@" 2>&1 /dev/null
-      else
-        if [[ -e /opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh ]]; then
-          . /opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh --silent "$@" 2>&1 /dev/null
+      # The full login and setup is not performed.
+      export E_BANNER=`mktemp`
+      . ${elogscr} --quiet "$@" >> ${E_BANNER}
+      
+      if [[ ! -n "$EUCLID_POST_DONE" ]]; then
+        if [[ -n "$EUCLID_POST_SCRIPT" ]]; then
+          epostscr=`/usr/bin/which $EUCLID_POST_SCRIPT.sh`
+          if [[ -r ${epostscr} ]]; then
+            . ${epostscr} "$@" >> ${E_BANNER}
+            export EUCLID_POST_DONE=yes
+          fi
+          unset epostscr
         fi
       fi
-    fi
-  else
-    export LB_BANNER=`mktemp`
-    if [[ -n "$VO_LHCB_SW_DIR" ]]; then
-      if [[ -e ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/${lbvers3}/InstallArea/scripts/LbLogin.sh ]]; then
-        . ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/${lbvers3}/InstallArea/scripts/LbLogin.sh --quiet "$@" >> ${LB_BANNER}
-      else
-        if [[ -e ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh ]]; then
-          . ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh --quiet "$@" >> ${LB_BANNER}
-        fi
-      fi
-    else
-      if [[ -e /opt/LHCb/lib/lhcb/LBSCRIPTS/${lbvers3}/InstallArea/scripts/LbLogin.sh ]]; then
-        . /opt/LHCb/lib/lhcb/LBSCRIPTS/${lbvers3}/InstallArea/scripts/LbLogin.sh --quiet "$@" >> ${LB_BANNER}
-      else
-        if [[ -e /opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh ]]; then
-          . /opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.sh --quiet "$@" >> ${LB_BANNER}
-        fi
-      fi
+            
+      
     fi
   fi
-  unset lbvers3
-
-if [[ ! -n "$LHCB_POST_DONE" ]]; then
-  if [[ -n "$LHCB_POST_SCRIPT" ]]; then
-    if [[ -r $LHCB_POST_SCRIPT.sh ]]; then
-      . $LHCB_POST_SCRIPT.sh
-      export LHCB_POST_DONE=yes
-    fi
-  else
-    if [[ -n "$VO_LHCB_SW_DIR" ]]; then
-      if [[ -r $VO_LHCB_SW_DIR/lib/etc/postscript.sh ]]; then
-        . $VO_LHCB_SW_DIR/lib/etc/postscript.sh
-        export LHCB_POST_DONE=yes
-      fi
-    fi
-  fi
-fi
-
-
+  unset elogscr
 
 fi
 

@@ -7,52 +7,32 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
     unset confscr    
   endif
 
-  set lbvers2=prod
-  if ( -e ${HOME}/.devLHCBLoginscript ) then
-    set lbvers2=dev
-  endif
-  if ( $?LB_BANNER ) then
-    cat ${LB_BANNER}
-    rm -f ${LB_BANNER}
-    unsetenv LB_BANNER
+  if ( $?E_BANNER ) then
+    cat ${E_BANNER}
+    rm -f ${E_BANNER}
+    unsetenv E_BANNER
   else
-    if ( $?VO_LHCB_SW_DIR ) then
-      if ( -e ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/${lbvers2}/InstallArea/scripts/LbLogin.csh ) then
-        source ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/${lbvers2}/InstallArea/scripts/LbLogin.csh --quiet ${*:q}
-      else
-        if ( -e ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.csh ) then
-          source ${VO_LHCB_SW_DIR}/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.csh --quiet ${*:q}
-        endif
-      endif
-    else
-      if ( -e /opt/LHCb/lib/lhcb/LBSCRIPTS/${lbvers2}/InstallArea/scripts/LbLogin.csh ) then
-        source /opt/LHCb/lib/lhcb/LBSCRIPTS/${lbvers2}/InstallArea/scripts/LbLogin.csh --quiet ${*:q}
-      else
-        if ( -e /opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.csh ) then
-          source /opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v7r7p1/InstallArea/scripts/LbLogin.csh --quiet ${*:q}
-        endif
-      endif
+    
+    set elogscr=`/usr/bin/which Elogin.csh`
+    if ( -e ${elogscr} ) then
+      source ${elogscr} --quiet ${*:q}
     endif
-  endif
-  setenv LBLOGIN_DONE yes
-  unset lbvers2
 
-
-if ( ! $?LHCB_POST_DONE ) then
-  if ( $?LHCB_POST_SCRIPT ) then
-    if ( -r $LHCB_POST_SCRIPT.csh ) then
-      source $LHCB_POST_SCRIPT.csh
-      setenv LHCB_POST_DONE yes
-    endif
-  else
-    if ( $?VO_LHCB_SW_DIR ) then
-      if ( -r $VO_LHCB_SW_DIR/lib/etc/postscript.csh ) then
-        source $VO_LHCB_SW_DIR/lib/etc/postscript.csh
-        setenv LHCB_POST_DONE yes
+    if ( ! $?EUCLID_POST_DONE ) then
+      if ( $?EUCLID_POST_SCRIPT ) then
+        set epostscr=`/usr/bin/which $EUCLID_POST_SCRIPT.csh`
+        if ( -r ${epostscr} ) then
+          source ${epostscr} ${*:q}
+          setenv EUCLID_POST_DONE yes
+        endif
+        unset epostscr
       endif
     endif
+
+  
   endif
-endif
+  
+  setenv ELOGIN_DONE yes
 
 
 endif
