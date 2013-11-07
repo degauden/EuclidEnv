@@ -38,3 +38,20 @@ end
 unset c
 unset cfgfiles
 
+# prepend path entries to the environment 
+if ( "${EUCLID_USE_BASE}" == "yes" ) then
+  if ( -d ${EUCLID_BASE} ) then
+    if ( -d ${EUCLID_BASE}/bin ) then
+      setenv PATH ${EUCLID_BASE}/bin:${PATH}
+    endif
+    if ( -d ${EUCLID_BASE}/scripts ) then
+      setenv PATH ${EUCLID_BASE}/scripts:${PATH}
+    endif
+    if ( -d ${EUCLID_BASE}/lib ) then
+      setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib:${LD_LIBRARY_PATH}
+    endif
+    if ( -d ${EUCLID_BASE}/python ) then
+      setenv PYTHONPATH ${EUCLID_BASE}/python:${PYTHONPATH}
+    endif    
+  endif
+endif
