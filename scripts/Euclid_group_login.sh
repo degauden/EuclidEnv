@@ -1,5 +1,5 @@
 #!/bin/sh
-if [[ ! -e ${HOME}/.noLHCBLoginscript ]]; then
+if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
 
 
 # default file to be tested in order
