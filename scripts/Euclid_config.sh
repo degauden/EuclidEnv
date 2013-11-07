@@ -5,6 +5,11 @@
 # 4) /etc/default/Euclid
 # 5) /etc/sysconfig/euclid
 
+# default values if no config file is found
+export EUCLID_BASE=/opt/Euclid
+export EUCLID_USE_BASE=no
+
+
 cfgfiles=""
 if [[  -n "$XDG_CONFIG_HOME" ]]; then
   cfgfiles="$cfgfiles $XDG_CONFIG_HOME/Euclid/default"
