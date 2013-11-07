@@ -47,11 +47,11 @@ _scripts_dir = os.path.join(_base_dir, "scripts")
 
 from SetupProject import SetupProject
 
-from LbConfiguration.Platform import getBinaryDbg, getBinaryOpt
-from LbConfiguration.Platform import getCompiler, getPlatformType, getArchitecture
-from LbConfiguration.Platform import isBinaryDbg, NativeMachine
+from Euclid.Platform import getBinaryDbg, getBinaryOpt
+from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
+from Euclid.Platform import isBinaryDbg, NativeMachine
 from LbConfiguration.External import CMT_version, CMake_version
-from LbConfiguration.Version import sortStrings, ParseSvnVersion
+from Euclid.Version import sortStrings, ParseSvnVersion
 from LbUtils.Script import SourceScript
 from LbUtils.Path import multiPathGet, multiPathGetFirst, multiPathJoin
 from LbUtils.Path import envPathPrepend, pathAdd
