@@ -48,10 +48,18 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
       setenv PATH ${EUCLID_BASE}/scripts:${PATH}
     endif
     if ( -d ${EUCLID_BASE}/lib ) then
-      setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib:${LD_LIBRARY_PATH}
+      if ( $?LD_LIBRARY_PATH ) then 
+        setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib:${LD_LIBRARY_PATH}
+      else
+        setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib        
+      endif
     endif
     if ( -d ${EUCLID_BASE}/python ) then
-      setenv PYTHONPATH ${EUCLID_BASE}/python:${PYTHONPATH}
+      if ( $?PYTHONPATH ) then 
+        setenv PYTHONPATH ${EUCLID_BASE}/python:${PYTHONPATH}
+      else
+        setenv PYTHONPATH ${EUCLID_BASE}/python        
+      endif
     endif
     if ( -d ${EUCLID_BASE}/cmake ) then
       if ( $?CMAKE_PREFIX_PATH ) then 

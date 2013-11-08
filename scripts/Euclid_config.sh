@@ -51,10 +51,18 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
       export PATH=${EUCLID_BASE}/scripts:${PATH}
     fi
     if [[ -d ${EUCLID_BASE}/lib ]]; then
-      export LD_LIBRARY_PATH=${EUCLID_BASE}/lib:${LD_LIBRARY_PATH}
+      if [[ -n "$LD_LIBRARY_PATH" ]]; then 
+        export LD_LIBRARY_PATH=${EUCLID_BASE}/lib:${LD_LIBRARY_PATH}
+      else
+        export LD_LIBRARY_PATH=${EUCLID_BASE}/lib
+      fi
     fi
     if [[ -d ${EUCLID_BASE}/python ]]; then
-      export PYTHONPATH=${EUCLID_BASE}/python:${PYTHONPATH}
+      if [[ -n "$PYTHONPATH" ]]; then 
+        export PYTHONPATH=${EUCLID_BASE}/python:${PYTHONPATH}
+      else
+        export PYTHONPATH=${EUCLID_BASE}/python
+      fi
     fi
     if [[ -d ${EUCLID_BASE}/cmake ]]; then
       if [[ -n "$CMAKE_PREFIX_PATH" ]]; then 
