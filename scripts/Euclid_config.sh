@@ -64,12 +64,15 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
         export PYTHONPATH=${EUCLID_BASE}/python
       fi
     fi
-    if [[ -d ${EUCLID_BASE}/cmake ]]; then
+    if [[ -d ${EUCLID_BASE} ]]; then
       if [[ -n "$CMAKE_PREFIX_PATH" ]]; then 
-        export CMAKE_PREFIX_PATH=${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
+        export CMAKE_PREFIX_PATH=${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
       else
-        export CMAKE_PREFIX_PATH=${EUCLID_BASE}/cmake        
+        export CMAKE_PREFIX_PATH=${EUCLID_BASE}        
       fi
+      if [[ -d ${EUCLID_BASE}/cmake ]]; then
+        export CMAKE_PREFIX_PATH=${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
+      fi                
     fi                
   fi
 fi

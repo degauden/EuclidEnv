@@ -61,12 +61,15 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
         setenv PYTHONPATH ${EUCLID_BASE}/python        
       endif
     endif
-    if ( -d ${EUCLID_BASE}/cmake ) then
+    if ( -d ${EUCLID_BASE} ) then
       if ( $?CMAKE_PREFIX_PATH ) then 
-        setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
+        setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
       else
-        setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}/cmake        
+        setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}        
       endif
+      if ( -d ${EUCLID_BASE}/cmake ) then
+        setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
+      endif                
     endif        
   endif
 endif
