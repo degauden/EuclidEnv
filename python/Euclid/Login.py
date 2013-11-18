@@ -159,7 +159,7 @@ class ELoginScript(SourceScript):
         parser.add_option("-s", "--shared",
                           dest="sharedarea",
                           help="set the shared area",
-                          fallback_env="VO_LHCB_SW_DIR")
+                          fallback_env="EUCLID_BASE")
         parser.set_defaults(strip_path=True)
         parser.add_option("--no-strip-path",
                           dest="strip_path",
@@ -354,8 +354,7 @@ class ELoginScript(SourceScript):
     def setSharedArea(self):
         opts = self.options
         if opts.sharedarea :
-            if opts.cmtsite == "LOCAL" :
-                opts.mysiteroot = os.pathsep.join(opts.sharedarea.split(os.pathsep))
+            opts.mysiteroot = os.pathsep.join(opts.sharedarea.split(os.pathsep))
 
 
 
