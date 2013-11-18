@@ -53,6 +53,21 @@ def getELoginEnv(optionlist=None):
     s.parseOpts(optionlist)
     return s.setEnv()[0]
 
+def getELoginAliases(optionlist=None):
+    if not optionlist :
+        optionlist = []
+    s = ELoginScript()
+    s.parseOpts(optionlist)
+    return s.setEnv()[1]
+
+def getELoginExtra(optionlist=None):
+    if not optionlist :
+        optionlist = []
+    s = ELoginScript()
+    s.parseOpts(optionlist)
+    return s.setEnv()[2]
+
+
 #-----------------------------------------------------------------------------------
 # Option callbacks
 
@@ -482,7 +497,19 @@ class ELoginScript(SourceScript):
 
         # return a copy otherwise the environment gets restored
         # at the destruction of the instance
+
         return self.copyEnv()
+
+    def setAliases(self, debug=False):
+        al = self.Aliases()
+        if self.targetShell() == "sh" :
+            al["ELogin"] = ". `/usr/bin/which  ELogin.%s`" % self.targetShell()
+        else :
+            al["ELogin"] = "source `/usr/bin/which ELogin.%s`" % self.targetShell()
+
+        return self.copyEnv()
+
+
 
     def manifest(self, debug=False):
         ev = self.Environment()
@@ -517,6 +544,7 @@ class ELoginScript(SourceScript):
                 debug = True
 
         self.setEnv(debug)
+        self.setAliases(debug)
         self.manifest(debug)
 
         self.flush()
