@@ -21,13 +21,12 @@ except NameError :
         _ff.close()
 
 _pyconf_dir = os.path.dirname(_this_file)
-_py_dir = os.path.dirname(_pyconf_dir)
-_base_dir = os.path.dirname(_py_dir)
-
-# updating the sys.path for the bare minimum of the available scripts
-sys.path.insert(0, _pyconf_dir)
-sys.path.insert(0, _py_dir)
-
+if os.path.exists(_pyconf_dir) :
+    _py_dir = os.path.dirname(_pyconf_dir)
+    sys.path.insert(0, _pyconf_dir)
+    if os.path.exists(_py_dir) :
+        _base_dir = os.path.dirname(_py_dir)
+        sys.path.insert(0, _py_dir)
 
 # needed for the cache use
 _scripts_dir = os.path.join(_base_dir, "scripts")
