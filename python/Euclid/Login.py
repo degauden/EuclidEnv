@@ -45,41 +45,29 @@ _scripts_dir = os.path.join(_base_dir, "scripts")
 #============================================================================
 
 
-from SetupProject import SetupProject
-
 from Euclid.Platform import getBinaryDbg, getBinaryOpt
 from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryDbg, NativeMachine
-from LbConfiguration.External import CMT_version, CMake_version
-from Euclid.Version import sortStrings, ParseSvnVersion
+from Euclid.Version import ParseSvnVersion
 from Euclid.Script import SourceScript
-from Euclid.Path import multiPathGet, multiPathGetFirst, multiPathJoin
-from Euclid.Path import envPathPrepend, pathAdd
+from Euclid.Path import multiPathGet
 import logging
 import shutil
 
-__version__ = ParseSvnVersion("$Id: LbLogin.py 147640 2012-11-05 16:51:30Z marcocle $", "$URL: svn+ssh://svn.cern.ch/reps/lhcb/LbScripts/trunk/LbConfiguration/python/LbConfiguration/LbLogin.py $")
+__version__ = ParseSvnVersion("$Id$", "$URL$")
 #-----------------------------------------------------------------------------------
 # Helper functions
 
 
-def getLbLoginEnv(optionlist=None):
+def getELoginEnv(optionlist=None):
     if not optionlist :
         optionlist = []
-    s = LbLoginScript()
+    s = ELoginScript()
     s.parseOpts(optionlist)
     return s.setEnv()[0]
 
 #-----------------------------------------------------------------------------------
 # Option callbacks
-
-def _setCMTVersionCb(_option, _opt_str, value, parser):
-    if parser.values.cmtvers != value :
-        parser.values.cmtvers = value
-
-def _setCMakeVersionCb(_option, _opt_str, value, parser):
-    if parser.values.cmakevers != value :
-        parser.values.cmakevers = value
 
 def _noPythonCb(_option, _opt_str, _value, parser):
     parser.values.get_python = False
@@ -96,7 +84,7 @@ def _pythonVerCb(_option, _opt_str, value, parser):
 
 #-----------------------------------------------------------------------------------
 
-class LbLoginScript(SourceScript):
+class ELoginScript(SourceScript):
     _version = __version__
     _description = __doc__
     def __init__(self, usage=None, version=None):
@@ -148,22 +136,6 @@ class LbLoginScript(SourceScript):
                           dest="remove_userarea",
                           action="store_true",
                           help="prevent the addition of a user area [default: %default]")
-        parser.set_defaults(cmtvers=CMT_version)
-        parser.add_option("--cmtvers",
-                          action="callback",
-                          callback=_setCMTVersionCb,
-                          type="string",
-                          help="set CMT version")
-        parser.set_defaults(cmakevers=CMake_version)
-        parser.add_option("--cmakevers",
-                          action="callback",
-                          callback=_setCMakeVersionCb,
-                          type="string",
-                          help="set CMake version")
-        parser.set_defaults(scriptsvers=None)
-        parser.add_option("--scripts-version",
-                          dest="scriptsvers",
-                          help="version of LbScripts to be setup [default: %default]")
         parser.set_defaults(usedevarea=False)
         parser.add_option("--dev",
                           dest="usedevarea",
@@ -186,28 +158,6 @@ class LbLoginScript(SourceScript):
                           dest="sharedarea",
                           help="set the shared area",
                           fallback_env="VO_LHCB_SW_DIR")
-        parser.set_defaults(no_compat=False)
-        parser.add_option("--no-compat",
-                          dest="no_compat",
-                          action="store_true",
-                          help="prevent the usage of the Compat project in SetupProject[default: %default]")
-        parser.add_option("--use-compat",
-                          dest="no_compat",
-                          action="store_false",
-                          help="add the usage of the Compat project in SetupProject")
-        parser.set_defaults(compat_prepend=None)
-        parser.add_option("--compat-prepend",
-                          dest="compat_prepend",
-                          action="store_true",
-                          help="(internal) Prepend the Compat env to the script env[default: %default]")
-        parser.add_option("--no-compat-prepend",
-                          dest="compat_prepend",
-                          action="store_false",
-                          help="(internal) prevent the usage of the Compat env in the script")
-        parser.set_defaults(compat_version="v*")
-        parser.add_option("--compat-version",
-                          dest="compat_version",
-                          help="Set the vesion of the Compat project to use [default %default")
         parser.set_defaults(strip_path=True)
         parser.add_option("--no-strip-path",
                           dest="strip_path",
@@ -222,15 +172,6 @@ class LbLoginScript(SourceScript):
                           action="callback",
                           callback=_userAreaScriptsCb,
                           help="Enable the usage of the user release area for the setup of the scripts. Use with care. [default: %default]")
-        parser.set_defaults(use_cmtextratags=False)
-        parser.add_option("--dont-use-cmtextratags",
-                          dest="use_cmtextratags",
-                          action="store_false",
-                          help="prevent the usage of CMTEXTRATAGS during the LbScripts setup [default]")
-        parser.add_option("--use-cmtextratags",
-                          dest="use_cmtextratags",
-                          action="store_true",
-                          help="use CMTEXTRATAGS during the LbScripts setup")
 
 #-----------------------------------------------------------------------------------
 
@@ -570,151 +511,15 @@ class LbLoginScript(SourceScript):
 
         self.setHomeDir()
 
-        use_project_path = False
 
-        if ev.has_key("CMTPROJECTPATH") :
-            use_project_path = True
-        elif opts.cmtvers.find("v1r20") != -1 :
-            use_project_path = True
-
-        if opts.cmtsite != "standalone" :
-            if use_project_path :
-                if ev.has_key("CMTPATH") :
-                    del ev["CMTPATH"]
-                if not opts.remove_userarea and ev.has_key("User_release_area") :
-                    ev["CMTPROJECTPATH"] = os.pathsep.join([ev["User_release_area"], ev["LHCBPROJECTPATH"]])
-                else :
-                    ev["CMTPROJECTPATH"] = ev["LHCBPROJECTPATH"]
-                log.debug("CMTPROJECTPATH is set to %s" % ev["CMTPROJECTPATH"])
-            else :
-                if ev.has_key("CMTPROJECTPATH") :
-                    del ev["CMTPROJECTPATH"]
-                if not opts.remove_userarea and ev.has_key("User_release_area"):
-                    ev["CMTPATH"] = ev["User_release_area"]
-                    log.debug("CMTPATH is set to %s" % ev["CMTPATH"])
-
-    def setExtraTags(self):
-        """
-        setup the canonical CMTEXTRATAGS environment variable that has to be used
-        by "SetupProject LbScripts". By default and unless specified on the command line
-        only "NO_PYTHON_LIBPATH" is passed.
-        """
-        opts = self.options
-        log  = logging.getLogger()
-        if opts.use_cmtextratags :
-            if "CMTEXTRATAGS" in os.environ.keys() :
-                extra_args_list = os.environ["CMTEXTRATAGS"].replace(",", " ").split()
-                extra_args_list.append("NO_PYTHON_LIBPATH")
-                # according to the documentation tags are space separated.
-                # but "," do work as well.
-                os.environ["CMTEXTRATAGS"] = " ".join(extra_args_list)
-            else :
-                os.environ["CMTEXTRATAGS"] = "NO_PYTHON_LIBPATH"
+        if ev.has_key("CMTPATH") :
+            del ev["CMTPATH"]
+        if not opts.remove_userarea and ev.has_key("User_release_area") :
+            ev["CMTPROJECTPATH"] = os.pathsep.join([ev["User_release_area"], ev["LHCBPROJECTPATH"]])
         else :
-            os.environ["CMTEXTRATAGS"] = "NO_PYTHON_LIBPATH"
+            ev["CMTPROJECTPATH"] = ev["LHCBPROJECTPATH"]
+        log.debug("CMTPROJECTPATH is set to %s" % ev["CMTPROJECTPATH"])
 
-        log.debug("CMTEXTRATAGS is set to %s" % os.environ.get("CMTEXTRATAGS", None))
-
-    def setupCompat(self):
-        """ preset the compat entries before the call to SetupProject """
-        log = logging.getLogger()
-        ev = self.Environment()
-        opts = self.options
-        log.debug("Trying to prepend the Compat project")
-
-        if ev.has_key("LHCBRELEASES") :
-
-            compat_dir = multiPathGetFirst(ev["LHCBRELEASES"], "COMPAT")
-
-            if compat_dir :
-                lastver = None
-                if (not opts.compat_version) or opts.compat_version == "v*" :
-                    compat_lst = [ x for x in os.listdir(compat_dir) if x.startswith("COMPAT_") ]
-                    if compat_lst :
-                        lastver = sortStrings(compat_lst, safe=True)[-1]
-                else :
-                    lastver = "COMPAT_%s" % opts.compat_version
-                if lastver :
-                    compat_rel = os.path.join(compat_dir, lastver)
-                    compat_lib = os.path.join(compat_rel, "CompatSys", ev["CMTOPT"], "lib")
-                    if sys.platform != "win32" :
-                        compat_bin = os.path.join(compat_rel, "CompatSys", ev["CMTOPT"], "bin")
-                        envPathPrepend("PATH", compat_bin)
-                        envPathPrepend("LD_LIBRARY_PATH", compat_lib)
-                        log.debug("Internal %s is set to %s" % ("LD_LIBRARY_PATH", os.environ["LD_LIBRARY_PATH"]))
-                    else :
-                        envPathPrepend("PATH", compat_lib)
-                    log.debug("Internal %s is set to %s" % ("PATH", os.environ["PATH"]))
-
-
-    def setupLbScripts(self):
-        """ Call to SetupProject with LbScripts and python """
-        log = logging.getLogger()
-        opts = self.options
-        ev = self.Environment()
-        log.debug("Setting up LbScripts and appending to the output")
-        for var in ev.keys() :
-            os.environ[var] = ev[var]
-
-        log.debug("%s is set to %s" % ("PATH", ev.get("PATH", "")))
-        if sys.platform != "win32" :
-            log.debug("%s is set to %s" % ("LD_LIBRARY_PATH", ev.get("LD_LIBRARY_PATH", "")))
-
-
-        setupprojargs = []
-        # needed for the deployment: otherwise the cache is not generated
-        setupprojargs.append("--ignore-not-ready")
-        if opts.log_level == "DEBUG" :
-            setupprojargs.append("--debug")
-        if opts.log_level == "CRITICAL" :
-            setupprojargs.append("--silent")
-        if not opts.user_area_scripts :
-            setupprojargs.append("--no-user-area")
-        if opts.usedevarea :
-            setupprojargs.append("--dev")
-        setupprojargs.append("--disable-CASTOR")
-        setupprojargs.append("--no-touch-logfile")
-        if self.output_name :
-            setupprojargs.append("--append=%s" % self.output_name)
-        setupprojargs.append("--shell=%s" % self.targetShell())
-        setupprojargs.append("LbScripts")
-        if opts.scriptsvers :
-            setupprojargs.append(opts.scriptsvers)
-        if opts.get_python :
-            setupprojargs.append("--runtime-project")
-            setupprojargs.append("LCGCMT")
-            if ev["CMTCONFIG"].startswith("win32_vc71") :
-                setupprojargs.append("5[0-8]*")
-            setupprojargs.append("Python")
-            if opts.pythonvers :
-                setupprojargs.append("-v")
-                setupprojargs.append(opts.pythonvers)
-        if not opts.no_compat :
-            setupprojargs.append("--runtime-project")
-            setupprojargs.append("COMPAT")
-            setupprojargs.append("--use")
-            setupprojargs.append("CompatSys %s" % opts.compat_version)
-
-
-        log.debug("Arguments to SetupProject: %s" % " ".join(setupprojargs))
-#            self.setExtraTags()
-
-
-        if opts.compat_prepend is None :
-            try :
-                SetupProject().main(setupprojargs)
-            except ImportError:
-                log.debug("SetupProject failed. Retrying with Compat prepended")
-                self.setupCompat()
-                SetupProject().main(setupprojargs)
-        else :
-            if opts.compat_prepend :
-                self.setupCompat()
-            SetupProject().main(setupprojargs)
-
-        log.debug("%s is set to %s" % ("PATH", ev.get("PATH", "")))
-        if sys.platform != "win32" :
-            log.debug("%s is set to %s" % ("LD_LIBRARY_PATH", ev.get("LD_LIBRARY_PATH", "")))
 
     def copyEnv(self):
         ev = self.Environment()
@@ -733,7 +538,6 @@ class LbLoginScript(SourceScript):
 
         self.setCMTConfig(debug)
         self.setCMTPath()
-        self.setupCompat()
 
         # this is use internally by the 'lcg-' compiler wrapper.
         self.setLCGhostos()
@@ -747,10 +551,7 @@ class LbLoginScript(SourceScript):
         opts = self.options
         if opts.log_level != "CRITICAL" :
             self.addEcho("*" * 80)
-            if opts.scriptsvers :
-                self.addEcho("*" + ("---- LHCb Login %s ----" % opts.scriptsvers).center(78) + "*")
-            else :
-                self.addEcho("*" + "---- LHCb Login ----".center(78) + "*")
+            self.addEcho("*" + "---- Euclid Login ----".center(78) + "*")
             if self.binary :
                 self.addEcho("*" + ("Building with %s on %s %s system (%s)" % (self.compdef, self.platform, self.binary, ev["CMTCONFIG"])).center(78) + "*")
             else : # for windows
@@ -782,11 +583,9 @@ class LbLoginScript(SourceScript):
 
         self.flush()
 
-        self.setupLbScripts()
-
         return 0
 
 
 if __name__ == '__main__':
-    sys.exit(LbLoginScript(usage="%prog [options] [debug]").run())
+    sys.exit(ELoginScript(usage="%prog [options] [debug]").run())
 
