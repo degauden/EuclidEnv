@@ -50,7 +50,6 @@ from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryDbg, NativeMachine
 from Euclid.Version import ParseSvnVersion
 from Euclid.Script import SourceScript
-from Euclid.Path import multiPathGet
 import logging
 import shutil
 
@@ -371,39 +370,6 @@ class ELoginScript(SourceScript):
             if opts.cmtsite == "LOCAL" :
                 opts.mysiteroot = os.pathsep.join(opts.sharedarea.split(os.pathsep))
 
-    def getLocalCompilers(self, platform, binary):
-        compilers = []
-        ev = self.Environment()
-        log = logging.getLogger()
-        if sys.platform != "win32" :
-            if platform == "amd64" :
-                platform = "x86_64"
-            if platform == "ia32" :
-                platform = "i686"
-            log.debug("Getting gcc main location")
-            for d in multiPathGet(ev["LCG_external_area"], "gcc", alloccurences=True) :
-                for v in os.listdir(d) :
-                    gccversloc = os.path.join(d, v)
-                    for p in os.listdir(gccversloc) :
-                        if p.find(os.sep + "%s-%s" % (binary, platform) + os.sep) != -1 :
-                            compilers.append(os.path.join(gccversloc, p))
-                            log.debug("Found compiler: %s" % os.path.join(gccversloc, p))
-        return compilers
-
-    def selectCompiler(self, platform, binary):
-        log = logging.getLogger()
-        local_compilers = self.getLocalCompilers(platform, binary)
-        selected_compilers = []
-        for c in local_compilers :
-            if platform == "slc5" :
-                if c.find(os.sep + "4.3") :
-                    selected_compilers.append(c)
-        if selected_compilers :
-            selected_compilers.sort()
-            selected_compilers.reverse()
-        if selected_compilers and platform == "slc5" :
-            log.debug("Selected gcc 4.3 @ %s" % selected_compilers[0])
-        return selected_compilers
 
 
     def getWildCardCMTConfig(self, wildcard=None, debug=False):
