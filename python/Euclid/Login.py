@@ -23,17 +23,6 @@ except NameError :
 _pyconf_dir = os.path.dirname(_this_file)
 _py_dir = os.path.dirname(_pyconf_dir)
 _base_dir = os.path.dirname(_py_dir)
-_ia_dir = _base_dir
-_iapy_dir = os.path.join(_ia_dir, "python")
-
-# added the installarea if I am called from the local package
-if os.path.basename(_base_dir) != "InstallArea" :
-    _ia_dir = os.path.join(os.path.dirname(_base_dir), "InstallArea")
-    _iapy_dir = os.path.join(_ia_dir, "python")
-    if os.path.isdir(_iapy_dir) :
-        sys.path.insert(0, _iapy_dir)
-
-_lbs_home_dir = os.path.dirname(_ia_dir)
 
 # updating the sys.path for the bare minimum of the available scripts
 sys.path.insert(0, _pyconf_dir)
