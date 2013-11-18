@@ -219,7 +219,6 @@ class ELoginScript(SourceScript):
 
     def setHomeDir(self):
         ev = self.Environment()
-        opts = self.options
         log = logging.getLogger()
         if sys.platform == "win32" and not ev.has_key("HOME") :
             ev["HOME"] = os.path.join(ev["HOMEDRIVE"], ev["HOMEPATH"])
@@ -240,21 +239,6 @@ class ELoginScript(SourceScript):
                 f.close()
             except IOError:
                 log.warning("Can't create the file %s" % rhostfile)
-        # remove any .cmtrc file stored in the $HOME directory
-        cmtrcfile = os.path.join(homedir, ".cmtrc")
-        if os.path.exists(cmtrcfile) :
-            os.remove(cmtrcfile)
-            log.debug("Removing %s" % cmtrcfile)
-        # to work with rootd the .rootauthrc file is required
-        rootrcfile = os.path.join(homedir, ".rootauthrc")
-        if not os.path.exists(rootrcfile) and opts.cmtsite != "standalone" :
-            srcrootrcfile = os.path.join(_lbs_home_dir, "LbConfiguration", "data", ".rootauthrc")
-            if os.path.exists(srcrootrcfile) :
-                try :
-                    shutil.copy(srcrootrcfile, rootrcfile)
-                    log.debug("Copying %s to %s" % (srcrootrcfile, rootrcfile))
-                except IOError :
-                    log.warning("Failed to copy %s to %s" % (srcrootrcfile, rootrcfile) )
 
         if sys.platform != "win32" and self.targetShell() == "sh" and ev.has_key("HOME"):
             hprof = os.path.join(ev["HOME"], ".bash_profile")
