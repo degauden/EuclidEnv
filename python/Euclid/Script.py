@@ -110,13 +110,22 @@ class PlainScript:
     def addProfileOpts(self):
         """ Define the common profiling options """
         parser = self.parser
-        parser.add_option("--profile", action="store_true", dest="profile", help="Enable profiling of the script")
-        parser.add_option("--prof-maxlines", type="int", dest="profmaxlines", default=100,
+        parser.add_option("--profile", action="store_true", 
+                          dest="profile", 
+                          help="Enable profiling of the script")
+        parser.add_option("--prof-maxlines", 
+                          type="int", 
+                          dest="profmaxlines", 
+                          default=100,
                           help="Set the maximum lines of profiling to print out")
-        parser.add_option("--prof-sortby", type="choice", choices=["stdname", "calls", "time", "cumulative"],
+        parser.add_option("--prof-sortby", 
+                          type="choice", 
+                          choices=["stdname", "calls", "time", "cumulative"],
                           dest="profsortby", default="cumulative",
                           help="Specify the sort order for the statitics. Possibilities are: stdname, calls, time, cumulative")
-        parser.add_option("--prof-dump", type="string", dest="profdump",
+        parser.add_option("--prof-dump", 
+                          type="string", 
+                          dest="profdump",
                           help="Dumps the statistics to the file file specified instead of displaying them")
 
 class ConfigScript(PlainScript):
@@ -271,11 +280,22 @@ class SourceScript(Script):
         parser.add_option("--output", action="callback", metavar="FILE",
                           type="string", callback=_check_output_options_cb,
                           help="(internal) output the command to set up the environment to the given file instead of stdout")
+        parser.set_defaults(shell_only=False)
+        parser.add_option("--shell-only",
+                          dest="shell_only",
+                          action="store_true",
+                          help="calls only the shell part. ie: not the environment variables")
     def flush(self):
         opts = self.options
-        self._write_script(self._env.gen_script(opts.targetshell)
-                           + self._aliases.gen_script(opts.targetshell)
-                           + self.extra())
+        
+        out = ""
+        if not opts.shell_only :
+            out += self._env.gen_script(opts.targetshell) 
+        out += self._aliases.gen_script(opts.targetshell)    
+        out += self.extra()
+        
+        self._write_script(out)
+
     def Environment(self):
         return self._env
     def Aliases(self):
