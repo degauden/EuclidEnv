@@ -95,7 +95,6 @@ class ELoginScript(SourceScript):
         self.binary = ""
         self.compdef = ""
         self._nativemachine = None
-        self._currentcmtroot = os.environ.get("CMTROOT", None)
         self._triedlocalsetup = False
         self._triedAFSsetup = False
 
@@ -105,24 +104,15 @@ class ELoginScript(SourceScript):
     def defineOpts(self):
         """ define commandline options """
         parser = self.parser
-        parser.set_defaults(mysiteroot=None)
-        parser.add_option("-m", "--mysiteroot",
-                          dest="mysiteroot",
-                          help="set MYSITEROOT.")
-        parser.set_defaults(cmtsite=None)
-        parser.add_option("--cmtsite",
-                          dest="cmtsite",
-                          help="set the CMTSITE.",
-                          fallback_env="CMTSITE")
-        parser.set_defaults(cmtconfig=None)
-        parser.add_option("-c", "--cmtconfig",
-                          dest="cmtconfig",
-                          help="set CMTCONFIG.",
-                          fallback_env="CMTCONFIG")
-        parser.set_defaults(wcmtconfig=None)
-        parser.add_option("-w", "--wildcard-cmtconfig",
-                          dest="wcmtconfig",
-                          help="choose the first CMTCONFIG that match the string in the list of supported ones")
+        parser.set_defaults(binary_tag=None)
+        parser.add_option("-b", "--binary-tag",
+                          dest="binary_tag",
+                          help="set BINARY_TAG.",
+                          fallback_env="BINARY_TAG")
+        parser.set_defaults(wbinary_tag=None)
+        parser.add_option("-w", "--wildcard-binary-tag",
+                          dest="wbinary_tag",
+                          help="choose the first BINARY_TAG that match the string in the list of supported ones")
         parser.set_defaults(userarea=None)
         parser.add_option("-u", "--userarea",
                           dest="userarea",
@@ -194,15 +184,7 @@ class ELoginScript(SourceScript):
 
 
 #-----------------------------------------------------------------------------------
-# Core CMT business
 
-    def setCMTBin(self):
-        log = logging.getLogger()
-        ev = self.Environment()
-        if not self._nativemachine :
-            self._nativemachine = NativeMachine()
-        ev["CMTBIN"] = self._nativemachine.CMTSystem()
-        log.debug("CMTBIN is set to %s" % ev["CMTBIN"])
 
     def hasCommand(self, cmd):
         hascmd = False
@@ -212,22 +194,6 @@ class ELoginScript(SourceScript):
             hascmd = True
         return hascmd
 
-    def setCMTSystem(self):
-        log = logging.getLogger()
-        ev = self.Environment()
-        if sys.platform != "win32" :
-            system = ev["CMTBIN"]
-        else :
-            if ev.has_key("CMTCONFIG") :
-                system = ev["CMTCONFIG"]
-            else :
-                system = ev["CMTBIN"]
-        log.debug("CMT system is set to %s" % system)
-        return system
-
-
-
-#-----------------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------------
 
@@ -237,22 +203,11 @@ class ELoginScript(SourceScript):
         if sys.platform == "win32" and not ev.has_key("HOME") :
             ev["HOME"] = os.path.join(ev["HOMEDRIVE"], ev["HOMEPATH"])
             log.debug("Setting HOME to %s" % ev["HOME"])
-        homedir = ev["HOME"]
-        rhostfile = os.path.join(homedir, ".rhosts")
         if sys.platform != "win32" :
             username = ev["USER"]
         else :
             username = ev["USERNAME"]
         log.debug("User name is %s" % username)
-        if not os.path.exists(rhostfile) and sys.platform != "win32" :
-            self.addEcho("Creating a %s file to use CMT" % rhostfile)
-            self.addEcho("Joel.Closier@cern.ch")
-            try :
-                f = open(rhostfile, "w")
-                f.write("+ %s\n" % username)
-                f.close()
-            except IOError:
-                log.warning("Can't create the file %s" % rhostfile)
 
         if sys.platform != "win32" and self.targetShell() == "sh" and ev.has_key("HOME"):
             hprof = os.path.join(ev["HOME"], ".bash_profile")
@@ -291,7 +246,6 @@ class ELoginScript(SourceScript):
         log = logging.getLogger()
         opts = self.options
         ev = self.Environment()
-        al = self.Aliases()
         if not opts.remove_userarea :
             newdir = False
             if not opts.userarea :
@@ -335,50 +289,28 @@ class ELoginScript(SourceScript):
                     self.addEcho(" --- a new cmtuser directory has been created in your HOME directory")
                 except IOError:
                     log.warning("Can't create %s" % opts.userarea)
-            if opts.cmtsite == "CERN" and sys.platform != "win32" and self.hasCommand("fs"):
-                if newdir :
-                    try :
-                        os.system("fs setacl %s system:anyuser l" % opts.userarea)
-                        os.system("fs setacl %s cern:z5 rl" % opts.userarea)
-                    except IOError:
-                        log.warning("Can't change ACL of %s" % opts.userarea)
-                    self.addEcho(" --- with LHCb public access (readonly)")
-                    self.addEcho(" --- use mkprivate to remove public access to the current directory")
-                    self.addEcho(" --- use mkpublic to give public access to the current directory")
-                al["mkprivate"] = "find . -type d -print -exec fs setacl {} system:anyuser l \\; ; find . -type d -print -exec fs setacl {} cern:z5 l \\;"
-                al["mkpublic"] = "find . -type d -print -exec fs setacl {} system:anyuser l \\; ; find . -type d -print -exec fs setacl {} cern:z5 rl \\;"
         elif ev.has_key("User_release_area") :
             del ev["User_release_area"]
             log.debug("Removed User_release_area from the environment")
 
-    def setSharedArea(self):
-        opts = self.options
-        if opts.sharedarea :
-            opts.mysiteroot = os.pathsep.join(opts.sharedarea.split(os.pathsep))
 
 
-
-    def getWildCardCMTConfig(self, wildcard=None, debug=False):
+    def getWildCardBinaryTag(self, wildcard=None, debug=False):
         """
-        returns the best matched CMTCONFIG for the wilcard string
-        @param wildcard: text to be look for in the CMTCONFIG
+        returns the best matched BINARY_TAG for the wilcard string
+        @param wildcard: text to be look for in the BINARY_TAG
         @type wildcard: string
-        @param debug: if the searched list includes also the dbg CMTCONFIG
+        @param debug: if the searched list includes also the dbg BINARY_TAG
         @type debug: boolean
         """
-        opts = self.options
         log = logging.getLogger()
         theconf = None
-        supported_configs = self._nativemachine.CMTSupportedConfig(debug=debug)
-        if opts.cmtsite == "CERN" :
-            # every platform with a descent python at CERN
-            supconf = self._nativemachine.CMTCompatibleConfig(debug=debug)
-        else :
-            # restriction on supported CONFIG for LOCAL use
-            supconf = supported_configs
+        supported_configs = self._nativemachine.supportedBinaryTag(debug=debug)
+        
+        supconf = supported_configs
 
         if wildcard :
-            log.debug("Looking for %s in the list of selected CMTCONFIGs." % wildcard)
+            log.debug("Looking for %s in the list of selected BINARY_TAGs." % wildcard)
             supconf = [ c for c in supconf if wildcard in c ]
 
         if supconf :
@@ -391,32 +323,32 @@ class ELoginScript(SourceScript):
 
         return theconf
 
-    def setCMTConfig(self, debug=False):
+    def setBinaryTag(self, debug=False):
         ev = self.Environment()
         opts = self.options
         log = logging.getLogger()
         self.binary = None
         self.platform = None
         self.compdef = None
-        if not opts.wcmtconfig :
-            if opts.cmtconfig :
-                log.debug("Using provided CMTCONFIG %s" % opts.cmtconfig)
-                theconf = opts.cmtconfig
+        if not opts.wbinary_tag :
+            if opts.binary_tag :
+                log.debug("Using provided BINARY_TAG %s" % opts.binary_tag)
+                theconf = opts.binary_tag
             else :
-                log.debug("Guessing CMTCONFIG")
-                theconf = self.getWildCardCMTConfig(debug=debug)
+                log.debug("Guessing BINARY_TAG")
+                theconf = self.getWildCardBinaryTag(debug=debug)
                 if not theconf :
-                    log.debug("Falling back on the native CMTCONFIG")
-                    theconf = self._nativemachine.CMTNativeConfig(debug=debug)
+                    log.debug("Falling back on the native BINARY_TAG")
+                    theconf = self._nativemachine.nativeBinaryTag(debug=debug)
         else :
-            theconf = self.getWildCardCMTConfig(wildcard=opts.wcmtconfig, debug=True)
+            theconf = self.getWildCardBinaryTag(wildcard=opts.wbinary_tag, debug=True)
             if not theconf :
-                if opts.cmtconfig :
-                    log.debug("Falling back on the previous CMTCONFIG")
-                    theconf = opts.cmtconfig
+                if opts.binary_tag :
+                    log.debug("Falling back on the previous BINARY_TAG")
+                    theconf = opts.binary_tag
                 else :
-                    log.debug("Falling back on the native CMTCONFIG")
-                    theconf = self._nativemachine.CMTNativeConfig(debug=debug)
+                    log.debug("Falling back on the native BINARY_TAG")
+                    theconf = self._nativemachine.nativeBinaryTag(debug=debug)
 
         if theconf :
             if isBinaryDbg(theconf) :
@@ -424,27 +356,14 @@ class ELoginScript(SourceScript):
             self.binary = getArchitecture(theconf)
             self.platform = getPlatformType(theconf)
             self.compdef = getCompiler(theconf)
-            opts.cmtconfig = theconf
-
-
-        ev["PYTHON_BINOFFSET"] = os.sep + "bin"
-
-        if self.platform == "win32" :
-            ev["PYTHON_BINOFFSET"] = ""
-
-        ev["CMTOPT"] = getBinaryOpt(theconf)
-        log.debug("CMTOPT is set to %s" % ev["CMTOPT"])
-
-        ev["CMTDEB"] = getBinaryDbg(theconf)
-        log.debug("CMTDEB is set to %s" % ev["CMTDEB"])
+            opts.binary_tag = theconf
 
 
         if debug or sys.platform == "win32" :
-            ev["CMTCONFIG"] = ev["CMTDEB"]
-            log.debug("CMTDEB is set to %s" % ev["CMTDEB"])
+            ev["BINARY_TAG"] = getBinaryDbg(theconf)
         else :
-            ev["CMTCONFIG"] = ev["CMTOPT"]
-        log.debug("CMTCONFIG is set to %s" % ev["CMTCONFIG"])
+            ev["BINARY_TAG"] = getBinaryOpt(theconf)
+        log.debug("BINARY_TAG is set to %s" % ev["BINARY_TAG"])
 
     def setLCGhostos(self):
         '''
@@ -452,9 +371,9 @@ class ELoginScript(SourceScript):
         '''
         ev = self.Environment()
         nm = self._nativemachine
-        # we take only the first two elements of the native CMTCONFIG, e.g.
+        # we take only the first two elements of the native BINARY_TAG, e.g.
         #  x86_64-slc5-gcc46-opt -> x86_64-slc5
-        ev['LCG_hostos'] = '-'.join(nm.CMTNativeConfig().split('-')[:2])
+        ev['LCG_hostos'] = '-'.join(nm.nativeBinaryTag().split('-')[:2])
 
     def setCMTPath(self):
         ev = self.Environment()
@@ -486,9 +405,7 @@ class ELoginScript(SourceScript):
         log.debug("Entering the environment setup")
         self.setPath()
 
-        self.setSharedArea()
-
-        self.setCMTConfig(debug)
+        self.setBinaryTag(debug)
         self.setCMTPath()
 
         # this is use internally by the 'lcg-' compiler wrapper.
@@ -517,9 +434,9 @@ class ELoginScript(SourceScript):
             self.addEcho("*" * 80)
             self.addEcho("*" + "---- Euclid Login ----".center(78) + "*")
             if self.binary :
-                self.addEcho("*" + ("Building with %s on %s %s system (%s)" % (self.compdef, self.platform, self.binary, ev["CMTCONFIG"])).center(78) + "*")
+                self.addEcho("*" + ("Building with %s on %s %s system (%s)" % (self.compdef, self.platform, self.binary, ev["BINARY_TAG"])).center(78) + "*")
             else : # for windows
-                self.addEcho("*" + ("Building with %s on %s system (%s)" % (self.compdef, self.platform, ev["CMTCONFIG"])).center(78) + "*")
+                self.addEcho("*" + ("Building with %s on %s system (%s)" % (self.compdef, self.platform, ev["BINARY_TAG"])).center(78) + "*")
             self.addEcho("*" * 80)
             if ev.has_key("CMTPATH") :
                 self.addEcho(" --- CMTPATH is set to %s" % ev["CMTPATH"])

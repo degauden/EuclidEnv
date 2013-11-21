@@ -38,26 +38,26 @@ def isBinaryOpt(binary_tag):
 
 def getBinaryDbg(binary_tag):
     """ convert BINARY_TAG to debug """
-    cmtdbg = binary_tag
+    btdbg = binary_tag
     if not isBinaryDbg(binary_tag) :
         if isNewStyleBinary(binary_tag) :
             if binary_tag.endswith("-opt") :
-                cmtdbg = "-".join(binary_tag.split("-")[:-1]) + "-dbg"
+                btdbg = "-".join(binary_tag.split("-")[:-1]) + "-dbg"
             else :
-                cmtdbg += "-dbg"
+                btdbg += "-dbg"
         else :
-            cmtdbg += "_dbg"
-    return cmtdbg
+            btdbg += "_dbg"
+    return btdbg
 
 def getBinaryOpt(binary_tag):
     """ convert BINARY_TAG to optimized """
-    cmtopt = binary_tag
+    btopt = binary_tag
     if isBinaryDbg(binary_tag) :
         if isNewStyleBinary(binary_tag) :
-            cmtopt = "-".join(binary_tag.split("-")[:-1]) + "-opt"
+            btopt = "-".join(binary_tag.split("-")[:-1]) + "-opt"
         else :
-            cmtopt = "_".join(binary_tag.split("_")[:-1])
-    return cmtopt
+            btopt = "_".join(binary_tag.split("_")[:-1])
+    return btopt
 
 def getCompiler(binary_tag):
     """ extract compiler from BINARY_TAG """
@@ -108,7 +108,7 @@ def getArchitecture(binary_tag):
                 architecture = "i686"
     return architecture
 
-def getConfig(architecture, platformtype, compiler, debug=False):
+def getBinaryTag(architecture, platformtype, compiler, debug=False):
     binary_tag = None
     if platformtype.startswith("win") :
         if compiler :
@@ -481,7 +481,7 @@ class NativeMachine:
                     self._compiler = None
         return self._compiler
     # CMT derived informations
-    def CMTArchitecture(self):
+    def architecture(self):
         """ returns the CMT architecture """
         arch = "ia32"
         if re.compile('i\d86').match(self.machine()) :
@@ -510,7 +510,7 @@ class NativeMachine:
                 cmtsystem = "%s-%s" % (self.OSType(), self.machine())
         return cmtsystem
 
-    def CMTOSFlavour(self):
+    def binaryOSFlavour(self):
         """ returns the CMT short name for the OS flavour and version """
         cmtflavour = None
         if self.OSType() == "Windows" :
@@ -529,19 +529,19 @@ class NativeMachine:
                         cmtflavour = f + self.OSVersion(position=1)
         return cmtflavour
 
-    def CMTOSEquivalentFlavour(self):
+    def OSEquivalentFlavour(self):
         """ returns the CMT short name for the OS compatible flavour and version """
         cmtflavour = None
         for f in flavor_runtime_equivalence :
-            if self.CMTOSFlavour() in flavor_runtime_equivalence[f] :
+            if self.binaryOSFlavour() in flavor_runtime_equivalence[f] :
                 cmtflavour = f
                 break
         return cmtflavour
 
-    def CMTCompatibleConfig(self, debug=False):
-        """ return the list of compatible CMT configs """
+    def compatibleBinaryTag(self, debug=False):
+        """ return the list of compatible binary tags """
         compatibles = []
-        equiv = self.CMTOSEquivalentFlavour()
+        equiv = self.OSEquivalentFlavour()
         machine = self.machine()
         if equiv in flavor_runtime_compatibility :
             for f in flavor_runtime_compatibility[equiv] :
@@ -554,29 +554,29 @@ class NativeMachine:
                     if nc :
                         allcomp.append(nc)
                     for c in allcomp :
-                        n = getConfig(m, f, c, debug=False)
+                        n = getBinaryTag(m, f, c, debug=False)
                         if n not in compatibles :
                             compatibles.append(n)
                         if debug :
-                            n = getConfig(m, f, c, debug=True)
+                            n = getBinaryTag(m, f, c, debug=True)
                             if n not in compatibles :
                                 compatibles.append(n)
 
         return compatibles
 
-    def CMTSupportedConfig(self, debug=False):
+    def supportedBinaryTag(self, debug=False):
         """
-        returns the list of supported CMT configs among the compatible ones. This
+        returns the list of supported binary tags among the compatible ones. This
         means the ones which are shipped and usable on a local site.
         @param debug: if True returns also the debug configs. Otherwise only the opt ones.
         """
-        compatibles = self.CMTCompatibleConfig(debug)
+        compatibles = self.compatibleBinaryTag(debug)
         supported = []
         for c in compatibles :
             if c in binary_list and c not in supported:
                 supported.append(c)
         return supported
-    def CMTNativeConfig(self, debug=False):
+    def nativeBinaryTag(self, debug=False):
         """
         Returns the native configuration if possible. Guess also the compiler
         on linux platforms
@@ -584,8 +584,8 @@ class NativeMachine:
         """
         comp = self.nativeCompiler()
         mach = self.machine()
-        osflav = self.CMTOSFlavour()
-        natconf = getConfig(architecture=mach, platformtype=osflav,
+        osflav = self.binaryOSFlavour()
+        natconf = getBinaryTag(architecture=mach, platformtype=osflav,
                             compiler=comp, debug=debug)
         return natconf
     def DiracPlatform(self):
