@@ -67,23 +67,6 @@ def getELoginExtra(optionlist=None):
     s.parseOpts(optionlist)
     return s.setEnv()[2]
 
-
-#-----------------------------------------------------------------------------------
-# Option callbacks
-
-def _noPythonCb(_option, _opt_str, _value, parser):
-    parser.values.get_python = False
-
-def _userAreaScriptsCb(_option, _opt_str, _value, parser):
-    parser.values.user_area_scripts = True
-
-def _useDevCb(_option, _opt_str, _value, parser):
-    parser.values.usedevarea = True
-
-def _pythonVerCb(_option, _opt_str, value, parser):
-    parser.values.pythonvers = value
-    parser.values.get_python = True
-
 #-----------------------------------------------------------------------------------
 
 class ELoginScript(SourceScript):
@@ -123,17 +106,6 @@ class ELoginScript(SourceScript):
                           dest="remove_userarea",
                           action="store_true",
                           help="prevent the addition of a user area [default: %default]")
-        parser.set_defaults(pythonvers=None)
-        parser.add_option("--python-version",
-                          dest="pythonvers",
-                          action="callback",
-                          callback=_pythonVerCb,
-                          help="version of python to be setup [default: %default]")
-        parser.set_defaults(get_python=True)
-        parser.add_option("--no-python",
-                          action="callback",
-                          callback=_noPythonCb,
-                          help="prevents the python setup")
         parser.set_defaults(sharedarea=None)
         parser.add_option("-s", "--shared",
                           dest="sharedarea",
@@ -148,11 +120,6 @@ class ELoginScript(SourceScript):
                           dest="strip_path",
                           action="store_true",
                           help="activate the cleanup of invalid entries in pathes [default: %default]")
-        parser.set_defaults(user_area_scripts=False)
-        parser.add_option("--user-area-scripts",
-                          action="callback",
-                          callback=_userAreaScriptsCb,
-                          help="Enable the usage of the user release area for the setup of the scripts. Use with care. [default: %default]")
 #-----------------------------------------------------------------------------------
 
     def setPath(self):
