@@ -116,24 +116,13 @@ class ELoginScript(SourceScript):
         parser.set_defaults(userarea=None)
         parser.add_option("-u", "--userarea",
                           dest="userarea",
-                          help="set User_release_area.",
-                          fallback_env="User_release_area")
-        parser.set_defaults(nightlies_dir=None)
-        parser.add_option("-n", "--nightlies-dir",
-                          dest="nightlies_dir",
-                          help="set nightlies directory.",
-                          fallback_env="LHCBNIGHTLIES")
+                          help="set User_area.",
+                          fallback_env="User_area")
         parser.set_defaults(remove_userarea=False)
         parser.add_option("--no-userarea",
                           dest="remove_userarea",
                           action="store_true",
                           help="prevent the addition of a user area [default: %default]")
-        parser.set_defaults(usedevarea=False)
-        parser.add_option("--dev",
-                          dest="usedevarea",
-                          action="callback",
-                          callback=_useDevCb,
-                          help="add the LHCBDEV area for the LbScripts setup [default: %default]")
         parser.set_defaults(pythonvers=None)
         parser.add_option("--python-version",
                           dest="pythonvers",
@@ -164,7 +153,6 @@ class ELoginScript(SourceScript):
                           action="callback",
                           callback=_userAreaScriptsCb,
                           help="Enable the usage of the user release area for the setup of the scripts. Use with care. [default: %default]")
-
 #-----------------------------------------------------------------------------------
 
     def setPath(self):
@@ -249,24 +237,24 @@ class ELoginScript(SourceScript):
         if not opts.remove_userarea :
             newdir = False
             if not opts.userarea :
-                opts.userarea = os.path.join(ev["HOME"], "cmtuser") # @todo: use something different for window
-            ev["User_release_area"] = opts.userarea
-            log.debug("User_release_area is set to %s" % ev["User_release_area"])
+                opts.userarea = os.path.join(ev["HOME"], "Work") # @todo: use something different for window
+            ev["User_area"] = opts.userarea
+            log.debug("User_area is set to %s" % ev["User_area"])
 
-            rename_cmtuser = False
+            rename_cmakeuser = False
             if os.path.exists(opts.userarea) : # is a file, a directory or a valid link
                 if os.path.isfile(opts.userarea) : # is a file or a link pointing to a file
                     log.warning("%s is a file"  % opts.userarea)
-                    rename_cmtuser = True
+                    rename_cmakeuser = True
                     newdir = True
                 else : # is a directory or a link pointing to a directory. Nothing to do
                     log.debug("%s is a directory" % opts.userarea)
             else : # doesn't exist or is an invalid link
                 if os.path.islink(opts.userarea) : # broken link
                     log.warning("%s is a broken link"  % opts.userarea)
-                    rename_cmtuser = True
+                    rename_cmakeuser = True
                 newdir = True
-            if rename_cmtuser :
+            if rename_cmakeuser :
                 bak_userarea = opts.userarea + "_bak"
                 if not os.path.exists(bak_userarea) :
                     if os.path.islink(bak_userarea) :
@@ -286,12 +274,12 @@ class ELoginScript(SourceScript):
             if newdir :
                 try :
                     os.makedirs(opts.userarea)
-                    self.addEcho(" --- a new cmtuser directory has been created in your HOME directory")
+                    self.addEcho(" --- a new User_area directory has been created in your HOME directory")
                 except IOError:
                     log.warning("Can't create %s" % opts.userarea)
-        elif ev.has_key("User_release_area") :
-            del ev["User_release_area"]
-            log.debug("Removed User_release_area from the environment")
+        elif ev.has_key("User_area") :
+            del ev["User_area"]
+            log.debug("Removed User_area from the environment")
 
 
 
@@ -375,21 +363,33 @@ class ELoginScript(SourceScript):
         #  x86_64-slc5-gcc46-opt -> x86_64-slc5
         ev['LCG_hostos'] = '-'.join(nm.nativeBinaryTag().split('-')[:2])
 
-    def setCMTPath(self):
+    def setCMakePath(self):
         ev = self.Environment()
         opts = self.options
         log = logging.getLogger()
 
         self.setHomeDir()
 
+        prefix_path = [] 
 
-        if ev.has_key("CMTPATH") :
-            del ev["CMTPATH"]
-        if not opts.remove_userarea and ev.has_key("User_release_area") :
-            ev["CMTPROJECTPATH"] = os.pathsep.join([ev["User_release_area"], ev["LHCBPROJECTPATH"]])
-        else :
-            ev["CMTPROJECTPATH"] = ev["LHCBPROJECTPATH"]
-        log.debug("CMTPROJECTPATH is set to %s" % ev["CMTPROJECTPATH"])
+
+        if not opts.remove_userarea and ev.has_key("User_area") :
+            prefix_path.append(ev["User_area"])
+        
+        if opts.sharedarea :
+            ev["EUCLIDPROJECTPATH"] = opts.sharedarea
+            
+        if "EUCLIDPROJECTPATH" not in ev :
+            if os.path.exists("/opt/Euclid") :
+                ev["EUCLIDPROJECTPATH"] = "/opt/Euclid"
+                
+        if "EUCLIDPROJECTPATH" in ev :
+            prefix_path.append(ev["EUCLIDPROJECTPATH"])
+        
+        if prefix_path :
+            ev["CMAKE_PREFIX_PATH"] = os.pathsep.join(prefix_path)
+
+        log.debug("CMAKE_PREFIX_PATH is set to %s" % ev["CMAKE_PREFIX_PATH"])
 
 
     def copyEnv(self):
@@ -405,8 +405,9 @@ class ELoginScript(SourceScript):
         log.debug("Entering the environment setup")
         self.setPath()
 
+        self._nativemachine = NativeMachine()
         self.setBinaryTag(debug)
-        self.setCMTPath()
+        self.setCMakePath()
 
         # this is use internally by the 'lcg-' compiler wrapper.
         self.setLCGhostos()
@@ -419,9 +420,9 @@ class ELoginScript(SourceScript):
     def setAliases(self, debug=False):
         al = self.Aliases()
         if self.targetShell() == "sh" :
-            al["ELogin"] = ". `/usr/bin/which  ELogin.%s`" % self.targetShell()
+            al["ELogin"] = ". \\`/usr/bin/which  ELogin.%s\\`" % self.targetShell()
         else :
-            al["ELogin"] = "source `/usr/bin/which ELogin.%s`" % self.targetShell()
+            al["ELogin"] = "source \\`/usr/bin/which ELogin.%s\\`" % self.targetShell()
 
         return self.copyEnv()
 
@@ -438,28 +439,28 @@ class ELoginScript(SourceScript):
             else : # for windows
                 self.addEcho("*" + ("Building with %s on %s system (%s)" % (self.compdef, self.platform, ev["BINARY_TAG"])).center(78) + "*")
             self.addEcho("*" * 80)
-            if ev.has_key("CMTPATH") :
-                self.addEcho(" --- CMTPATH is set to %s" % ev["CMTPATH"])
-            else :
-                if ev.has_key("User_release_area") :
-                    self.addEcho(" --- User_release_area is set to %s" % ev["User_release_area"])
-                if ev.has_key("LHCBPROJECTPATH") :
-                    self.addEcho(" --- LHCBPROJECTPATH is set to:")
-                    for p in ev["LHCBPROJECTPATH"].split(os.pathsep) :
-                        if p :
-                            self.addEcho("    %s" % p)
+            if ev.has_key("User_area") :
+                self.addEcho(" --- User_area is set to %s" % ev["User_area"])
+            if ev.has_key("EUCLIDPROJECTPATH") :
+                self.addEcho(" --- EUCLIDPROJECTPATH is set to:")
+                for p in ev["EUCLIDPROJECTPATH"].split(os.pathsep) :
+                    if p :
+                        self.addEcho("    %s" % p)
 
 
             self.addEcho("-" * 80)
 
 
     def main(self):
+        opts = self.options
         debug = False
         for a in self.args :
             if a == "debug" :
                 debug = True
 
-        self.setEnv(debug)
+        if not opts.shell_only :
+            self.setEnv(debug)
+            
         self.setAliases(debug)
         self.manifest(debug)
 
