@@ -10,7 +10,7 @@ setup (name="euclidenv",
        author="Hubert Degaudenzi",
        author_email="Hubert.Degaudenzi@unige.ch",
        url="http://www.isdc.unige.ch/redmine/projects/euclidenv",
-       py_modules = ["Euclid.ConfigFile","Euclid.Env", "Euclid.Log"
+       py_modules = ["Euclid.ConfigFile","Euclid.Env", "Euclid.Log",
                      "Euclid.Login", "Euclid.Option", "Euclid.Path",
                      "Euclid.PathStripper", "Euclid.Platform",
                      "Euclid.Script", "Euclid.Version"],
