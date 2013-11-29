@@ -20,16 +20,25 @@ except NameError :
     finally :
         _ff.close()
 
-_pyconf_dir = os.path.dirname(_this_file)
-if os.path.exists(_pyconf_dir) :
-    _py_dir = os.path.dirname(_pyconf_dir)
-    sys.path.insert(0, _pyconf_dir)
-    if os.path.exists(_py_dir) :
-        _base_dir = os.path.dirname(_py_dir)
-        sys.path.insert(0, _py_dir)
+_base_dir = None
 
+# Bootstrapping the python location
+_pyeuc_dir = os.path.dirname(_this_file)
+if os.path.exists(_pyeuc_dir) :
+    _py_dir = os.path.dirname(_pyeuc_dir)
+    if os.path.basename(_pyeuc_dir) == "Euclid" :
+        if os.path.exists(_py_dir) :
+            _base_dir = os.path.dirname(_py_dir)
+            sys.path.insert(0, _py_dir)
+
+# Bootstrapping the PATH part
+_scripts_dir = None
 # needed for the cache use
-_scripts_dir = os.path.join(_base_dir, "scripts")
+if _base_dir and os.path.exists(os.path.join(_base_dir, "scripts")) :
+    _scripts_dir = os.path.join(_base_dir, "scripts")
+else : 
+    # TODO: implement the recursive parsing upward of the bin (or script) directory
+    pass
 #============================================================================
 
 
@@ -38,12 +47,17 @@ from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryDbg, NativeMachine
 from Euclid.Version import ParseSvnVersion
 from Euclid.Script import SourceScript
+from Euclid.Path import envPathPrepend
 import logging
 import shutil
 
 __version__ = ParseSvnVersion("$Id$", "$URL$")
 #-----------------------------------------------------------------------------------
 # Helper functions
+
+envPathPrepend("PYTHONPATH", _py_dir, exist_check=True)
+envPathPrepend("PATH", _scripts_dir, exist_check=True)
+
 
 
 def getELoginEnv(optionlist=None):
