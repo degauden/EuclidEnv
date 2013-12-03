@@ -1,7 +1,17 @@
 # main login script for the Euclid environment
 
-ELogin_tmpfile=`python -m Euclid.Login --shell=sh --mktemp "$@"`
-ELoginStatus="$?"
+my_own_prefix="%(this_install_prefix)s"
+
+
+if [[ -r $my_own_prefix/python/Euclid/Login.py ]]; then
+  ELogin_tmpfile=`python $my_own_prefix/python/Euclid/Login.py --shell=ssh --mktemp "$@"`
+  ELoginStatus="$?"  
+else
+  ELogin_tmpfile=`python -m Euclid.Login --shell=sh --mktemp "$@"`
+  ELoginStatus="$?"
+fi
+
+unset my_own_prefix
 
 if [[ "$ELoginStatus" = 0 && -n "$ELogin_tmpfile" ]]; then
   . $ELogin_tmpfile

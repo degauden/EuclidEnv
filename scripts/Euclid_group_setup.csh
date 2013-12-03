@@ -2,12 +2,20 @@
 if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
   if ( ! $?EUCLID_CONFIG_FILE ) then
-    set confscr=`/usr/bin/which Euclid_config.csh`
+    if ( -r ${my_own_prefix}/bin/Euclid_config.csh ) then
+      set confscr=${my_own_prefix}/bin/Euclid_config.csh
+    else
+      set confscr=`/usr/bin/which Euclid_config.csh`        
+    endif
     source ${confscr} "${*:q}" >& /dev/null
     unset confscr    
   endif
 
-  set elogscr=`/usr/bin/which Elogin.csh`
+  if ( -r ${my_own_prefix}/bin/ELogin.csh ) then
+    set elogscr=${my_own_prefix}/bin/ELogin.csh
+  else
+    set elogscr=`/usr/bin/which ELogin.csh`        
+  endif
   if ( -e ${elogscr} ) then
     
     if ( $?ELOGIN_DONE ) then
@@ -19,7 +27,11 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
       if ( ! $?EUCLID_POST_DONE ) then
         if ( $?EUCLID_POST_SCRIPT ) then
-          set epostscr=`/usr/bin/which $EUCLID_POST_SCRIPT.csh`
+          if ( -r ${my_own_prefix}/bin/${EUCLID_POST_SCRIPT}.csh ) then
+            set epostscr=${my_own_prefix}/bin/${EUCLID_POST_SCRIPT}.csh
+          else
+            set epostscr=`/usr/bin/which ${EUCLID_POST_SCRIPT}.csh`        
+          endif
           if ( -r ${epostscr} ) then
             source ${epostscr} ${*:q} >>! ${E_BANNER}
             setenv EUCLID_POST_DONE yes
