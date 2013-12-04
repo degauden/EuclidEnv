@@ -74,8 +74,11 @@ class CMTProjectPath(Path):
     def __init__(self):
         super(CMTProjectPath, self).__init__("CMTPROJECTPATH")
 
-def pathPrepend(path, dirname, exist_check=False):
+def pathPrepend(path, dirname, exist_check=False, unique=False):
     path_list = path.split(os.pathsep)
+    if unique:
+        # stripout the orginal directory.
+        path_list = [ x for x in path_list if x != dirname ]
     if exist_check :
         if os.path.exists(dirname) :
             path_list.insert(0, dirname)
@@ -83,8 +86,11 @@ def pathPrepend(path, dirname, exist_check=False):
         path_list.insert(0, dirname)
     return os.pathsep.join(path_list)
 
-def pathAppend(path, dirname, exist_check=False):
+def pathAppend(path, dirname, exist_check=False, unique=False):
     path_list = path.split(os.pathsep)
+    if unique:
+        # stripout the orginal directory.
+        path_list = [ x for x in path_list if x != dirname ]
     if exist_check :
         if os.path.exists(dirname) :
             path_list.append(dirname)
@@ -135,15 +141,15 @@ def cleanPath(path_value, normalize=False):
     return os.pathsep.join(lst)
 
 
-def envPathPrepend(pathname, dirname, env_dict=None, exist_check=False):
+def envPathPrepend(pathname, dirname, env_dict=None, exist_check=False, unique=False):
     if not env_dict :
         env_dict = os.environ
-    env_dict[pathname] = pathPrepend(env_dict[pathname], dirname, exist_check)
+    env_dict[pathname] = pathPrepend(env_dict[pathname], dirname, exist_check, unique)
 
-def envPathAppend(pathname, dirname, env_dict=None, exist_check=False):
+def envPathAppend(pathname, dirname, env_dict=None, exist_check=False, unique=False):
     if not env_dict :
         env_dict = os.environ
-    env_dict[pathname] = pathAppend(env_dict[pathname], dirname, exist_check)
+    env_dict[pathname] = pathAppend(env_dict[pathname], dirname, exist_check, unique)
 
 def multiPathJoin(path, subdir, exist_check=False):
     pathlist = []
