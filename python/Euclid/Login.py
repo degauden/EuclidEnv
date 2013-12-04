@@ -4,6 +4,10 @@
 import sys
 import os
 
+my_own_prefix="%(this_install_prefix)s"
+
+from distutils.sysconfig import get_python_lib
+python_loc=get_python_lib(prefix=my_own_prefix)
 #============================================================================
 # bootstrapping the location of the file
 try:

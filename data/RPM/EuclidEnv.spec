@@ -44,9 +44,11 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %post
+python_loc=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$RPM_INSTALL_PREFIX0'))")
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX0/bin/ELogin.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX0/bin/Euclid_group_{login,setup}.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh  
+${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Euclid/Login.py  
 
 
 %changelog
