@@ -12,7 +12,7 @@ def fixInstallPath(prefix, file_list, name="this_install_prefix"):
     for line in fileinput.input(file_list, inplace=1) :
         try:
             line = line % inst_dict
-        except TypeError:
+        except:
             pass
         sys.stdout.write(line)
 
