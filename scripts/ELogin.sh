@@ -4,7 +4,7 @@ my_own_prefix="%(this_install_prefix)s"
 
 
 if [[ -r $my_own_prefix/python/Euclid/Login.py ]]; then
-  ELogin_tmpfile=`python $my_own_prefix/python/Euclid/Login.py --shell=ssh --mktemp "$@"`
+  ELogin_tmpfile=`python $my_own_prefix/python/Euclid/Login.py --shell=sh --mktemp "$@"`
   ELoginStatus="$?"  
 else
   ELogin_tmpfile=`python -m Euclid.Login --shell=sh --mktemp "$@"`
