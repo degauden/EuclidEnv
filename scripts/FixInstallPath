@@ -10,7 +10,10 @@ import fileinput
 def fixInstallPath(prefix, file_list, name="this_install_prefix"):
     inst_dict = { name : prefix }
     for line in fileinput.input(file_list, inplace=1) :
-        line = line % inst_dict
+        try:
+            line = line % inst_dict
+        except TypeError:
+            pass
         sys.stdout.write(line)
 
 
