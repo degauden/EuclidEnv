@@ -7,7 +7,7 @@ from optparse import OptionParser, OptionValueError
 from tempfile import mkstemp
 from zipfile import is_zipfile
 
-def StripPath(path):
+def stripPath(path):
     collected = []
     for p in path.split(pathsep):
         rp = realpath(p)
@@ -20,9 +20,9 @@ def StripPath(path):
             pass
     return pathsep.join(collected)
 
-def CleanVariable(varname, shell, out):
+def cleanVariable(varname, shell, out):
     if environ.has_key(varname):
-        pth = StripPath(environ[varname])
+        pth = stripPath(environ[varname])
         if shell == "csh" or shell.find("csh") != -1 :
             out.write("setenv %s %s\n" % (varname, pth))
         elif shell == "sh" or shell.find("sh") != -1 :
@@ -77,9 +77,9 @@ if __name__ == '__main__':
 
     if options.envlist:
         for v in options.envlist :
-            CleanVariable(v, options.shell, options.output)
+            cleanVariable(v, options.shell, options.output)
 
     for a in args:
-        print StripPath(a)
+        print stripPath(a)
 
         
