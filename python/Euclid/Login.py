@@ -440,12 +440,16 @@ class ELoginScript(SourceScript):
         for a in self.args :
             if a == "debug" :
                 debug = True
-
+        # first part: the environment variables
         if not opts.shell_only :
             self.setEnv(debug)
             
+        # second part the aliases    
         self.setAliases(debug)
-        self.manifest(debug)
+
+        if not opts.shell_only :
+            # the shell-only part has to be completely silent
+            self.manifest(debug)
 
         self.flush()
 
