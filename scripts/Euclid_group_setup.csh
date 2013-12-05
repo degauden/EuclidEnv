@@ -47,6 +47,18 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
   endif
   unset elogscr
 
+
+  if ( -r ${my_own_prefix}/bin/StripPath.csh ) then
+    set stripscr=${my_own_prefix}/bin/StripPath.csh
+  else
+    set stripscr=`/usr/bin/which StripPath.csh`        
+  endif
+  
+  source ${stripscr}
+  
+  unset stripscr
+
+
   unset my_own_prefix
 
 endif

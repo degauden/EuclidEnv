@@ -45,6 +45,16 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
       
   fi
 
+  if [[ -r ${my_own_prefix}/bin/StripPath.sh ]]; then
+    stripscr=${my_own_prefix}/bin/StripPath.sh
+  else
+    stripscr=`/usr/bin/which StripPath.sh`
+  fi
+
+  . ${stripscr}
+
+  unset stripscr
+
   export ELOGIN_DONE=yes
 
   unset my_own_prefix

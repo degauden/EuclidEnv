@@ -23,4 +23,16 @@ endif
 rm -f $ELogin_tmpfile
 unset ELogin_tmpfile
 
+
+if ( -r ${my_own_prefix}/bin/StripPath.csh ) then
+  set stripscr=${my_own_prefix}/bin/StripPath.csh
+else
+  set stripscr=`/usr/bin/which StripPath.csh`
+endif
+  
+source ${stripscr}
+  
+unset stripscr
+
+
 exit $ELoginStatus
