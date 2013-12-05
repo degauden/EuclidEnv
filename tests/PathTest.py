@@ -1,5 +1,5 @@
-from LbUtils.Path import multiPathJoin, multiPathUpdate, cleanPath
-from LbUtils.Path import pathRemove
+from Euclid.Path import multiPathJoin, multiPathUpdate, cleanPath
+from Euclid.Path import pathRemove, hasCommand
 
 import unittest
 import os
@@ -48,6 +48,10 @@ class PathTestCase(unittest.TestCase):
         cmpt = ["lcg","external","Python"]
         result = "/opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v6r3/InstallArea/scripts:/opt/LHCb/lib/lcg/external/gcc/4.3.2/x86_64-slc5/bin:/opt/LHCb/lib/lhcb/COMPAT/COMPAT_v1r8/CompatSys/x86_64-slc5-gcc43-opt/bin:/opt/LHCb/lib/contrib/CMT/v1r20p20090520/Linux-x86_64"
         self.assertEqual(pathRemove(p1, cmpt), result)
+        
+    def testHasCommand(self):
+        self.assertFalse(hasCommand("ddkfhd"))
+        self.assertTrue(hasCommand("ls"))
 
 
 if __name__ == '__main__':

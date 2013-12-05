@@ -154,16 +154,6 @@ class ELoginScript(SourceScript):
 
 
 
-#-----------------------------------------------------------------------------------
-
-
-    def hasCommand(self, cmd):
-        hascmd = False
-        f = os.popen("which %s >& /dev/null" % cmd)
-        f.read()
-        if f.close() is None :
-            hascmd = True
-        return hascmd
 
 
 #-----------------------------------------------------------------------------------

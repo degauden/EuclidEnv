@@ -228,3 +228,15 @@ def isCVMFS(path):
     It works only on Linux, for other OSs it returns always false.
     """
     return _FSType(path) == "cvmfs"
+
+#-----------------------------------------------------------------------------------
+
+
+def hasCommand(cmd):
+    hascmd = False
+    f = os.popen("which %s >& /dev/null" % cmd)
+    f.read()
+    if f.close() is None :
+        hascmd = True
+    return hascmd
+
