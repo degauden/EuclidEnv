@@ -1,6 +1,8 @@
 #!/bin/csh
 if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
+  set my_own_prefix = "%(this_install_prefix)s"
+
   if ( ! $?EUCLID_CONFIG_FILE ) then
     if ( -r ${my_own_prefix}/bin/Euclid_config.csh ) then
       set confscr=${my_own_prefix}/bin/Euclid_config.csh
@@ -44,6 +46,8 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
     
   endif
   unset elogscr
+
+  unset my_own_prefix
 
 endif
 
