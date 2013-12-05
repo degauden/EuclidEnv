@@ -4,47 +4,46 @@
 import sys
 import os
 
-my_own_prefix="%(this_install_prefix)s"
-
-from distutils.sysconfig import get_python_lib
-python_loc=get_python_lib(prefix=my_own_prefix)
 #============================================================================
-# bootstrapping the location of the file
-try:
-    _this_file = __file__
-except NameError :
-    # special procedure to handle the situation when __file__ is not defined.
-    # It happens typically when trying to use pdb.
-    from imp import find_module, load_module
-    _ff, _filename, _desc = find_module("Euclid")
-    try :
-        lbconf_package = load_module('Euclid', _ff, _filename, _desc)
-        _ff, _filename, _desc = find_module('Login', lbconf_package.__path__)
-        _this_file = _filename
-    finally :
-        _ff.close()
+# setting up the core environment for Python only. This has to be done before
+# the import of the local modules.
+# In principle, only the PYTHONPATH (internal) setup is needed. The PATH and 
+# other are delayed to the created setup script
 
-_base_dir = None
+# first try to use the installed prefix path 
+my_own_prefix="%(this_install_prefix)s"
+has_prefix = False
 
-# Bootstrapping the python location
-_pyeuc_dir = os.path.dirname(_this_file)
-if os.path.exists(_pyeuc_dir) :
+if os.path.exists(my_own_prefix) :
+    has_prefix = True
+
+if has_prefix :
+    from distutils.sysconfig import get_python_lib
+    python_loc=get_python_lib(prefix=my_own_prefix)
+else :
+    # use the local properties if the intall_path is no available
+    try:
+        _this_file = __file__
+    except NameError :
+        # special procedure to handle the situation when __file__ is not defined.
+        # It happens typically when trying to use pdb.
+        from imp import find_module, load_module
+        _ff, _filename, _desc = find_module("Euclid")
+        try :
+            lbconf_package = load_module('Euclid', _ff, _filename, _desc)
+            _ff, _filename, _desc = find_module('Login', lbconf_package.__path__)
+            _this_file = _filename
+        finally :
+            _ff.close()
+    # Bootstrapping the python location
+    _pyeuc_dir = os.path.dirname(_this_file)
     _py_dir = os.path.dirname(_pyeuc_dir)
     if os.path.basename(_pyeuc_dir) == "Euclid" :
-        if os.path.exists(_py_dir) :
-            _base_dir = os.path.dirname(_py_dir)
-            sys.path.insert(0, _py_dir)
-
-# Bootstrapping the PATH part
-_scripts_dir = None
-# needed for the cache use
-if _base_dir and os.path.exists(os.path.join(_base_dir, "scripts")) :
-    _scripts_dir = os.path.join(_base_dir, "scripts")
-else : 
-    # TODO: implement the recursive parsing upward of the bin (or script) directory
-    pass
+        _base_dir = os.path.dirname(_py_dir)
+        python_loc = _py_dir
+        
+sys.path.insert(0, python_loc)
 #============================================================================
-
 
 from Euclid.Platform import getBinaryDbg, getBinaryOpt
 from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
@@ -59,7 +58,6 @@ __version__ = ParseSvnVersion("$Id$", "$URL$")
 #-----------------------------------------------------------------------------------
 # Helper functions
 
-envPathPrepend("PYTHONPATH", _py_dir, exist_check=True)
 envPathPrepend("PATH", _scripts_dir, exist_check=True)
 
 
