@@ -49,16 +49,19 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
   unset elogscr
   
   
-  if [[ -r ${my_own_prefix}/bin/StripPath.sh ]]; then
-    stripscr=${my_own_prefix}/bin/StripPath.sh
-  else
-    stripscr=`/usr/bin/which StripPath.sh`
+  if [[ "x$E_NO_STRIP_PATH" ==  "x" ]] ; then
+  
+    if [[ -r ${my_own_prefix}/bin/StripPath.sh ]]; then
+      stripscr=${my_own_prefix}/bin/StripPath.sh
+    else
+      stripscr=`/usr/bin/which StripPath.sh`
+    fi
+
+    . ${stripscr}
+
+    unset stripscr
+
   fi
-
-  . ${stripscr}
-
-  unset stripscr
-
   
   unset my_own_prefix
 

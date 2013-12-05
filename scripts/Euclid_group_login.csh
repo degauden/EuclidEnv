@@ -45,17 +45,19 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
   
   endif
 
+  if (! ${?E_NO_STRIP_PATH} ) then
 
-  if ( -r ${my_own_prefix}/bin/StripPath.csh ) then
-    set stripscr=${my_own_prefix}/bin/StripPath.csh
-  else
-    set stripscr=`/usr/bin/which StripPath.csh`        
+    if ( -r ${my_own_prefix}/bin/StripPath.csh ) then
+      set stripscr=${my_own_prefix}/bin/StripPath.csh
+    else
+      set stripscr=`/usr/bin/which StripPath.csh`        
+    endif
+  
+    source ${stripscr}
+  
+    unset stripscr
+    
   endif
-  
-  source ${stripscr}
-  
-  unset stripscr
-
                             
   setenv ELOGIN_DONE yes
 
