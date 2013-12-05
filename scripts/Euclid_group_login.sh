@@ -19,6 +19,8 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
     unset E_BANNER
   else
     
+    needs_cleanup=no
+    
     if [[ -r ${my_own_prefix}/bin/ELogin.sh ]]; then
       elogscr=${my_own_prefix}/bin/ELogin.sh
     else
@@ -26,6 +28,7 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
     fi    
     if [[ -e ${elogscr} ]]; then
       . ${elogscr} --quiet "$@"
+      needs_cleanup=yes
     fi
 
     if [[ ! -n "$EUCLID_POST_DONE" ]]; then
@@ -38,25 +41,26 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
         if [[ -r ${epostscr} ]]; then
           . ${epostscr} "$@"
           export EUCLID_POST_DONE=yes
+          needs_cleanup=yes
         fi
         unset epostscr
       fi
     fi
-      
-  fi
 
-  if [[ "x$E_NO_STRIP_PATH" ==  "x" ]] ; then
-
-    if [[ -r ${my_own_prefix}/bin/StripPath.sh ]]; then
-      stripscr=${my_own_prefix}/bin/StripPath.sh
-    else
-      stripscr=`/usr/bin/which StripPath.sh`
+    if [[ "$needs_cleanup" = "yes" ]]; then
+      if [[ "x$E_NO_STRIP_PATH" ==  "x" ]] ; then
+        if [[ -r ${my_own_prefix}/bin/StripPath.sh ]]; then
+          stripscr=${my_own_prefix}/bin/StripPath.sh
+        else
+          stripscr=`/usr/bin/which StripPath.sh`
+        fi
+        . ${stripscr}
+        unset stripscr
+      fi
     fi
-
-    . ${stripscr}
-
-    unset stripscr
-  
+                            
+    unset needs_cleanup
+      
   fi
 
   export ELOGIN_DONE=yes

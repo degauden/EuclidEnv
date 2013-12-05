@@ -19,6 +19,9 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
     elogscr=`/usr/bin/which ELogin.sh`
   fi    
   if [[ -e ${elogscr} ]]; then
+  
+    needs_cleanup=no
+  
     if [[ -n "$ELOGIN_DONE" ]]; then
       # The login part has already been done. Only the shell (setup) part is redone.
       # This is mandatory for the creation of a subshell.
@@ -38,31 +41,31 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
           if [[ -r ${epostscr} ]]; then
             . ${epostscr} "$@" >> ${E_BANNER}
             export EUCLID_POST_DONE=yes
+            needs_cleanup=yes
           fi
           unset epostscr
         fi
       fi
-            
-      
+                
     fi
+    
+    if [[ "$needs_cleanup" = "yes" ]]; then
+      if [[ "x$E_NO_STRIP_PATH" ==  "x" ]] ; then
+        if [[ -r ${my_own_prefix}/bin/StripPath.sh ]]; then
+          stripscr=${my_own_prefix}/bin/StripPath.sh
+        else
+          stripscr=`/usr/bin/which StripPath.sh`
+        fi
+        . ${stripscr}
+        unset stripscr
+      fi
+    fi    
+    
+    unset needs_cleanup
+    
   fi
   unset elogscr
-  
-  
-  if [[ "x$E_NO_STRIP_PATH" ==  "x" ]] ; then
-  
-    if [[ -r ${my_own_prefix}/bin/StripPath.sh ]]; then
-      stripscr=${my_own_prefix}/bin/StripPath.sh
-    else
-      stripscr=`/usr/bin/which StripPath.sh`
-    fi
-
-    . ${stripscr}
-
-    unset stripscr
-
-  fi
-  
+    
   unset my_own_prefix
 
 fi

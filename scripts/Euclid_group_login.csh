@@ -19,6 +19,8 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
     unsetenv E_BANNER
   else
 
+    set needs_cleanup=no
+
     if ( -r ${my_own_prefix}/bin/ELogin.csh ) then
       set elogscr=${my_own_prefix}/bin/ELogin.csh
     else
@@ -26,6 +28,7 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
     endif
     if ( -e ${elogscr} ) then
       source ${elogscr} --quiet ${*:q}
+      set needs_cleanup=yes
     endif
 
     if ( ! $?EUCLID_POST_DONE ) then
@@ -38,26 +41,28 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
         if ( -r ${epostscr} ) then
           source ${epostscr} ${*:q}
           setenv EUCLID_POST_DONE yes
+          set needs_cleanup=yes
         endif
         unset epostscr
       endif
     endif
   
-  endif
-
-  if (! ${?E_NO_STRIP_PATH} ) then
-
-    if ( -r ${my_own_prefix}/bin/StripPath.csh ) then
-      set stripscr=${my_own_prefix}/bin/StripPath.csh
-    else
-      set stripscr=`/usr/bin/which StripPath.csh`        
+    if ( "$needs_cleanup" == "yes" ) then
+      if (! ${?E_NO_STRIP_PATH} ) then
+        if ( -r ${my_own_prefix}/bin/StripPath.csh ) then
+          set stripscr=${my_own_prefix}/bin/StripPath.csh
+        else
+          set stripscr=`/usr/bin/which StripPath.csh`        
+        endif
+        source ${stripscr}
+        unset stripscr
+      endif
     endif
+        
+    unset needs_cleanup
   
-    source ${stripscr}
-  
-    unset stripscr
-    
   endif
+
                             
   setenv ELOGIN_DONE yes
 
