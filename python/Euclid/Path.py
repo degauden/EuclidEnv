@@ -119,10 +119,10 @@ def pathRemove(path, path_components):
             final_path.append(p)
     return os.pathsep.join(final_path)
 
-def pathAdd(path1, path2, exist_check=False):
+def pathAdd(path1, path2, exist_check=False, unique=False):
     result = path1
     for d in path2.split(os.pathsep) :
-        result = pathAppend(result, d, exist_check)
+        result = pathAppend(result, d, exist_check, unique)
     return result
 
 def cleanPath(path_value, normalize=False):
