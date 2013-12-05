@@ -271,6 +271,7 @@ arch_runtime_compatiblity = {
                                 }
 
 flavor_runtime_equivalence = {
+                              "fc19"  : ["fc19"],
                               "slc6"  : ["slc6"],
                               "slc5"  : ["slc5", "co5", "rhel5", "ub9", "fc13", "fc12", "fc11", "fc10"],
                               "slc4"  : ["slc4", "co4", "rhel4", "deb4"],
@@ -283,6 +284,7 @@ flavor_runtime_equivalence = {
                              }
 
 supported_compilers = {
+                       "fc19"   : ["gcc48"],
                        "slc6"   : ["gcc46","gcc45", "gcc44"],
                        "slc5"   : ["gcc46", "gcc43", "gcc45", "icc11"] ,
                        "slc4"   : ["gcc34"],
