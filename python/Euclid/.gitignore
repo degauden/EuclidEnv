@@ -1,8 +1,1 @@
-/__init__.pyc
-/ConfigFile.pyc
-/Env.pyc
-/Log.pyc
-/Option.pyc
-/Platform.pyc
-/Script.pyc
-/Version.pyc
+/*.pyc
