@@ -336,15 +336,15 @@ class ELoginScript(SourceScript):
             ev["BINARY_TAG"] = getBinaryOpt(theconf)
         log.debug("BINARY_TAG is set to %s" % ev["BINARY_TAG"])
 
-    def setLCGhostos(self):
+    def setSGShostos(self):
         '''
-        Set the environment variable LCG_hostos, used by the 'lcg-' compiler wrappers.
+        Set the environment variable SGS_hostos, used by the 'sgs-' compiler wrappers.
         '''
         ev = self.Environment()
         nm = self._nativemachine
         # we take only the first two elements of the native BINARY_TAG, e.g.
         #  x86_64-slc5-gcc46-opt -> x86_64-slc5
-        ev['LCG_hostos'] = '-'.join(nm.nativeBinaryTag().split('-')[:2])
+        ev['SGS_hostos'] = '-'.join(nm.nativeBinaryTag().split('-')[:2])
 
     def setCMakePath(self):
         ev = self.Environment()
@@ -392,8 +392,8 @@ class ELoginScript(SourceScript):
         self.setBinaryTag(debug)
         self.setCMakePath()
 
-        # this is use internally by the 'lcg-' compiler wrapper.
-        self.setLCGhostos()
+        # this is use internally by the 'sgs-' compiler wrapper.
+        self.setSGShostos()
 
         # return a copy otherwise the environment gets restored
         # at the destruction of the instance
