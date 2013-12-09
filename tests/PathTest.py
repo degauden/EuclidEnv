@@ -1,6 +1,8 @@
 from Euclid.Path import multiPathJoin, multiPathUpdate, cleanPath
 from Euclid.Path import pathRemove, hasCommand
-from Euclid.Path import upWalk
+from Euclid.Path import upWalk, getClosestPath
+
+from Euclid.Temporary import TempDir
 
 import unittest
 import os
@@ -62,6 +64,31 @@ class PathTestCase(unittest.TestCase):
         
         self.assertEqual(l1, l)
         
+    def testGetClosestPath(self):
+        t = TempDir()
+        os.mkdir(os.path.join(t.getName(), "usr"))
+        os.mkdir(os.path.join(t.getName(), "usr", "bin"))
+        os.mkdir(os.path.join(t.getName(), "usr", "local"))
+        os.mkdir(os.path.join(t.getName(), "usr", "local", "bin"))
+
+        l1 = []
+        l1.append(os.path.join(t.getName(), "usr", "local", "bin"))
+        l1.append(os.path.join(t.getName(), "usr", "bin"))
+        l1.append(os.path.join(os.sep + "bin"))
+
+        ttop = os.path.join(t.getName(), "usr", "local", "bin", "toto")
+        
+        l = [ p for p in getClosestPath(ttop, "bin", alloccurences=True) ] 
+
+        self.assertEqual(l1, l)
+        
+        l3 = []
+        l3.append(os.path.join(t.getName(), "usr", "local", "bin"))
+                
+        r = [ p for p in getClosestPath(ttop, "bin", alloccurences=False) ]
+        
+        self.assertEqual(l3, r)
+
 
 
 if __name__ == '__main__':

@@ -76,13 +76,17 @@ class CMTProjectPath(Path):
 
 
 def upWalk(top):
-    names = os.listdir(top)
     dirs, nondirs = [], []
-    for name in names:
-        if os.path.isdir(os.path.join(top, name)):
-            dirs.append(name)
-        else:
-            nondirs.append(name)
+    try :
+        names = os.listdir(top)
+
+        for name in names:
+            if os.path.isdir(os.path.join(top, name)):
+                dirs.append(name)
+            else:
+                nondirs.append(name)
+    except :
+        pass
 
     yield top, dirs, nondirs
 
@@ -240,7 +244,16 @@ def getClosestPath(path, subdir, alloccurences=False):
     @param alloccurences: if True doesn't stop at the first match
     @return: return the list of found paths.  
     """
-    pass
+    result = []
+    
+    for p in upWalk(path) :
+        s = os.path.join(p[0], subdir)
+        if os.path.exists(s) :
+            result.append(s)
+            if not alloccurences :
+                break
+            
+    return result
 
 
 def _FSType(path):
