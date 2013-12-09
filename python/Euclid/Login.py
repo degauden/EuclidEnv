@@ -50,17 +50,13 @@ from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryDbg, NativeMachine
 from Euclid.Version import ParseSvnVersion
 from Euclid.Script import SourceScript
-from Euclid.Path import envPathPrepend
+from Euclid.Path import pathPrepend
 import logging
 import shutil
 
 __version__ = ParseSvnVersion("$Id$", "$URL$")
 #-----------------------------------------------------------------------------------
 # Helper functions
-
-envPathPrepend("PATH", _scripts_dir, exist_check=True)
-
-
 
 def getELoginEnv(optionlist=None):
     if not optionlist :
@@ -142,7 +138,6 @@ class ELoginScript(SourceScript):
         ev = self.Environment()
         opts = self.options
         log = logging.getLogger()
-        log.debug("%s is set to %s" % ("PATH", ev["PATH"]) )
         if not opts.strip_path :
             log.debug("Disabling the path stripping")
             ev["E_NO_STRIP_PATH"] = "1"
@@ -151,10 +146,12 @@ class ELoginScript(SourceScript):
                 log.debug("Reenabling the path stripping")
                 del ev["E_NO_STRIP_PATH"]
 
+        ev["PYTHOPATH"] = pathPrepend(ev["PYTHONPATH"], 
+                                      python_loc, 
+                                      exist_check=opts.strip_path, 
+                                      unique=opts.strip_path)
 
-
-
-
+        log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
 
 #-----------------------------------------------------------------------------------
 
