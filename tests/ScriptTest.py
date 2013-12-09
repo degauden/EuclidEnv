@@ -2,7 +2,7 @@
 # $Id: ScriptTest.py 122763 2011-05-03 12:16:51Z hmdegaud $
 """ Don't forget about the description """
 
-from LbUtils.Script import ConfigScript as Script
+from Euclid.Script import ConfigScript as Script
 
 import logging
 import os
