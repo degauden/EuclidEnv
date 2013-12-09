@@ -1,5 +1,6 @@
 from Euclid.Path import multiPathJoin, multiPathUpdate, cleanPath
 from Euclid.Path import pathRemove, hasCommand
+from Euclid.Path import upWalk
 
 import unittest
 import os
@@ -52,6 +53,15 @@ class PathTestCase(unittest.TestCase):
     def testHasCommand(self):
         self.assertFalse(hasCommand("ddkfhd"))
         self.assertTrue(hasCommand("ls"))
+        
+    def testUpWalk(self):
+        p1 = "/usr/local/bin"
+        l1 = ['/usr/local/bin', '/usr/local', '/usr', '/']
+        
+        l = [ r for r,d,o in upWalk(p1) ]
+        
+        self.assertEqual(l1, l)
+        
 
 
 if __name__ == '__main__':

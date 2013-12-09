@@ -74,6 +74,24 @@ class CMTProjectPath(Path):
     def __init__(self):
         super(CMTProjectPath, self).__init__("CMTPROJECTPATH")
 
+
+def upWalk(top):
+    names = os.listdir(top)
+    dirs, nondirs = [], []
+    for name in names:
+        if os.path.isdir(os.path.join(top, name)):
+            dirs.append(name)
+        else:
+            nondirs.append(name)
+
+    yield top, dirs, nondirs
+
+    if top != os.sep :
+        pardir = os.path.dirname(top)
+        for x in upWalk(pardir) :
+            yield x
+
+
 def pathPrepend(path, dirname, exist_check=False, unique=False):
     path_list = path.split(os.pathsep)
     if unique:
@@ -212,6 +230,18 @@ def multiPathGet(path, subdir, alloccurences=False):
             if os.path.exists(sd) :
                 result.append(sd)
     return result
+
+
+def getClosestPath(path, subdir, alloccurences=False):
+    """ This function get the first neighbour path ending with 'subdir' that
+    exists. It starts with 'path/subdir' and moves up. By default only the first
+    @param path: initial path to search in 
+    @param subdir: path fraction to look for
+    @param alloccurences: if True doesn't stop at the first match
+    @return: return the list of found paths.  
+    """
+    pass
+
 
 def _FSType(path):
     try:
