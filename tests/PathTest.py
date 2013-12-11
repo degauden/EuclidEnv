@@ -90,6 +90,13 @@ class PathTestCase(unittest.TestCase):
         self.assertEqual(l3, r)
 
 
+        l4 = []
+        
+        s = [ p for p in getClosestPath(ttop, "djldfdhf", alloccurences=False) ]
+        
+        self.assertEqual(l4, s)
+        
+
 
 if __name__ == '__main__':
     unittest.main()
