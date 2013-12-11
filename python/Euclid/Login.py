@@ -50,7 +50,7 @@ from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryDbg, NativeMachine
 from Euclid.Version import ParseSvnVersion
 from Euclid.Script import SourceScript
-from Euclid.Path import pathPrepend
+from Euclid.Path import pathPrepend, getClosestPath
 import logging
 import shutil
 
@@ -152,6 +152,27 @@ class ELoginScript(SourceScript):
                                       unique=opts.strip_path)
 
         log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
+        
+        bin_loc = getClosestPath(python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
+        if not bin_loc :
+            bin_loc = getClosestPath(python_loc, os.sep.join(["scripts", "ELogin.sh"]), alloccurences=False)
+        if bin_loc :
+            the_loc = os.path.dirname(bin_loc[0])
+            ev["PATH"] = pathPrepend(ev["PATH"], 
+                                     the_loc, 
+                                     exist_check=opts.strip_path, 
+                                     unique=opts.strip_path)
+            
+
+        bin_loc = getClosestPath(python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
+        if not bin_loc :
+            bin_loc = getClosestPath(python_loc, os.sep.join(["scripts", "ELogin.sh"]), alloccurences=False)
+        if bin_loc :
+            the_loc = os.path.dirname(bin_loc[0])
+            ev["PATH"] = pathPrepend(ev["PATH"], 
+                                     the_loc, 
+                                     exist_check=opts.strip_path, 
+                                     unique=opts.strip_path)
 
 #-----------------------------------------------------------------------------------
 
