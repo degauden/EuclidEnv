@@ -146,7 +146,7 @@ class ELoginScript(SourceScript):
                 log.debug("Reenabling the path stripping")
                 del ev["E_NO_STRIP_PATH"]
 
-        ev["PYTHOPATH"] = pathPrepend(ev["PYTHONPATH"], 
+        ev["PYTHONPATH"] = pathPrepend(ev["PYTHONPATH"], 
                                       python_loc, 
                                       exist_check=opts.strip_path, 
                                       unique=opts.strip_path)
