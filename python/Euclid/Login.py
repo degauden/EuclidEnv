@@ -163,16 +163,28 @@ class ELoginScript(SourceScript):
                                      exist_check=opts.strip_path, 
                                      unique=opts.strip_path)
             
+        log.debug("%s is set to %s" % ("PATH", ev["PATH"]) )
+        
 
-        bin_loc = getClosestPath(python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
-        if not bin_loc :
-            bin_loc = getClosestPath(python_loc, os.sep.join(["scripts", "ELogin.sh"]), alloccurences=False)
-        if bin_loc :
-            the_loc = os.path.dirname(bin_loc[0])
-            ev["PATH"] = pathPrepend(ev["PATH"], 
+        # try the installed directory in $prefix/share/EuclidEnv/cmake/...
+        cmake_loc = getClosestPath(python_loc, 
+                                   os.sep.join(["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]), 
+                                   alloccurences=False)
+        if not cmake_loc:
+            # use the local source directory
+            cmake_loc = getClosestPath(python_loc, 
+                                       os.sep.join(["data", "cmake", "ElementsProjectConfig.cmake"]), 
+                                       alloccurences=False)
+            
+        if cmake_loc :
+            the_loc = os.path.dirname(cmake_loc[0])
+            ev["PATH"] = pathPrepend(ev["CMAKE_PREFIX_PATH"], 
                                      the_loc, 
                                      exist_check=opts.strip_path, 
                                      unique=opts.strip_path)
+
+        if "CMAKE_PREFIX_PATH" in ev :
+            log.debug("%s is set to %s" % ("CMAKE_PREFIX_PATH", ev["CMAKE_PREFIX_PATH"]) )
 
 #-----------------------------------------------------------------------------------
 
