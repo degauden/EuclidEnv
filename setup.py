@@ -5,7 +5,7 @@ import os
 
 
 setup (name="euclidenv",
-       version="0.1",
+       version="0.4",
        description="Euclid Environment Scripts",
        author="Hubert Degaudenzi",
        author_email="Hubert.Degaudenzi@unige.ch",
@@ -30,8 +30,8 @@ setup (name="euclidenv",
                     os.path.join("scripts", "WhereAmI"),
                     os.path.join("scripts", "FixInstallPath"),
                   ],
-       data_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh")]),
-                     ("/etc/profile.d", [os.path.join("data", "profile", "euclid.csh")]),
+       data_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
+                                         os.path.join("data", "profile", "euclid.csh")]),
                      ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")])
                      ],
 
