@@ -32,7 +32,8 @@ setup (name="euclidenv",
                   ],
        data_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
                                          os.path.join("data", "profile", "euclid.csh")]),
-                     ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")])
+                     ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")]),
+                     ("/usr/share/EuclidEnv", [os.path.join("data", "cmake")])
                      ],
 
 #       options = {'bdist_rpm':{'post_install' : 'post_install',
