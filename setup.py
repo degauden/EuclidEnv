@@ -44,13 +44,6 @@ setup (name="euclidenv",
        data_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
                                          os.path.join("data", "profile", "euclid.csh")]),
                      ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")])
-#                     ("EuclidEnv/cmake", [os.path.join("data", "cmake", "ElementsProjectConfig.cmake"),
-#                                          os.path.join("data", "cmake", "ElementsBuildFlags.cmake"),
-#                                          os.path.join("data", "cmake", "env.py"),
-#                                          os.path.join("data", "cmake", "Elements.spec.in"),
-#                                          os.path.join("data", "cmake", "InheritAstroTools.cmake"),
-#                                          os.path.join("data", "cmake", "UseAstroTools.cmake")
-#                                          ])
                      ] + these_files,
 
 #       options = {'bdist_rpm':{'post_install' : 'post_install',
