@@ -4,6 +4,17 @@ from distutils.command.install import install as _install
 import os
 
 
+def get_data_files(input_dir, output_dir):
+    result = []
+    for root, dirs, files in os.walk(input_dir) :
+        da_files = []
+        for f in files :
+            da_files.append(os.path.join(root,f))
+        result.append((os.sep.join([output_dir]+root.split(os.sep)[1:]),da_files))
+    return result
+
+these_files = get_data_files("data/cmake", "EuclidEnv")
+ 
 setup (name="euclidenv",
        version="0.4",
        description="Euclid Environment Scripts",
@@ -32,9 +43,15 @@ setup (name="euclidenv",
                   ],
        data_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
                                          os.path.join("data", "profile", "euclid.csh")]),
-                     ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")]),
-                     ("EuclidEnv/cmake", [os.path.join("data", "cmake", "ElementsProjectConfig.cmake")])
-                     ],
+                     ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")])
+#                     ("EuclidEnv/cmake", [os.path.join("data", "cmake", "ElementsProjectConfig.cmake"),
+#                                          os.path.join("data", "cmake", "ElementsBuildFlags.cmake"),
+#                                          os.path.join("data", "cmake", "env.py"),
+#                                          os.path.join("data", "cmake", "Elements.spec.in"),
+#                                          os.path.join("data", "cmake", "InheritAstroTools.cmake"),
+#                                          os.path.join("data", "cmake", "UseAstroTools.cmake")
+#                                          ])
+                     ] + these_files,
 
 #       options = {'bdist_rpm':{'post_install' : 'post_install',
 #                               'pre_uninstall' : 'pre_uninstall'}},

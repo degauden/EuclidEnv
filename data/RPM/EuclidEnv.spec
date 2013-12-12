@@ -41,10 +41,11 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/profile.d/euclid.csh
 %{_sysconfdir}/profile.d/euclid.sh
 %{_sysconfdir}/sysconfig/euclid
+%{_datadir}/EuclidEnv/cmake/*
 
 
 %post
-python_loc=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$RPM_INSTALL_PREFIX0'))")
+python_loc=$(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$RPM_INSTALL_PREFIX0'))")
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX0/bin/ELogin.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX0/bin/Euclid_group_{login,setup}.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh  
