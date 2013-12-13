@@ -391,9 +391,17 @@ class ELoginScript(SourceScript):
                 
         if "EUCLIDPROJECTPATH" in ev :
             prefix_path.append(ev["EUCLIDPROJECTPATH"])
+
+
+        if not opts.remove_userarea and ev.has_key("User_area") :
+            prefix_path.append(ev["User_area"])
         
-        if prefix_path :
-            ev["CMAKE_PREFIX_PATH"] = os.pathsep.join(prefix_path)
+
+        for p in prefix_path:
+            ev["CMAKE_PREFIX_PATH"] = pathPrepend(ev["CMAKE_PREFIX_PATH"], 
+                                                      p, 
+                                                      exist_check=opts.strip_path, 
+                                                      unique=opts.strip_path)
 
         log.debug("CMAKE_PREFIX_PATH is set to %s" % ev["CMAKE_PREFIX_PATH"])
 
