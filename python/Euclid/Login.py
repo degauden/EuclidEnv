@@ -178,10 +178,13 @@ class ELoginScript(SourceScript):
             
         if cmake_loc :
             the_loc = os.path.dirname(cmake_loc[0])
-            ev["PATH"] = pathPrepend(ev["CMAKE_PREFIX_PATH"], 
-                                     the_loc, 
-                                     exist_check=opts.strip_path, 
-                                     unique=opts.strip_path)
+            if "CMAKE_PREFIX_PATH" in ev :
+                ev["CMAKE_PREFIX_PATH"] = pathPrepend(ev["CMAKE_PREFIX_PATH"], 
+                                                      the_loc, 
+                                                      exist_check=opts.strip_path, 
+                                                      unique=opts.strip_path)
+            elif os.path.exists(the_loc) :
+                ev["CMAKE_PREFIX_PATH"] = the_loc
 
         if "CMAKE_PREFIX_PATH" in ev :
             log.debug("%s is set to %s" % ("CMAKE_PREFIX_PATH", ev["CMAKE_PREFIX_PATH"]) )
