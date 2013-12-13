@@ -396,14 +396,16 @@ class ELoginScript(SourceScript):
         if not opts.remove_userarea and ev.has_key("User_area") :
             prefix_path.append(ev["User_area"])
         
+        if "CMAKE_PROJECT_PATH" not in ev:
+            ev["CMAKE_PROJECT_PATH"] = ""
 
         for p in prefix_path:
-            ev["CMAKE_PREFIX_PATH"] = pathPrepend(ev["CMAKE_PREFIX_PATH"], 
+            ev["CMAKE_PROJECT_PATH"] = pathPrepend(ev["CMAKE_PROJECT_PATH"], 
                                                       p, 
                                                       exist_check=opts.strip_path, 
                                                       unique=opts.strip_path)
 
-        log.debug("CMAKE_PREFIX_PATH is set to %s" % ev["CMAKE_PREFIX_PATH"])
+        log.debug("CMAKE_PROJECT_PATH is set to %s" % ev["CMAKE_PROJECT_PATH"])
 
 
     def copyEnv(self):
