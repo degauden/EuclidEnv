@@ -394,8 +394,8 @@ class ELoginScript(SourceScript):
             ev["EUCLIDPROJECTPATH"] = opts.sharedarea
             
         if "EUCLIDPROJECTPATH" not in ev :
-            if os.path.exists("/opt/Euclid") :
-                ev["EUCLIDPROJECTPATH"] = "/opt/Euclid"
+            if os.path.exists("/opt/euclid") :
+                ev["EUCLIDPROJECTPATH"] = "/opt/euclid"
                 
         if "EUCLIDPROJECTPATH" in ev :
             prefix_path.append(ev["EUCLIDPROJECTPATH"])

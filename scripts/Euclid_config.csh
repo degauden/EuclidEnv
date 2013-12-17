@@ -6,7 +6,7 @@
 # 5) /etc/sysconfig/euclid
 
 # default values if no config file is found
-setenv EUCLID_BASE /opt/Euclid
+setenv EUCLID_BASE /opt/euclid
 setenv EUCLID_USE_BASE no
 
 
