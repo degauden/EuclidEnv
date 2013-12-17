@@ -16,7 +16,7 @@ def get_data_files(input_dir, output_dir):
 these_files = get_data_files("data/cmake", "EuclidEnv")
  
 setup (name="euclidenv",
-       version="0.5",
+       version="0.6",
        description="Euclid Environment Scripts",
        author="Hubert Degaudenzi",
        author_email="Hubert.Degaudenzi@unige.ch",
