@@ -19,7 +19,12 @@ if os.path.exists(my_own_prefix) :
 
 if has_prefix :
     from distutils.sysconfig import get_python_lib
-    python_loc=get_python_lib(prefix=my_own_prefix)
+    if my_own_prefix != "/usr" :
+        # funky location yeah
+        python_loc=get_python_lib(prefix=my_own_prefix)
+    else:
+        # if the location is standard, don't try to be funny
+        python_loc = None
 else :
     # use the local properties if the intall_path is no available
     try:
@@ -42,7 +47,8 @@ else :
         _base_dir = os.path.dirname(_py_dir)
         python_loc = _py_dir
         
-sys.path.insert(0, python_loc)
+if python_loc :
+    sys.path.insert(0, python_loc)
 #============================================================================
 
 from Euclid.Platform import getBinaryDbg, getBinaryOpt
@@ -146,17 +152,18 @@ class ELoginScript(SourceScript):
                 log.debug("Reenabling the path stripping")
                 del ev["E_NO_STRIP_PATH"]
 
-        if "PYTHONPATH" in ev :
-            ev["PYTHONPATH"] = pathPrepend(ev["PYTHONPATH"], 
-                                           python_loc, 
-                                           exist_check=opts.strip_path, 
-                                           unique=opts.strip_path)
-        else :
-            if opts.strip_path:
-                if os.path.exists(python_loc):
-                    ev["PYTHONPATH"] = python_loc
+        if python_loc :
+            if "PYTHONPATH" in ev :
+                ev["PYTHONPATH"] = pathPrepend(ev["PYTHONPATH"], 
+                                               python_loc, 
+                                               exist_check=opts.strip_path, 
+                                               unique=opts.strip_path)
             else :
-                ev["PYTHONPATH"] = python_loc
+                if opts.strip_path:
+                    if os.path.exists(python_loc):
+                        ev["PYTHONPATH"] = python_loc
+                else :
+                    ev["PYTHONPATH"] = python_loc
                 
 
         log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
