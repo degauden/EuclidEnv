@@ -1,0 +1,4 @@
+
+git archive --format=tar.gz --prefix=EuclidEnv-0.2/ --output ~/.local/tmp/rpmbuild/SOURCES/EuclidEnv-0.2.tar.gz 0.2
+
+rpm -Uvh --relocate /etc/=/home/hubert/.local/tmp/testrpm --relocate /usr=/home/hubert/.local/tmp/testrpm ../RPMS/noarch/EuclidEnv-0.3-1.fc19.noarch.rpm
