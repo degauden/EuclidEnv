@@ -20,6 +20,11 @@ else()
   set(ELEMENTS_CPP11_DEFAULT OFF)
 endif()
 
+set(ELEMENTS_PARALLEL_DEFAULT OFF)
+
+set(ELEMENTS_FORTIFY_DEFAULT ON)
+
+
 #--- Elements Build Options -------------------------------------------------------
 # Build options that map to compile time features
 #
@@ -35,6 +40,19 @@ option(ELEMENTS_CMT_RELEASE
 option(ELEMENTS_CPP11
        "enable C++11 compilation"
        ${ELEMENTS_CPP11_DEFAULT})
+       
+option(ELEMENTS_PARALLEL
+       "enable C++11 parallel support with OpenMP"
+       ${ELEMENTS_PARALLEL_DEFAULT})
+       
+option(ELEMENTS_FORTIFY
+       "enable g++ fortify option"
+       ${ELEMENTS_FORTIFY_DEFAULT})
+
+option(USE_LOCAL_INSTALLAREA
+       "Use local InstallArea for the Developers"
+       OFF)
+
 
 #--- Compilation Flags ---------------------------------------------------------
 if(NOT ELEMENTS_FLAGS_SET)
@@ -80,6 +98,16 @@ if(NOT ELEMENTS_FLAGS_SET)
           FORCE)
     endif()
 
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND SGS_COMPVERS VERSION_GREATER "47")
+      # Use -Og with Debug builds in gcc >= 4.8
+      set(CMAKE_CXX_FLAGS_DEBUG "-Og -g"
+          CACHE STRING "Flags used by the compiler during Debug builds."
+          FORCE)
+      set(CMAKE_C_FLAGS_DEBUG "-Og -g"
+          CACHE STRING "Flags used by the compiler during Debug builds."
+          FORCE)
+    endif()
+
 #    set(CMAKE_CXX_FLAGS_DEBUG "-g -D_GLIBCXX_DEBUG"
 #        CACHE STRING "Flags used by the compiler during Release with Debug builds."
 #        FORCE)
@@ -100,7 +128,8 @@ if(NOT ELEMENTS_FLAGS_SET)
     set(CMAKE_C_FLAGS_COVERAGE "--coverage"
         CACHE STRING "Flags used by the compiler during coverage builds."
         FORCE)
-
+        
+    # @todo Check why the -D_GLIBCXX_PROFILE cannot be used with Boost.
     set(CMAKE_CXX_FLAGS_PROFILE "-pg"
         CACHE STRING "Flags used by the compiler during profile builds."
         FORCE)
@@ -187,6 +216,20 @@ if ( ELEMENTS_CPP11 )
     set(ODB_CXX_EXTRA_FLAGS --std c++11)
   endif()
 endif()
+
+if ( ELEMENTS_PARALLEL AND (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[2-9]") )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_PARALLEL -fopenmp")
+endif()
+
+if ( ELEMENTS_FORTIFY AND (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[1-9]") )
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND SGS_COMPVERS VERSION_GREATER "47")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORTIFY_SOURCE=2")
+  endif()
+  if ( (CMAKE_BUILD_TYPE STREQUAL "Release") OR (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") OR (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORTIFY_SOURCE=2")
+  endif()    
+endif()
+
 
 # special case
 if(ELEMENTS_HIDE_SYMBOLS AND (comp MATCHES gcc4))
