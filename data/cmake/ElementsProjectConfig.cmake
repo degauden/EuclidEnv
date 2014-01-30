@@ -16,8 +16,11 @@ endif()
 # Add the directory containing this file and the to the modules search path
 set(CMAKE_MODULE_PATH ${ElementsProject_DIR} ${ElementsProject_DIR}/modules ${CMAKE_MODULE_PATH})
 # Automatically add the modules directory provided by the project.
-if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake})
-  set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake} ${CMAKE_MODULE_PATH})
+if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake)
+  if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/modules)
+    set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+  endif()
+  set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 endif()
 
 #-------------------------------------------------------------------------------
@@ -49,6 +52,34 @@ if(distcc_cmd)
     message(STATUS "Using distcc for building")
     if(CMAKE_USE_CCACHE)
       message(WARNING "Cannot use distcc and ccache at the same time: using distcc")
+=======
+if (ELEMENTS_BUILD_PREFIX_CMD)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${ELEMENTS_BUILD_PREFIX_CMD}")
+  message(STATUS "Prefix build commands with '${ELEMENTS_BUILD_PREFIX_CMD}'")
+else()
+  find_program(ccache_cmd NAMES ccache-swig ccache)
+  find_program(distcc_cmd distcc)
+  mark_as_advanced(ccache_cmd distcc_cmd)
+
+  if(ccache_cmd)
+    option(CMAKE_USE_CCACHE "Use ccache to speed up compilation." OFF)
+    if(CMAKE_USE_CCACHE)
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${ccache_cmd})
+      message(STATUS "Using ccache for building")
+    endif()
+  endif()
+
+  if(distcc_cmd)
+    option(CMAKE_USE_DISTCC "Use distcc to speed up compilation." OFF)
+    if(CMAKE_USE_DISTCC)
+      if(CMAKE_USE_CCACHE)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "CCACHE_PREFIX=${distcc_cmd} ${ccache_cmd}")
+        message(STATUS "Enabling distcc builds in ccache")
+      else()
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${distcc_cmd})
+        message(STATUS "Using distcc for building")
+      endif()
+>>>>>>> 2ffc06138ca5e24c9baddb29412c65df3b68b805
     endif()
   endif()
 endif()
@@ -78,7 +109,7 @@ endif()
 # Programs and utilities needed for the build
 #---------------------------------------------------------------------------------------------------
 include(CMakeParseArguments)
-#include(GenerateExportHeader)
+include(GenerateExportHeader)
 
 find_package(PythonInterp)
 
@@ -99,6 +130,9 @@ find_package(PythonInterp)
 #-------------------------------------------------------------------------------
 macro(elements_project project version)
   if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake)
+    if(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/cmake/modules)
+      set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+    endif()
     set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
   endif()
   project(${project})
@@ -135,9 +169,16 @@ macro(elements_project project version)
   set(ELEMENTS_DATA_SUFFIXES DBASE;PARAM;EXTRAPACKAGES CACHE STRING
       "List of (suffix) directories where to look for data packages.")
 
-  if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/InstallArea/${BINARY_TAG} CACHE PATH
-      "Install path prefix, prepended onto install directories." FORCE )
+  if(USE_LOCAL_INSTALLAREA)
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+      set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/InstallArea/${BINARY_TAG} CACHE PATH
+          "Install path prefix, prepended onto install directories." FORCE )
+    endif()
+  else()
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+      set(CMAKE_INSTALL_PREFIX ${EUCLID_BASE_DIR}/${CMAKE_PROJECT_NAME}/${CMAKE_PROJECT_VERSION}/InstallArea/${BINARY_TAG} CACHE PATH
+          "Install path prefix, prepended onto install directories." FORCE )
+    endif()  
   endif()
 
   if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
@@ -207,10 +248,14 @@ macro(elements_project project version)
   set(merge_cmd ${PYTHON_EXECUTABLE} ${merge_cmd} --no-stamp)
 
   find_program(versheader_cmd createProjVersHeader.py HINTS ${binary_paths})
-  set(versheader_cmd ${PYTHON_EXECUTABLE} ${versheader_cmd})
+  if(versheader_cmd)
+    set(versheader_cmd ${PYTHON_EXECUTABLE} ${versheader_cmd})
+  endif()
 
   find_program(zippythondir_cmd ZipPythonDir.py HINTS ${binary_paths})
-  set(zippythondir_cmd ${PYTHON_EXECUTABLE} ${zippythondir_cmd})
+  if(zippythondir_cmd)
+    set(zippythondir_cmd ${PYTHON_EXECUTABLE} ${zippythondir_cmd})
+  endif()
 
   find_program(elementsrun_cmd elementsrun.py HINTS ${binary_paths})
   set(elementsrun_cmd ${PYTHON_EXECUTABLE} ${elementsrun_cmd})
@@ -220,8 +265,10 @@ macro(elements_project project version)
 
   #--- Project Installations------------------------------------------------------------------------
   install(DIRECTORY cmake/ DESTINATION cmake
-                           FILES_MATCHING PATTERN "*.cmake"
-                           PATTERN ".svn" EXCLUDE)
+                           FILES_MATCHING 
+                             PATTERN "*.cmake"
+                             PATTERN "*.in"
+                             PATTERN ".svn" EXCLUDE)
   install(PROGRAMS cmake/env.py DESTINATION scripts OPTIONAL)
   install(DIRECTORY cmake/EnvConfig DESTINATION scripts
           FILES_MATCHING PATTERN "*.py" PATTERN "*.conf")
@@ -231,10 +278,12 @@ macro(elements_project project version)
   include(ElementsBuildFlags)
   # Generate the version header for the project.
   string(TOUPPER ${project} _proj)
-  execute_process(COMMAND
-                  ${versheader_cmd} --quiet
-                     ${project} ${CMAKE_PROJECT_VERSION} ${CMAKE_BINARY_DIR}/include/${_proj}_VERSION.h)
-  install(FILES ${CMAKE_BINARY_DIR}/include/${_proj}_VERSION.h DESTINATION include)
+  if(versheader_cmd)
+    execute_process(COMMAND
+                    ${versheader_cmd} --quiet
+                    ${project} ${CMAKE_PROJECT_VERSION} ${CMAKE_BINARY_DIR}/include/${_proj}_VERSION.h)
+    install(FILES ${CMAKE_BINARY_DIR}/include/${_proj}_VERSION.h DESTINATION include)
+  endif()
   # Add generated headers to the include path.
   include_directories(${CMAKE_BINARY_DIR}/include)
 
@@ -271,10 +320,11 @@ macro(elements_project project version)
   # of the parent project and we cannot have a post-install target because of
   # http://public.kitware.com/Bug/view.php?id=8438
   # install(CODE "execute_process(COMMAND  ${zippythondir_cmd} ${CMAKE_INSTALL_PREFIX}/python)")
-  add_custom_target(python.zip
-                    COMMAND ${zippythondir_cmd} ${CMAKE_INSTALL_PREFIX}/python
-                    COMMENT "Zipping Python modules")
-
+  if(zippythondir_cmd)
+    add_custom_target(python.zip
+                      COMMAND ${zippythondir_cmd} ${CMAKE_INSTALL_PREFIX}/python
+                      COMMENT "Zipping Python modules")
+  endif()
   #--- Prepare environment configuration
   message(STATUS "Preparing environment configuration:")
 
@@ -417,13 +467,14 @@ macro(elements_project project version)
     
   find_file(spec_file_template
             NAMES Elements.spec.in
-            HINTS ENV CMTPROJECTPATH
-            PATHS ${CMAKE_CURRENT_LIST_DIR}/cmake)
+            PATHS ${CMAKE_MODULE_PATH}
+            NO_DEFAULT_PATH)
   
   if(spec_file_template)
     configure_file("${spec_file_template}" "${PROJECT_BINARY_DIR}/${project}.spec" @ONLY IMMEDIATE)
     set(CPACK_RPM_USER_BINARY_SPECFILE "${PROJECT_BINARY_DIR}/${project}.spec")
     message(STATUS "Generated RPM Spec file: ${PROJECT_BINARY_DIR}/${project}.spec")
+    message(STATUS "From the SPEC template file: ${spec_file_template}")
   endif()
 
   include(CPack)
@@ -433,9 +484,9 @@ macro(elements_project project version)
   if(DOXYGEN_FOUND)
     find_file(doxygen_file_template
               NAMES Doxyfile.in
-              HINTS ENV CMTPROJECTPATH
-              PATHS ${CMAKE_CURRENT_LIST_DIR}/cmake/doc
-              PATH_SUFFIXES doc)
+              PATHS ${CMAKE_MODULE_PATH}
+              PATH_SUFFIXES doc
+              NO_DEFAULT_PATH)
 
 
     if(doxygen_file_template)
@@ -445,6 +496,8 @@ macro(elements_project project version)
         @ONLY
       )
       message(STATUS "Generated Doxygen configuration file: ${PROJECT_BINARY_DIR}/doc/Doxyfile")
+      message(STATUS "From the Doxygen.in template file: ${doxygen_file_template}")
+      
     endif()
 
     add_custom_target(doc
@@ -964,7 +1017,7 @@ macro(elements_subdir name version)
   # Generate the version header for the package.
   execute_process(COMMAND
                   ${versheader_cmd} --quiet
-                     ${name} ${version} ${CMAKE_CURRENT_BINARY_DIR}/${name}Version.h)
+                  ${name} ${version} ${CMAKE_CURRENT_BINARY_DIR}/${name}Version.h)
 endmacro()
 
 #-------------------------------------------------------------------------------
@@ -1673,6 +1726,7 @@ function(elements_install_headers)
               PATTERN "*.h"
               PATTERN "*.icpp"
               PATTERN "*.hpp"
+              PATTERN "*.hxx"
               PATTERN "CVS" EXCLUDE
               PATTERN ".svn" EXCLUDE)
     if(NOT IS_ABSOLUTE ${hdr_dir})
@@ -1834,9 +1888,10 @@ macro(elements_install_cmake_modules)
           DESTINATION cmake
           FILES_MATCHING
             PATTERN "*.cmake"
+            PATTERN "*.in"
             PATTERN "CVS" EXCLUDE
             PATTERN ".svn" EXCLUDE)
-  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH} PARENT_SCOPE)
+  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH} PARENT_SCOPE)
   set_property(DIRECTORY PROPERTY ELEMENTS_EXPORTED_CMAKE ON)
 endmacro()
 
@@ -1900,6 +1955,7 @@ set(${CMAKE_PROJECT_NAME}_VERSION_PATCH ${CMAKE_PROJECT_VERSION_PATCH})
 
 set(${CMAKE_PROJECT_NAME}_USES ${PROJECT_USE})
 
+list(INSERT CMAKE_MODULE_PATH 0 \${${CMAKE_PROJECT_NAME}_DIR}/cmake/modules)
 list(INSERT CMAKE_MODULE_PATH 0 \${${CMAKE_PROJECT_NAME}_DIR}/cmake)
 include(${CMAKE_PROJECT_NAME}PlatformConfig)
 ")
