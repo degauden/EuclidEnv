@@ -166,7 +166,8 @@ class ELoginScript(SourceScript):
                     ev["PYTHONPATH"] = python_loc
                 
 
-        log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
+        if "PYTHONPATH" in ev:
+            log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
         
         bin_loc = getClosestPath(python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
         if not bin_loc :
