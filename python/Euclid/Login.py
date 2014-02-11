@@ -168,10 +168,14 @@ class ELoginScript(SourceScript):
 
         if "PYTHONPATH" in ev:
             log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
+
+        bin_loc = None
         
-        bin_loc = getClosestPath(python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
-        if not bin_loc :
-            bin_loc = getClosestPath(python_loc, os.sep.join(["scripts", "ELogin.sh"]), alloccurences=False)
+        if python_loc:
+            bin_loc = getClosestPath(python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
+            if not bin_loc :
+                bin_loc = getClosestPath(python_loc, os.sep.join(["scripts", "ELogin.sh"]), alloccurences=False)
+
         if bin_loc :
             the_loc = os.path.dirname(bin_loc[0])
             ev["PATH"] = pathPrepend(ev["PATH"], 
@@ -183,14 +187,18 @@ class ELoginScript(SourceScript):
         
 
         # try the installed directory in $prefix/share/EuclidEnv/cmake/...
-        cmake_loc = getClosestPath(python_loc, 
-                                   os.sep.join(["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]), 
-                                   alloccurences=False)
-        if not cmake_loc:
-            # use the local source directory
+
+        cmake_loc = None
+
+        if python_loc :
             cmake_loc = getClosestPath(python_loc, 
-                                       os.sep.join(["data", "cmake", "ElementsProjectConfig.cmake"]), 
+                                       os.sep.join(["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]), 
                                        alloccurences=False)
+            if not cmake_loc:
+                # use the local source directory
+                cmake_loc = getClosestPath(python_loc, 
+                                           os.sep.join(["data", "cmake", "ElementsProjectConfig.cmake"]), 
+                                           alloccurences=False)
             
         if cmake_loc :
             the_loc = os.path.dirname(cmake_loc[0])
