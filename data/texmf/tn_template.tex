@@ -1,0 +1,123 @@
+\documentclass[SDCCH,esgsdraft,SDD]{esgsdoc}
+
+\begin{document}
+
+\setEsgsDocShortTitle {Euclid SGS Template document}
+\setEsgsDocTitle          {\esgsDocShortTitle}
+
+\setEsgsDocAuthor   {Pierre Dubath}                % the author(s)
+\setEsgsDocApprove  {theApprover}              % approval by ...
+\setEsgsDocRef      {EUCL-XXX-YY-\esgsDocIssue} % the reference code
+\setEsgsDocIssue    {0}                        % the issue
+\setEsgsDocRevision {1}                        % the revision
+\setEsgsDocDate     {\today}                  % the date of the issue
+\setEsgsDocStatus   {draft}                    % the document status
+
+%
+% a short abstract - no abstracts in these docs
+%
+%\setEsgsDocAbstract {This is the Euclid SGS Software ..}
+
+%
+% the title page
+%
+\mktitle
+
+\begin{docPeople}
+\addPeopleGroup{Prepared by:} 
+%\addPeople{ Name }{ Function } { Date } { Signature } 
+\addPeople{Pierre Dubath}{SDC-CH leader}{13/02/2014}{}
+%
+\addPeopleGroup{Contributors:}
+%\addPeople{ Name }{ Function } { Date } { Signature }
+\addPeople{Nikolaos Apostolakos}{SDC-CH}{13/02/2014}{}
+\addPeople{Pavel Binko}{SDC-CH}{13/02/2014}{}
+\addPeople{Hubert Degaudenzi}{SDC-CH}{13/02/2014}{}
+\addPeople{Mohamed Meharga}{SDC-CH}{13/02/2014}{}
+\addPeople{Nicolas Morisset}{SDC-CH}{13/02/2014}{}
+\addPeople{Andrea Tramacere}{SDC-CH}{13/02/2014}{}
+%
+\addPeopleGroup{ Authorised: }
+%\addPeople{ Name }{ Function } { Date } { Signature }
+\addPeople{ John Hoar}{ SOC Development manager }{ }{ }
+\addPeople{Fabio Pasian}{EG SGS Manager }{ }{ }
+%
+\addPeopleGroup{ Agreed by: }
+%\addPeople{ Name }{ Function } { Date } { Signature } 
+\addPeople{Responsible persons, for commitment}{  }{ }{ }
+%
+\addPeopleGroup{ Approved: }
+%\addPeople{ Name }{ Function } { Date } { Signature }
+\addPeople{Customer representative}{  }{ }{ }
+\end{docPeople}
+
+%
+%	Revision history MOST RECENT FIRST
+%
+\begin{docHistory}
+%\addtohist{ Issue }{ Date } { Pages } { Description of changes } { Comment }
+\addtohist{ 0.1 }{ 13/02/2014 }{ all }{ Template creation }{ First draft }
+\end{docHistory}
+
+%
+%	TOC
+%
+\newpage
+\setcounter{tocdepth}{3}
+\tableofcontents
+\newpage
+
+\section{Introduction \label{sect:intro}}
+This is the most basic template for a technical note.
+
+\subsection{Objectives \label{sect:objectives}}
+What is the context and motivation for this technical note.
+
+\subsection{Applicable Documents \label{sect:ad}}
+When applicable documents change a change may be required in this document.
+The applicable documents are listed here for clarity - the full reference is
+below in \secref{sect:refs}. This should be a relatively short list in most
+cases, and for technical notes may not be needed at all.
+
+\begin{tabular}[htb]{l l}
+%\citell{LL:WOM-018}&    DPAC Software System Specification \\
+%\citell{LL:AUTH-XXX}&   Software Development Plan for \CU  \\
+EUCL-XXX-... &   Software Development Plan for \TEAM  \\
+% Don't refer to AD1 etc below just use the \citel
+\end{tabular}
+
+\subsection{References\label{sect:refs}} 
+%\vspace*{-1cm}
+
+%\renewcommand{\refname}{}
+%\bibliographystyle{gaia_aa}
+%\bibliography{gaia_livelink_valid,gaia_drafts,gaia_refs,gaia_books,gaia_refs_ads}
+
+Note the use of gaia\_aa for the bib style. This allows the use of citell in
+place of cite for livelink docs using this put the DOC code as the ref
+rather than a number or author/year e.g. 
+
+\begin{verbatim}
+\citell{LL:WOM-011}.
+\end{verbatim}
+
+Other paper citations should just use cite and will come out AA style
+e,g, 
+
+\begin{verbatim}
+\cite{omu01}.
+\end{verbatim}
+
+\subsection{Definitions \label{sect:definition}}
+
+\subsection{Acronyms \label{sect:acronyms}}
+The following is a complete list of acronyms used in this document.
+We may adapt the acronym tool from Gaia to generate acronym list for our doc.
+%\input{acronyms}
+
+
+\section{The rest of the document \label{sect:sec1}}
+
+%\input{eqt}
+
+\end{document}

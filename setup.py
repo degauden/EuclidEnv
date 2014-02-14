@@ -14,7 +14,8 @@ def get_data_files(input_dir, output_dir):
     return result
 
 these_files = get_data_files("data/cmake", "EuclidEnv")
- 
+these_files += get_data_files("data/texmf", "EuclidEnv")
+
 setup (name="euclidenv",
        version="0.8",
        description="Euclid Environment Scripts",
