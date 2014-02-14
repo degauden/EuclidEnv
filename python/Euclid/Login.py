@@ -7,10 +7,10 @@ import os
 #============================================================================
 # setting up the core environment for Python only. This has to be done before
 # the import of the local modules.
-# In principle, only the PYTHONPATH (internal) setup is needed. The PATH and 
+# In principle, only the PYTHONPATH (internal) setup is needed. The PATH and
 # other are delayed to the created setup script
 
-# first try to use the installed prefix path 
+# first try to use the installed prefix path
 my_own_prefix="%(this_install_prefix)s"
 has_prefix = False
 
@@ -154,9 +154,9 @@ class ELoginScript(SourceScript):
 
         if python_loc :
             if "PYTHONPATH" in ev :
-                ev["PYTHONPATH"] = pathPrepend(ev["PYTHONPATH"], 
-                                               python_loc, 
-                                               exist_check=opts.strip_path, 
+                ev["PYTHONPATH"] = pathPrepend(ev["PYTHONPATH"],
+                                               python_loc,
+                                               exist_check=opts.strip_path,
                                                unique=opts.strip_path)
             else :
                 if opts.strip_path:
@@ -164,13 +164,13 @@ class ELoginScript(SourceScript):
                         ev["PYTHONPATH"] = python_loc
                 else :
                     ev["PYTHONPATH"] = python_loc
-                
+
 
         if "PYTHONPATH" in ev:
             log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
 
         bin_loc = None
-        
+
         if python_loc:
             bin_loc = getClosestPath(python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
             if not bin_loc :
@@ -178,17 +178,15 @@ class ELoginScript(SourceScript):
 
         if bin_loc :
             the_loc = os.path.dirname(bin_loc[0])
-            ev["PATH"] = pathPrepend(ev["PATH"], 
-                                     the_loc, 
-                                     exist_check=opts.strip_path, 
+            ev["PATH"] = pathPrepend(ev["PATH"],
+                                     the_loc,
+                                     exist_check=opts.strip_path,
                                      unique=opts.strip_path)
-            
+
         log.debug("%s is set to %s" % ("PATH", ev["PATH"]) )
-        
+
 
         # try the installed directory in $prefix/share/EuclidEnv/cmake/...
-
-        cmake_loc = None
 
         if python_loc :
             python_prefix = python_loc
@@ -196,27 +194,50 @@ class ELoginScript(SourceScript):
             python_prefix = "/usr"
 
 
-        cmake_loc = getClosestPath(python_prefix, 
-                                   os.sep.join(["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]), 
+        cmake_loc = getClosestPath(python_prefix,
+                                   os.sep.join(["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]),
                                    alloccurences=False)
         if not cmake_loc:
             # use the local source directory
-            cmake_loc = getClosestPath(python_prefix, 
-                                       os.sep.join(["data", "cmake", "ElementsProjectConfig.cmake"]), 
+            cmake_loc = getClosestPath(python_prefix,
+                                       os.sep.join(["data", "cmake", "ElementsProjectConfig.cmake"]),
                                        alloccurences=False)
-            
+
         if cmake_loc :
             the_loc = os.path.dirname(cmake_loc[0])
             if "CMAKE_PREFIX_PATH" in ev :
-                ev["CMAKE_PREFIX_PATH"] = pathPrepend(ev["CMAKE_PREFIX_PATH"], 
-                                                      the_loc, 
-                                                      exist_check=opts.strip_path, 
+                ev["CMAKE_PREFIX_PATH"] = pathPrepend(ev["CMAKE_PREFIX_PATH"],
+                                                      the_loc,
+                                                      exist_check=opts.strip_path,
                                                       unique=opts.strip_path)
             elif os.path.exists(the_loc) :
                 ev["CMAKE_PREFIX_PATH"] = the_loc
 
         if "CMAKE_PREFIX_PATH" in ev :
             log.debug("%s is set to %s" % ("CMAKE_PREFIX_PATH", ev["CMAKE_PREFIX_PATH"]) )
+
+
+        texmf_loc = getClosestPath(python_prefix,
+                                   os.sep.join(["share", "EuclidEnv", "texmf", "esgsdoc.cls"]),
+                                   alloccurences=False)
+        if not texmf_loc:
+            # use the local source directory
+            texmf_loc = getClosestPath(python_prefix,
+                                       os.sep.join(["data", "texmf", "esgsdoc.cls"]),
+                                       alloccurences=False)
+
+        if texmf_loc :
+            the_loc = os.path.dirname(texmf_loc[0])
+            if "TEXINPUTS" in ev :
+                ev["TEXINPUTS"] = pathPrepend(ev["TEXINPUTS"],
+                                              the_loc,
+                                              exist_check=opts.strip_path,
+                                              unique=opts.strip_path)
+            elif os.path.exists(the_loc) :
+                ev["TEXINPUTS"] = the_loc
+
+        if "TEXINPUTS" in ev :
+            log.debug("%s is set to %s" % ("TEXINPUTS", ev["TEXINPUTS"]) )
 
 #-----------------------------------------------------------------------------------
 
@@ -329,7 +350,7 @@ class ELoginScript(SourceScript):
         log = logging.getLogger()
         theconf = None
         supported_configs = self._nativemachine.supportedBinaryTag(debug=debug)
-        
+
         supconf = supported_configs
 
         if wildcard :
@@ -405,33 +426,33 @@ class ELoginScript(SourceScript):
 
         self.setHomeDir()
 
-        prefix_path = [] 
+        prefix_path = []
 
 
         if not opts.remove_userarea and ev.has_key("User_area") :
             prefix_path.append(ev["User_area"])
-        
+
         if opts.sharedarea :
             ev["EUCLIDPROJECTPATH"] = opts.sharedarea
-            
+
         if "EUCLIDPROJECTPATH" not in ev :
             if os.path.exists("/opt/euclid") :
                 ev["EUCLIDPROJECTPATH"] = "/opt/euclid"
-                
+
         if "EUCLIDPROJECTPATH" in ev :
             prefix_path.append(ev["EUCLIDPROJECTPATH"])
 
 
         if not opts.remove_userarea and ev.has_key("User_area") :
             prefix_path.append(ev["User_area"])
-        
+
         if "CMAKE_PROJECT_PATH" not in ev:
             ev["CMAKE_PROJECT_PATH"] = ""
 
         for p in prefix_path:
-            ev["CMAKE_PROJECT_PATH"] = pathPrepend(ev["CMAKE_PROJECT_PATH"], 
-                                                      p, 
-                                                      exist_check=opts.strip_path, 
+            ev["CMAKE_PROJECT_PATH"] = pathPrepend(ev["CMAKE_PROJECT_PATH"],
+                                                      p,
+                                                      exist_check=opts.strip_path,
                                                       unique=opts.strip_path)
 
         log.debug("CMAKE_PROJECT_PATH is set to %s" % ev["CMAKE_PROJECT_PATH"])
@@ -505,8 +526,8 @@ class ELoginScript(SourceScript):
         # first part: the environment variables
         if not opts.shell_only :
             self.setEnv(debug)
-            
-        # second part the aliases    
+
+        # second part the aliases
         self.setAliases(debug)
 
         if not opts.shell_only :
