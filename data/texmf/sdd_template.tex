@@ -1,0 +1,244 @@
+\documentclass[SDCCH,esgsdraft,SDD]{esgsdoc}
+
+\begin{document}
+
+\setEsgsDocShortTitle {Euclid SGS Template document}
+\setEsgsDocTitle          {\esgsDocShortTitle}
+
+\setEsgsDocAuthor   {Pierre Dubath}                % the author(s)
+\setEsgsDocApprove  {theApprover}              % approval by ...
+\setEsgsDocRef      {EUCL-XXX-YY-\esgsDocIssue} % the reference code
+\setEsgsDocIssue    {0}                        % the issue
+\setEsgsDocRevision {1}                        % the revision
+\setEsgsDocDate     {\today}                  % the date of the issue
+\setEsgsDocStatus   {draft}                    % the document status
+
+%
+% a short abstract - no abstracts in these docs
+%
+%\setEsgsDocAbstract {This is the Euclid SGS Software ..}
+
+%
+% the title page
+%
+\mktitle
+
+\begin{docPeople}
+\addPeopleGroup{Prepared by:}
+%\addPeople{ Name }{ Function } { Date } { Signature }�
+\addPeople{Pierre Dubath}{SDC-CH leader}{13/02/2014}{}
+%
+\addPeopleGroup{Contributors:}
+%\addPeople{ Name }{ Function } { Date } { Signature }
+\addPeople{Nikolaos Apostolakos}{SDC-CH}{13/02/2014}{}
+\addPeople{Pavel Binko}{SDC-CH}{13/02/2014}{}
+\addPeople{Hubert Degaudenzi}{SDC-CH}{13/02/2014}{}
+\addPeople{Mohamed Meharga}{SDC-CH}{13/02/2014}{}
+\addPeople{Nicolas Morisset}{SDC-CH}{13/02/2014}{}
+\addPeople{Andrea Tramacere}{SDC-CH}{13/02/2014}{}
+%
+\addPeopleGroup{ Authorised: }
+%\addPeople{ Name }{ Function } { Date } { Signature }
+\addPeople{ John Hoar}{ SOC Development manager }{ }{ }
+\addPeople{Fabio Pasian}{EG SGS Manager }{ }{ }
+%
+\addPeopleGroup{ Agreed by: }
+%\addPeople{ Name }{ Function } { Date } { Signature }�
+\addPeople{Responsible persons, for commitment}{  }{ }{ }
+%
+\addPeopleGroup{ Approved: }
+%\addPeople{ Name }{ Function } { Date } { Signature }
+\addPeople{Customer representative}{  }{ }{ }
+\end{docPeople}
+
+%
+%	Revision history MOST RECENT FIRST
+%
+\begin{docHistory}
+%\addtohist{ Issue }{ Date } { Pages } { Description of changes } { Comment }
+\addtohist{ 0.1 }{ 13/02/2014 }{ all }{ Template creation }{ First draft }
+\end{docHistory}
+
+%
+%	TOC
+%
+\newpage
+\setcounter{tocdepth}{3}
+\tableofcontents
+\newpage
+
+%
+% It's all yours from here on
+%
+\section{Introduction}
+
+Trying to move from Gaia to Euclid.
+
+All sections of this template should appear in your SDD unless the
+sections states it may be suppressed. This will give a uniform look
+and feel to our SDD for the review board.
+
+\subsection{Objectives \label{sect:objectives}}
+What is the system supposed to do - a brief description of the
+function and purpose of the system.
+
+\subsection{Scope \label{sect:scope}}
+To what level is this document applicable - is it just this software
+system or product or is it across all of \TEAM. This template is
+applicable to all SDD produced in ESGS to provide a uniform look for
+such documents.
+
+\subsection{Applicable Documents \label{sect:ad}}
+When applicable documents change a change may be required in this
+document. The applicable documents are listed here for clarity - the
+full reference is bellow in \secref{sect:refs}. This should be a
+relatively short list in most cases.
+
+Use citell to cite LiveLink documents such as \citell{LL:WOM-001}.
+
+
+\begin{tabular}[htb]{l l}
+\citell{LL:TL-001}&   ESGS Product Assurance Plan \\
+\cite{LL:AUTH-XXX}& Software Development Plan for \TEAM  \\
+\cite{LL:AUTH-XXX}& Software Requirements Specification for \TEAM  WP x \@product \\
+% Dont refer to AD1 etc bellow just use the \cite
+\end{tabular}
+
+\subsection{Reference Documents \label{sect:refs}}
+%\vspace*{-1cm}
+\renewcommand{\refname}{}
+\bibliographystyle{gaia_aa}
+\bibliography{gaia_livelink_valid,gaia_drafts,gaia_refs,gaia_books,gaia_refs_ads}
+
+\subsection{Definitions, acronyms, and abbreviations \label{sect:acronyms}}
+The following is a complete list of acronyms used in this document.
+% Use the acronym tool from CU1 to getenrate acronym list for you doc.
+%\include{acronyms}
+
+\section{Methods and conventions}
+Use of UML language, design patterns ...
+
+\section{Design Overview}
+
+\subsection{Identification \label{sect:identification}}
+\begin{longtable}{|p{1\textwidth}|}\hline
+{\bf Identifier:} GaiaSpectroscopicArch \\\hline
+{\bf Type:} Java Archive \\\hline
+{\bf Purpose:} SRS requirement identifier\\\hline
+{\bf Description:} This software product aims at .... \\\hline
+{\bf Dependencies:} This software product needs the GaiaTools archive to work\\\hline
+\end{longtable} \normalsize
+
+\subsection{Architecture \label{sect:arc}}
+General easy to read overview of this software product. Software modules should be introduced here and appear as package or library. From now on, the software modules should be mentioned with their package name or library name.
+
+\subsection{Dynamic description \label{sect:dyn}}
+Illustrate the main running sequences involving the software modules of the software product.
+
+\section{Software Modules}
+Here each Software Module defined in the Software Product SRS is
+described in detail with their algorithms.
+
+\subsection{Software Module N}
+
+\subsubsection{Identification}
+\begin{longtable}{|p{1\textwidth}|}\hline
+{\bf Identifier:} SpectroscopicPkg \\\hline
+{\bf Type:} Java Package \\\hline
+{\bf Purpose:} SRS requirement identifier\\\hline
+{\bf Description:} This software module implements the spectroscopic algorithm ....\\\hline
+{\bf Dependencies:} This software module needs the X software module\\\hline
+\end{longtable} \normalsize
+\subsubsection{Static Description}
+Show the class diagram. Main classes with their main methods should appear in the diagram.
+\subsubsection{Dynamic description}
+Main sequence diagrams representing the main activities of the software module should be included. (Scientific algorithms can be subjected to a sequence diagram)
+
+UML sequence diagrams can be used.
+
+
+{\bf Sequence A}
+
+{\bf Sequence B}
+
+{\bf Sequence C}
+
+
+\subsubsection{Interfaces}
+
+Detailed description of the interfaces at 'Module' level introduced in the SRS at DU level.
+
+      For each I/O item give at least:
+
+      \begin{itemize}
+         \item the name,
+         \item a description and
+         \item the access type: input, output or input/output.
+         \item the data type: long, double, ..
+         \item data ranges.
+      \end{itemize}
+
+\begin{longtable}{|p{0.17\textwidth}|p{0.17\textwidth}|p{0.17\textwidth}|p{0.17\textwidth}|p{0.17\textwidth}|}\hline
+|Name & Description & Access Type & Data Type & Data ranges | \\\hline
+|{}&{}&{}&{}&{}|\\\hline
+\end{longtable} \normalsize
+
+
+\section{Methods(optional)}
+This section is optional.
+Use this section to describe the main methods if needed.
+
+\subsection{Methods X}
+
+\subsubsection{Identification}
+\begin{longtable}{|p{1\textwidth}|}\hline
+{\bf Identifier:} SpectroscopicMethod \\\hline
+{\bf Belong to:} SpectroscopicClass \\\hline
+{\bf Purpose:} SRS requirement identifier\\\hline
+{\bf Description:} This method implements the main part of the spectroscopic algorithm ....\\\hline
+\end{longtable} \normalsize
+
+\subsubsection{Detailed description}
+This part shows the main steps of the method. A sequence diagram could be provided as an illustration. Scientific concepts could also be described here.
+
+\subsubsection{Interfaces}
+Detailed description of the interfaces at the method level.
+
+      For each I/O item give at least:
+
+      \begin{itemize}
+         \item the name,
+         \item a description and
+         \item the access type: input, output or input/output.
+         \item the data type: long, double, ..
+         \item data ranges.
+      \end{itemize}
+
+\begin{longtable}{|p{0.17\textwidth}|p{0.17\textwidth}|p{0.17\textwidth}|p{0.17\textwidth}|p{0.17\textwidth}|}\hline
+|Name & Description & Access Type & Data Type & Data ranges | \\\hline
+|{}&{}&{}&{}&{}|\\\hline
+\end{longtable} \normalsize
+
+\section{Traceability}
+{\bf can be generated with makerequirementsTrace.rb from the code}
+%\input{traceability.tex}
+%above line if you use  ESGS/CU1/docs/common/scripts/makeRequirementTrace.pl
+\scriptsize \begin{longtable}{|p{0.13\textwidth}|p{0.07\textwidth}|p{0.3\textwidth}|p{0.2\textwidth}|p{0.3\textwidth}|}\hline
+Requirement & Version & Design element implementing requirement & Completion & Comment\\\hline
+ {\bf S-XXX-NN} &
+  1.1 &
+Spectroscopic.Main &
+\textcolor{blue}{I}
+\\\hline
+\end{longtable} \normalsize
+
+The field completion reveals whether the SRS requirement is fully implemented. It can have the following values:\\
+		\begin{itemize}
+			\item \textcolor{blue}{I}: the SRS requirement is fully implemented\\
+			\item \textcolor{red}{PI}: the SRS requirement is partially implemented\\
+			\item \textcolor{red}{NI}: the SRS requirement is not yet implemented \\
+		\end{itemize}
+The values \textcolor{red}{PI} and \textcolor{red}{NI} are fairly normal in the
+cyclic development. It is the current status for this version - later versions will have more Is.
+
+\end{document}
