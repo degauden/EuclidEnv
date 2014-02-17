@@ -46,7 +46,7 @@ else :
     if os.path.basename(_pyeuc_dir) == "Euclid" :
         _base_dir = os.path.dirname(_py_dir)
         python_loc = _py_dir
-        
+
 if python_loc :
     sys.path.insert(0, python_loc)
 #============================================================================
@@ -191,14 +191,19 @@ class ELoginScript(SourceScript):
         cmake_loc = None
 
         if python_loc :
-            cmake_loc = getClosestPath(python_loc, 
-                                       os.sep.join(["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]), 
+            python_prefix = python_loc
+        else :
+            python_prefix = "/usr"
+
+
+        cmake_loc = getClosestPath(python_prefix, 
+                                   os.sep.join(["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]), 
+                                   alloccurences=False)
+        if not cmake_loc:
+            # use the local source directory
+            cmake_loc = getClosestPath(python_prefix, 
+                                       os.sep.join(["data", "cmake", "ElementsProjectConfig.cmake"]), 
                                        alloccurences=False)
-            if not cmake_loc:
-                # use the local source directory
-                cmake_loc = getClosestPath(python_loc, 
-                                           os.sep.join(["data", "cmake", "ElementsProjectConfig.cmake"]), 
-                                           alloccurences=False)
             
         if cmake_loc :
             the_loc = os.path.dirname(cmake_loc[0])
