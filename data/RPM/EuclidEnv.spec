@@ -42,6 +42,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_sysconfdir}/profile.d/euclid.sh
 %{_sysconfdir}/sysconfig/euclid
 %{_datadir}/EuclidEnv/cmake/*
+%{_datadir}/EuclidEnv/texmf/*
 
 
 %post
