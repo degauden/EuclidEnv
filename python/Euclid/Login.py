@@ -165,7 +165,6 @@ class ELoginScript(SourceScript):
                 else :
                     ev["PYTHONPATH"] = python_loc
 
-
         if "PYTHONPATH" in ev:
             log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
 
