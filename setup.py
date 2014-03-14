@@ -17,7 +17,7 @@ these_files = get_data_files("data/cmake", "EuclidEnv")
 these_files += get_data_files("data/texmf", "EuclidEnv")
 
 setup (name="euclidenv",
-       version="1.0",
+       version="1.1",
        description="Euclid Environment Scripts",
        author="Hubert Degaudenzi",
        author_email="Hubert.Degaudenzi@unige.ch",
