@@ -362,7 +362,7 @@ class ELoginScript(SourceScript):
             if theconf not in supported_configs :
                 log.warning("%s is not in the list of distributed configurations" % theconf)
                 if supported_configs :
-                    log.warning("Please switch to a supported one with 'LbLogin -c' before building")
+                    log.warning("Please switch to a supported one with 'ELogin -c' before building")
                     log.warning("Supported configs: %s" % ", ".join(supported_configs))
 
         return theconf
