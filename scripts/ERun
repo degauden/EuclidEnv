@@ -1,0 +1,34 @@
+#!/usr/bin/python
+""" Main script to run any Elements-based project """
+
+from Euclid.Script import Script
+from Euclid import Run
+
+import sys
+import os
+
+class ERunScript(Script):
+    _version = __version__
+    _description = __doc__
+    
+#-----------------------------------------------------------------------------------
+# Option definition
+
+    def defineOpts(self):
+        """ define commandline options """
+        parser = self.parser
+
+#-----------------------------------------------------------------------------------
+# Main definition
+
+    def main(self):
+        opts = self.options
+        args = self.args
+        
+        retcode = Run.execute()
+
+        return retcode
+
+if __name__ == '__main__':
+    sys.exit(ERunScript(usage="%prog [options] project [version] cmd").run())
+
