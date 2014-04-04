@@ -54,7 +54,7 @@ def test_import():
     assert Euclid.Run.path
 
 def test_version():
-    from Euclid.Run.version import expandVersionAlias, isValidVersion
+    from Euclid.Run.Version import expandVersionAlias, isValidVersion
 
     # this is a dummy test, waiting for a real implementation of version aliases
     assert expandVersionAlias('Gaudi', 'latest') == 'latest'
@@ -74,7 +74,7 @@ def parse_args(func, args):
     return func(OptionParser(prog='dummy_program')).parse_args(args)
 
 def test_options_addOutputLevel():
-    from Euclid.Run.options import addOutputLevel
+    from Euclid.Run.Options import addOutputLevel
     import logging
 
     opts, _ = parse_args(addOutputLevel, [])
@@ -91,7 +91,7 @@ def test_options_addOutputLevel():
 
 
 def test_options_addPlatform():
-    from Euclid.Run.options import addPlatform
+    from Euclid.Run.Options import addPlatform
 
     opts, _ = parse_args(addPlatform, ['-c', 'platform1'])
     assert opts.platform == 'platform1'
@@ -130,7 +130,7 @@ def test_options_addPlatform():
 
 
 def test_options_addSearchPath():
-    from Euclid.Run.options import addSearchPath
+    from Euclid.Run.Options import addSearchPath
 
     if 'LHCBDEV' not in os.environ:
         os.environ['LHCBDEV'] = '/afs/cern.ch/lhcb/software/DEV'
@@ -214,13 +214,13 @@ def test_options_addSearchPath():
 
 
 def test_profiling():
-    from Euclid.Run import profiling
+    from Euclid.Run import Profiling
 
     from StringIO import StringIO
 
     try:
         sys.stderr = StringIO()
-        profiling.run('sys.exit()')
+        Profiling.run('sys.exit()')
         assert False, 'exception expected'
     except SystemExit:
         print sys.stderr.getvalue()
@@ -236,7 +236,7 @@ def test_profiling():
 
     try:
         sys.stderr = StringIO()
-        profiling.run('sys.exit()')
+        Profiling.run('sys.exit()')
         assert False, 'exception expected'
     except SystemExit:
         print sys.stderr.getvalue()
@@ -248,7 +248,7 @@ def test_profiling():
     profile.Profile = dummy
     try:
         sys.stderr = StringIO()
-        profiling.run('sys.exit()')
+        Profiling.run('sys.exit()')
         assert False, 'exception expected'
     except SystemExit:
         print sys.stderr.getvalue()
