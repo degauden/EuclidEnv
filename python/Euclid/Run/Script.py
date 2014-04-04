@@ -14,7 +14,12 @@ import os
 import re
 import logging
 
-import EnvConfig
+try:
+    import EnvConfig
+except:
+    # FIXME: search in the CMAKE_PREFIX_PATH and use another fallback if 
+    # this variable is not defined.
+    pass
 
 from Euclid.Run.Lookup import getEnvXmlPath, findProject
 from Euclid.Run.Version import isValidVersion, expandVersionAlias
