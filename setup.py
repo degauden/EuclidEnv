@@ -17,7 +17,7 @@ these_files = get_data_files("data/cmake", "EuclidEnv")
 these_files += get_data_files("data/texmf", "EuclidEnv")
 
 setup (name="euclidenv",
-       version="1.1",
+       version="1.1.1",
        description="Euclid Environment Scripts",
        author="Hubert Degaudenzi",
        author_email="Hubert.Degaudenzi@unige.ch",
@@ -26,7 +26,7 @@ setup (name="euclidenv",
                      "Euclid.Login", "Euclid.Option", "Euclid.Path",
                      "Euclid.PathStripper", "Euclid.Platform",
                      "Euclid.Script", "Euclid.Version", "Euclid.Run"],
-       package_dir={"": "python"},
+       package_dir={"": "python", "EnvConfig":"data/cmake/EnvConfig"},
        ext_package= "Euclid",
        scripts  = [ os.path.join("scripts","ELogin.sh"),
                     os.path.join("scripts","ELogin.csh"),
