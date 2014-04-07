@@ -1,17 +1,6 @@
-###############################################################################
-# (c) Copyright 2013 CERN                                                     #
-#                                                                             #
-# This software is distributed under the terms of the GNU General Public      #
-# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
-#                                                                             #
-# In applying this licence, CERN does not waive the privileges and immunities #
-# granted to it by virtue of its status as an Intergovernmental Organization  #
-# or submit itself to any jurisdiction.                                       #
-###############################################################################
 '''
 Common functions to add common options to a OptionParser instance.
 '''
-__author__ = 'Marco Clemencic <marco.clemencic@cern.ch>'
 
 import os
 
@@ -25,25 +14,6 @@ class LHCbDevPathEntry(object):
     def __str__(self):
         return str(os.environ['LHCBDEV'])
 
-class NightlyPathEntry(object):
-    def __init__(self, base, slot, day):
-        self.base, self.slot, self.day = base, slot, day
-    def __str__(self):
-        return str(os.path.join(self.base, self.slot, self.day))
-
-def getNightlyExtraPath(path, slot, day):
-    extra_path = []
-    confSumm_file = os.path.join(path, 'confSummary.py')
-    config_file = os.path.join(path, 'configuration.xml')
-    if os.path.exists(confSumm_file): # Try with the python digested version
-        data = {}
-        exec open(confSumm_file).read() in data #IGNORE:W0122
-        # Get the list and convert it to strings
-        extra_path = filter(str, data.get('cmtProjectPathList',[]))
-    elif os.path.exists(config_file): # Try with the XML configuration
-        from LbConfiguration.SetupProject import getNightlyCMTPROJECTPATH
-        extra_path = getNightlyCMTPROJECTPATH(config_file, slot, day)
-    return extra_path
 
 def addSearchPath(parser):
     '''
@@ -72,56 +42,8 @@ def addSearchPath(parser):
                            'Note: the directories are searched in the '
                            'order specified on the command line.')
 
-    def nightly_option(_option, opt_str, _value, _parser):
-        # List of abbreviations for weekdays
-        days = ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')
-        import datetime
-        day = days[datetime.date.today().weekday()]
 
-        parser.values.dev = True
-        rargs = parser.rargs
 
-        try:
-            slot = rargs.pop(0)
-        except IndexError:
-            raise OptionValueError('%s must be followed by the slot of the nightlies and optionally by the day' % opt_str)
-
-        if rargs and rargs[0].capitalize() in days:
-            day = rargs.pop(0).capitalize()
-
-        # Locate the requested slot in the know nightlies directories
-        nightly_bases = [os.environ.get('LHCBNIGHTLIES', '/afs/cern.ch/lhcb/software/nightlies'),
-                         os.path.normpath(os.path.join(os.environ.get('LCG_release_area', '/afs/cern.ch/sw/lcg/app/releases'), os.pardir, 'nightlies'))]
-
-        slot_dir = None
-        for nightly_base in nightly_bases:
-            slot_dir = os.path.join(nightly_base, slot)
-            if os.path.isdir(slot_dir): break # exit from the loop as soon as the slot is found
-        else:
-            raise OptionValueError('Cannot find slot %s in %s. Check the values of the option %s' % (slot, nightly_bases, opt_str))
-
-        path = os.path.join(slot_dir, day)
-        if not os.path.isdir(path):
-            raise OptionValueError('The directory %s does not exists. Check the values of the option %s' % (path, opt_str))
-
-        parser.values.dev_dirs.append(NightlyPathEntry(nightly_base, slot, day))
-        parser.values.nightly = (slot, day)
-
-        # Get the extra CMTPROJECTPATH entries needed for the nightlies
-        extra_path = getNightlyExtraPath(path, slot, day)
-        if extra_path:
-            parser.values.dev_dirs += map(SearchPathEntry, extra_path)
-
-    parser.add_option('--nightly', action='callback',
-                      metavar='SLOT [DAY]', type='string',
-                      callback=nightly_option,
-                      nargs=0,
-                      help='Add the required slot of the LHCb nightly '
-                           'builds to the list of DEV dirs. DAY must be '
-                           'a 3 digit abbreviation of the weekday, '
-                           'by default the current day. Special settings '
-                           'of the CMTPROJECTPATH needed for the '
-                           'nightly build slot are taken into account.')
 
     parser.add_option('--user-area', action='store',
                       help='Use the specified path as User_release_area instead of '
@@ -132,8 +54,7 @@ def addSearchPath(parser):
 
     parser.set_defaults(dev_dirs=[],
                         user_area=os.environ.get('User_release_area'),
-                        no_user_area=False,
-                        nightly=None)
+                        no_user_area=False)
 
     return parser
 
@@ -171,8 +92,8 @@ def addPlatform(parser):
         platform = os.environ['CMTCONFIG']
     else:
         # auto-detect
-        from LbConfiguration.Platform import NativeMachine
-        supported = NativeMachine().CMTSupportedConfig()
+        from Euclid.Platform import NativeMachine
+        supported = NativeMachine().supportedBinaryTag()
         if supported:
             platform = supported[0]
         else:
