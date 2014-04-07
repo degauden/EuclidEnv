@@ -11,7 +11,6 @@ else
   ELoginStatus="$?"
 fi
 
-unset my_own_prefix
 unset python_loc
 
 needs_cleanup=no
@@ -40,5 +39,6 @@ if [[ "$needs_cleanup" = "yes" ]]; then
 fi
 
 unset needs_cleanup
+unset my_own_prefix
 
 $(exit $ELoginStatus)

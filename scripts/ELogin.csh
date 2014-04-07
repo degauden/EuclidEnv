@@ -13,7 +13,6 @@ else
   set ELoginStatus = $?
 endif
 
-unset my_own_prefix
 unset python_loc
 
 set needs_cleanup = no
@@ -43,5 +42,6 @@ if ( "$needs_cleanup" == "yes" ) then
 endif
 
 unset needs_cleanup
+unset my_own_prefix
 
 exit $ELoginStatus
