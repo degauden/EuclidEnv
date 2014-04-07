@@ -4,6 +4,8 @@
 from Euclid.Script import Script
 from Euclid import Run
 
+import logging
+
 import sys
 import os
 
@@ -24,8 +26,23 @@ class ERunScript(Script):
     def main(self):
         opts = self.options
         args = self.args
+        log = logging.getLogger()
         
-        retcode = Run.execute()
+        if len(args) < 2 :
+            log.fatal("Not enough arguments")
+            exit(1)
+            
+        project = args[0]
+        version = "latest"
+        
+        if len(args) == 2 : 
+            command = args[1]
+        else :
+            version = args[1]
+            command = args[2]
+            
+        
+        retcode = Run.execute(project, command, version)
 
         return retcode
 
