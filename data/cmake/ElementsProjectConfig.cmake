@@ -275,7 +275,6 @@ macro(elements_project project version)
           FILES_MATCHING PATTERN "*.py" PATTERN "*.conf")
   set_property(GLOBAL APPEND PROPERTY PROJ_HAS_CMAKE TRUE)
 
-
   #--- Global actions for the project
   #message(STATUS "CMAKE_MODULE_PATH -> ${CMAKE_MODULE_PATH}")
   include(ElementsBuildFlags)
