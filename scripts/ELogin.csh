@@ -18,7 +18,7 @@ unset python_loc
 set needs_cleanup = no
 
 if ( ! $ELoginStatus && "$ELogin_tmpfile" != "") then
-  source $LbLogin_tmpfile
+  source $ELogin_tmpfile
   set needs_cleanup = yes
 endif
 
