@@ -78,7 +78,11 @@ def parseManifest(manifest):
     # extract the list of used (project, version) from the manifest
     used_projects = [(p.attributes['name'].value, p.attributes['version'].value)
                      for p in _iter('used_projects', 'project')]
-    return (used_projects,)
+        # extract the list of data packages
+#    data_packages = [(p.attributes['name'].value, p.attributes['version'].value)
+#                     for p in _iter('used_data_pkgs', 'package')]
+    data_packages = []
+    return (used_projects, data_packages)
 
 def getEnvXmlPath(project, version, platform):
     '''
