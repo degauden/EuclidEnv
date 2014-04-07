@@ -40,7 +40,8 @@ def findProject(name, version, platform):
     '''
     log.debug('findProject(%r, %r, %r)', name, version, platform)
     # standard project suffixes
-    suffixes = ['{0}_{1}'.format(name, version),
+    suffixes = [os.path.join(name, version),
+                '{0}_{1}'.format(name, version),
                 os.path.join(name.upper(), '{0}_{1}'.format(name.upper(), version))]
     # special case: with the default 'latest' version we allow the plain name
     if version == 'latest':
