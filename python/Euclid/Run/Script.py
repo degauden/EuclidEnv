@@ -22,7 +22,8 @@ except:
 from Euclid.Run.Lookup import getEnvXmlPath, findProject
 from Euclid.Run.Version import isValidVersion, expandVersionAlias
 
-auto_override_projects = [('Compat', 'latest')]
+#auto_override_projects = [('Compat', 'latest')]
+auto_override_projects = []
 
 
 def projectExtraPath(projroot):
