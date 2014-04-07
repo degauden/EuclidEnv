@@ -1,25 +1,25 @@
-###############################################################################
-# (c) Copyright 2013 CERN                                                     #
-#                                                                             #
-# This software is distributed under the terms of the GNU General Public      #
-# Licence version 3 (GPL Version 3), copied verbatim in the file "COPYING".   #
-#                                                                             #
-# In applying this licence, CERN does not waive the privileges and immunities #
-# granted to it by virtue of its status as an Intergovernmental Organization  #
-# or submit itself to any jurisdiction.                                       #
-###############################################################################
-__author__ = 'Marco Clemencic <marco.clemencic@cern.ch>'
+
 
 import os
 import re
+import sys
 import logging
+
+
+from Euclid.Path import multiPathGetFirst
 
 try:
     import EnvConfig
 except:
-    # FIXME: search in the CMAKE_PREFIX_PATH and use another fallback if 
-    # this variable is not defined.
-    pass
+    if os.environ.get("CMAKE_PREFIX_PATH", None) :
+        env_conf_subdir = os.sep.join(["EnvConfig", "__init__.py"])
+        env_conf_init = multiPathGetFirst(os.environ["CMAKE_PREFIX_PATH"], env_conf_subdir)
+        if env_conf_init :
+            env_conf = os.path.dirname(env_conf_init)
+            env_py = os.path.dirname(env_conf)
+            sys.path.insert(0, env_py)
+            import EnvConfig
+    # use another fallback if CMAKE_PREFIX_PATH is not defined.
 
 from Euclid.Run.Lookup import getEnvXmlPath, findProject
 from Euclid.Run.Version import isValidVersion, expandVersionAlias
