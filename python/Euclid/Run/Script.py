@@ -1,9 +1,7 @@
 
 
 import os
-import re
 import sys
-import logging
 
 
 from Euclid.Path import multiPathGetFirst
@@ -44,21 +42,6 @@ def projectExtraPath(projroot):
             return filter(str, data.get(varname, []))
         else:
             return []
-
-    # check for a requested nightly slot
-    nightly = os.path.join(projroot, 'nightly.cmake')
-    if os.path.exists(nightly):
-        exp = re.compile('^\s*set\s*\(\s*nightly_(slot|day)\s+(\S*)\s*\)', re.I)
-        vals = dict([l.groups() for l in filter(None, map(exp.match, open(nightly)))])
-        try:
-            slot = vals['slot']
-            day = vals['day']
-            nd = os.path.join(os.environ.get('LHCBNIGHTLY', ''), slot, day)
-            extra_path.append(nd)
-            from Euclid.Run.Options import getNightlyExtraPath
-            extra_path.extend(getNightlyExtraPath(nd, slot, day))
-        except KeyError:
-            logging.warning('invalid content of %s: ignored', nightly)
 
     # check for the Python digested search path
     spFile = os.path.join(projroot, 'searchPath.py')
