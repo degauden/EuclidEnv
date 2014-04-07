@@ -97,9 +97,6 @@ class ERun(EnvConfig.Script):
                           dest = "auto_override",
                           help = "Do not automatically prepend the projects %s" % auto_override_projects)
 
-        parser.add_option("--use-grid", action="store_true",
-                          help = "Enable auto selection of LHCbGrid project")
-
         # Note: the profile is not used in the script class, but in the wrapper
         #       it is added to the parser to appear in the help and for checking
         parser.add_option("--profile", action="store_true",
@@ -108,8 +105,7 @@ class ERun(EnvConfig.Script):
         parser.set_defaults(use = [],
                             runtime_projects = [],
                             overriding_projects = [],
-                            auto_override = True,
-                            use_grid = False)
+                            auto_override = True)
 
     def _parse_args(self, args=None):
         super(ERun, self)._parse_args(args)
@@ -133,8 +129,6 @@ class ERun(EnvConfig.Script):
 
         # prepare the list of projects to use
         projects = []
-        if self.opts.use_grid:
-            self.opts.overriding_projects.extend(('LHCbGrid', 'latest'))
         if self.opts.auto_override:
             explicit = set([p[0] for p in self.opts.overriding_projects])
             projects.extend([p for p in auto_override_projects if p[0] not in explicit])
