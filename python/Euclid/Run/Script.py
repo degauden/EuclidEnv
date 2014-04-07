@@ -13,10 +13,11 @@ __author__ = 'Marco Clemencic <marco.clemencic@cern.ch>'
 import os
 import re
 import logging
+
 import EnvConfig
 
-from lookup import getEnvXmlPath, findProject
-from version import isValidVersion, expandVersionAlias
+from Euclid.Run.Lookup import getEnvXmlPath, findProject
+from Euclid.Run.Version import isValidVersion, expandVersionAlias
 
 auto_override_projects = [('Compat', 'latest')]
 
@@ -49,7 +50,7 @@ def projectExtraPath(projroot):
             day = vals['day']
             nd = os.path.join(os.environ.get('LHCBNIGHTLY', ''), slot, day)
             extra_path.append(nd)
-            from options import getNightlyExtraPath
+            from Euclid.Run.Options import getNightlyExtraPath
             extra_path.extend(getNightlyExtraPath(nd, slot, day))
         except KeyError:
             logging.warning('invalid content of %s: ignored', nightly)
@@ -64,7 +65,7 @@ class ERun(EnvConfig.Script):
     __usage__ = "Usage: %prog [OPTION]... [NAME=VALUE]... PROJECT VERSION [COMMAND [ARG]...]"
 
     def _prepare_parser(self):
-        from options import addSearchPath, addPlatform
+        from Euclid.Run.Options import addSearchPath, addPlatform
         from optparse import OptionValueError
 
         super(ERun, self)._prepare_parser()

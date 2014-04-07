@@ -13,19 +13,18 @@ __author__ = 'Marco Clemencic <marco.clemencic@cern.ch>'
 import os
 import logging
 
-import LbConfiguration.SP2
+import Euclid.Run
 
 from string import Template
 
-from LbConfiguration.SetupProject import FixProjectCase
 
 def main():
     '''
     Script to generate a local development project.
     '''
     from optparse import OptionParser
-    from options import addSearchPath, addOutputLevel, addPlatform
-    from lookup import findProject, MissingProjectError
+    from Euclid.Run.Options import addSearchPath, addOutputLevel, addPlatform
+    from Euclid.Run.Lookup import findProject, MissingProjectError
 
     parser = OptionParser(usage='%prog [options] Project version')
 
@@ -50,8 +49,6 @@ def main():
     except ValueError:
         parser.error('wrong number of arguments')
 
-    project = FixProjectCase(project)
-
     if not opts.name:
         opts.name = '{project}Dev_{version}'.format(project=project, version=version)
         local_project, local_version = project + 'Dev', version
@@ -71,7 +68,7 @@ def main():
 
     # prepend dev dirs to the search path
     if opts.dev_dirs:
-        Euclid.SP2.path[:] = map(str, opts.dev_dirs) + Euclid.SP2.path
+        Euclid.Run.path[:] = map(str, opts.dev_dirs) + Euclid.Run.path
 
     try:
         projectDir = findProject(project, version, opts.platform)
@@ -93,9 +90,9 @@ def main():
 
     data = dict(project=project,
                 version=version,
-                search_path=' '.join(['"%s"' % p for p in Euclid.SP2.path]),
-                search_path_repr=repr(Euclid.SP2.path),
-                search_path_env=os.pathsep.join(Euclid.SP2.path),
+                search_path=' '.join(['"%s"' % p for p in Euclid.Run.path]),
+                search_path_repr=repr(Euclid.Run.path),
+                search_path_env=os.pathsep.join(Euclid.Run.path),
                 use_cmake=(use_cmake and 'yes' or ''),
                 PROJECT=project.upper(),
                 local_project=local_project,
