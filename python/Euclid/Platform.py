@@ -4,6 +4,18 @@ import sys, platform, os
 import re
 import logging
 
+
+# CMake Build Types
+
+build_types = {
+                "Release"        : "opt",
+                "Debug"          : "dbg",
+                "Coverage"       : "cov",
+                "Profile"        : "pro",
+                "RelWithDebInfo" : "o2g",
+                "MinSizeRel"     : "min"
+              }
+
 # BINARY_TAG extraction
 
 def isNewStyleBinary(binary_tag):
@@ -14,8 +26,20 @@ def isNewStyleBinary(binary_tag):
     return newstyle
 
 def isOldStyleBinary(binary_tag):
-    """ check if the BINARY_TAG value is new styled """
+    """ check if the BINARY_TAG value is not new styled """
     return not isNewStyleBinary(binary_tag)
+
+def isBinaryType(binary_tag, btype):
+    """ check if the BINARY_TAG value is one from the type """
+    bintype = True
+    if isNewStyleBinary(binary_tag) :
+        if not binary_tag.endswith("-%s" % build_types[btype]) :
+            bintype = False
+    else :
+        if not binary_tag.endswith("_%s" % build_types[btype] ) :
+            bintype = False
+    return bintype
+
 
 def isBinaryDbg(binary_tag):
     """ check if the BINARY_TAG value is a debug one """

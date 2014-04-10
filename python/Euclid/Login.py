@@ -488,6 +488,9 @@ class ELoginScript(SourceScript):
             al["ELogin"] = ". \\`/usr/bin/which  ELogin.%s\\`" % self.targetShell()
         else :
             al["ELogin"] = "source \\`/usr/bin/which ELogin.%s\\`" % self.targetShell()
+            
+        al["ERun"] = "E-Run"
+        al["EuclidRun"] = "E-Run"
 
         return self.copyEnv()
 
