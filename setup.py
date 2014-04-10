@@ -21,7 +21,7 @@ these_files += get_data_files("data/texmf", "EuclidEnv")
 
 use_local_install=False
 for a in sys.argv: 
-    for b in [ "--user", "--root", "--prefix", "--home" ] :
+    for b in [ "--user", "--prefix", "--home" ] :
         if a.startswith(b) :
             use_local_install = True
 
