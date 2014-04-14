@@ -18,6 +18,29 @@ def get_data_files(input_dir, output_dir):
 these_files = get_data_files("data/cmake", "EuclidEnv")
 these_files += get_data_files("data/texmf", "EuclidEnv")
 
+
+use_local_install=False
+for a in sys.argv: 
+    for b in [ "--user", "--prefix", "--home" ] :
+        if a.startswith(b) :
+            use_local_install = True
+
+
+
+
+if use_local_install:
+    etc_files = [("../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
+                                        os.path.join("data", "profile", "euclid.csh")]),
+                  ("../etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")])
+                ]
+else:
+    etc_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
+                                      os.path.join("data", "profile", "euclid.csh")]),
+                  ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")])
+                ]
+
+
+
 skip_install_fix=False
 
 # disable the postinstall script if needed. This is especially needed for the RPM
@@ -30,6 +53,24 @@ for a in sys.argv:
 
 
 class my_install(_install):
+    def get_login_scripts(self) :
+        p_list = []
+        for c in [ "ELogin", "Euclid_group_login", "Euclid_group_setup" ]  :
+            for s in ["sh", "csh"] :
+                file2fix = os.path.join(self.install_scripts, "%s.%s" % (c,s) )
+                if os.path.exists(file2fix) :
+                    p_list.append(file2fix)
+        return p_list
+
+    def get_profile_scripts(self) :
+        p_list = []
+        for s in ["sh", "csh"] :
+            file2fix = os.path.join(self.install_base, "etc", "profile.d",  "%s.%s" % ("euclid",s) )
+            if os.path.exists(file2fix) :
+                p_list.append(file2fix)
+        return p_list
+
+
     def run(self):
         _install.run(self)
         # postinstall
@@ -46,15 +87,14 @@ class my_install(_install):
 
             if os.path.exists(os.path.join(self.install_scripts, "FixInstallPath")) :
                 fixscript = os.path.join(self.install_scripts, "FixInstallPath")
-                proc_list = []
-                for c in [ "ELogin", "Euclid_group_login", "Euclid_group_setup" ]  :
-                    for s in ["sh" , "csh"] :
-                        file2fix = os.path.join(self.install_scripts, "%s.%s" % (c,s) )
-                        if os.path.exists(file2fix) :
-                            proc_list.append(file2fix)
+                proc_list = self.get_login_scripts()
                 file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
                 if os.path.exists(file2fix) :
                     proc_list.append(file2fix)
+                if use_local_install :
+                    proc_list += self.get_profile_scripts()
+
+
             for p in proc_list : 
                 print "Fixing %s with the %s prefix path" % (p, self.install_base)
                 call(["python", fixscript, self.install_base, p])
@@ -83,9 +123,7 @@ setup (name="EuclidEnv",
                     os.path.join("scripts", "E-Run"),
                     os.path.join("scripts", "FixInstallPath"),
                   ],
-       data_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
-                                         os.path.join("data", "profile", "euclid.csh")]),
-                     ("/etc/sysconfig", [os.path.join("data", "sys", "config", "euclid")])
-                     ] + these_files,
+       data_files = etc_files + these_files,
        cmdclass={"install": my_install},
        )
+

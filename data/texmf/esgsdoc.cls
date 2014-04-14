@@ -336,8 +336,7 @@
     \setlength\LTright{\fill}
 %   \setlength\LTpost{\fill}
 %   \addtocounter{table}{-1}
-    \begin{longtable}{|C{1.2cm}|C{2.2cm}|C{2cm}|p{5cm}|p{5cm}|}
-
+    \begin{longtable}{|C{0.8cm}|C{2cm}|C{1.2cm}|p{7.4cm}|p{4cm}|}
     \hline
  \rowcolor{light-gray}     Issue & Date & Page & Description Of Change & Comment \\ \hline
     \endfirsthead
@@ -865,3 +864,7 @@ No actions have been identified.}
 \setcounter{nparaincr}{\value{@dfparincr}}
 
 %-----------------------
+%
+% Usefull stuf from Wruter2Latex
+%
+\newcommand\textsubscript[1]{\ensuremath{{}_{\text{#1}}}}
