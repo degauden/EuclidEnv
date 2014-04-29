@@ -240,7 +240,7 @@ macro(elements_project project version)
 
   #--- commands required to build cached variable
   # (python scripts are located as such but run through python)
-  set(binary_paths ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/ElementsPolicy/scripts ${CMAKE_SOURCE_DIR}/ElementsKernel/scripts ${CMAKE_SOURCE_DIR}/Elements/scripts ${binary_paths})
+  set(binary_paths ${CMAKE_SOURCE_DIR}/cmake/scripts ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/ElementsPolicy/scripts ${CMAKE_SOURCE_DIR}/ElementsKernel/scripts ${CMAKE_SOURCE_DIR}/Elements/scripts ${binary_paths})
 
   find_program(env_cmd env.py HINTS ${binary_paths})
   set(env_cmd ${PYTHON_EXECUTABLE} ${env_cmd})
@@ -261,8 +261,13 @@ macro(elements_project project version)
   find_program(elementsrun_cmd elementsrun.py HINTS ${binary_paths})
   set(elementsrun_cmd ${PYTHON_EXECUTABLE} ${elementsrun_cmd})
 
+  find_program(rpmbuild_wrap_cmd rpmbuild_wrap.py HINTS ${binary_paths})
+  set(rpmbuild_wrap_cmd ${PYTHON_EXECUTABLE} ${rpmbuild_wrap_cmd})
+
+
   mark_as_advanced(env_cmd merge_cmd versheader_cmd
-                   zippythondir_cmd elementsrun_cmd)
+                   zippythondir_cmd elementsrun_cmd
+                   rpmbuild_wrap_cmd)
 
   #--- Project Installations------------------------------------------------------------------------
   install(DIRECTORY cmake/ DESTINATION cmake
@@ -270,8 +275,21 @@ macro(elements_project project version)
                              PATTERN "*.cmake"
                              PATTERN "*.in"
                              PATTERN ".svn" EXCLUDE)
-  install(PROGRAMS cmake/env.py DESTINATION scripts OPTIONAL)
-  install(DIRECTORY cmake/EnvConfig DESTINATION scripts
+                             
+  install(PROGRAMS cmake/scripts/rpmbuild_wrap.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/createProjVersHeader.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/install.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/locker.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/merge_files.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/PathStripper.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/remove_lines.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/StripPath.sh DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/StripPath.csh DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/StripPath.bat DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/ZipPythonDir.py DESTINATION scripts OPTIONAL)
+
+  install(PROGRAMS cmake/scripts/env.py DESTINATION scripts OPTIONAL)
+  install(DIRECTORY cmake/scripts/EnvConfig DESTINATION scripts
           FILES_MATCHING PATTERN "*.py" PATTERN "*.conf")
   set_property(GLOBAL APPEND PROPERTY PROJ_HAS_CMAKE TRUE)
 
@@ -631,27 +649,74 @@ macro(elements_project project version)
 #===============================================================================
 
 
-  find_file(spec_file_template
-            NAMES Elements.spec.in
-            PATHS ${CMAKE_MODULE_PATH}
-            NO_DEFAULT_PATH)
-
-
-  if(spec_file_template)
-    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/_CPack_Packages/${BINARY_TAG}/RPM/SPECS)
-    configure_file("${spec_file_template}" "${PROJECT_BINARY_DIR}/_CPack_Packages/${BINARY_TAG}/RPM/SPECS/${project}.spec" @ONLY IMMEDIATE)
-    set(CPACK_RPM_USER_BINARY_SPECFILE "${PROJECT_BINARY_DIR}/_CPack_Packages/${BINARY_TAG}/RPM/SPECS/${project}.spec")
-    message(STATUS "Generated RPM Spec file: ${PROJECT_BINARY_DIR}/_CPack_Packages/${BINARY_TAG}/RPM/SPECS/${project}.spec")
-    message(STATUS "From the SPEC template file: ${spec_file_template}")
-  endif()
-
 
   include(CPack)
 
-  message(STATUS "Creating the source tarball: ${PROJECT_BINARY_DIR}/_CPack_Packages/${BINARY_TAG}/RPM/SOURCES/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.tar.gz")
-  file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/_CPack_Packages/${BINARY_TAG}/RPM/SOURCES)
-  execute_process(COMMAND tar zcf ${PROJECT_BINARY_DIR}/_CPack_Packages/${BINARY_TAG}/RPM/SOURCES/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.tar.gz --exclude "build.*" --exclude "./.*" --exclude "./InstallArea" --transform "s/./${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}/"  .
-                  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}")
+  find_package(Tar)
+  if(TAR_FOUND)
+  
+    find_package(RPMBuild)
+  
+    if (RPMBUILD_FOUND)
+      option(USE_DEFAULT_RPMBUILD_DIR "Use default RPM build directory (the value of the %_topdir variable)" OFF)
+      if(USE_DEFAULT_RPMBUILD_DIR)
+        execute_process(COMMAND rpmbuild --eval %_topdir OUTPUT_VARIABLE PROJECT_RPM_TOPDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+      else()
+        set(PROJECT_RPM_TOPDIR "${PROJECT_BINARY_DIR}/Packages/RPM")        
+      endif()
+      set(PROJECT_TARGZ_DIR "${PROJECT_RPM_TOPDIR}/SOURCES")          
+    else()
+      set(PROJECT_TARGZ_DIR "${PROJECT_BINARY_DIR}/Packages")
+    endif()
+  
+    add_custom_target(targz
+                      COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_TARGZ_DIR}
+                      COMMAND ${TAR_EXECUTABLE} zcf ${PROJECT_TARGZ_DIR}/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.tar.gz --exclude "build.*" --exclude "./.*" --exclude "./InstallArea" --transform "s/./${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}/"  .
+                      WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                      COMMENT "Generating The Source TarBall ${PROJECT_TARGZ_DIR}/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.tar.gz" VERBATIM
+    )
+    
+    if (RPMBUILD_FOUND)
+    
+      find_file(spec_file_template
+                NAMES Elements.spec.in
+                PATHS ${CMAKE_MODULE_PATH}
+                NO_DEFAULT_PATH)
+
+      
+
+      set(PROJECT_RPM_BUILD_ROOT "${PROJECT_RPM_TOPDIR}/BUILDROOT/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}%{?dist}.${CPACK_RPM_PACKAGE_ARCHITECTURE}")
+
+      if(spec_file_template)
+        file(MAKE_DIRECTORY ${PROJECT_RPM_TOPDIR}/SPECS)
+        configure_file("${spec_file_template}" "${PROJECT_RPM_TOPDIR}/SPECS/${project}.spec" @ONLY IMMEDIATE)
+        message(STATUS "Generated RPM Spec file: ${PROJECT_RPM_TOPDIR}/SPECS/${project}.spec")
+        message(STATUS "From the SPEC template file: ${spec_file_template}")
+      endif()
+
+    
+      add_custom_target(rpmbuilddir
+                        COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_TOPDIR}/BUILD      
+                        COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_TOPDIR}/BUILDROOT      
+                        COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_TOPDIR}/RPMS  
+                        COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_TOPDIR}/SRPMS  
+                        COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_BUILD_ROOT}
+                        COMMENT "Generating ${PROJECT_RPM_TOPDIR} as rpmbuild directory" VERBATIM
+      )
+      
+                        
+      add_custom_target(rpm
+                        COMMAND ${rpmbuild_wrap_cmd} ${PROJECT_RPM_TOPDIR}/SPECS/${project}.spec
+                        COMMENT "Generating The RPM Files in ${PROJECT_RPM_TOPDIR}" VERBATIM
+      )
+    
+      add_dependencies(rpm targz)
+      add_dependencies(rpm rpmbuilddir)
+    
+    endif()
+    
+    
+  endif()
 
   # Add Doxygen generation
   find_package(Doxygen)
@@ -1169,7 +1234,7 @@ function(elements_get_packages var)
   file(GLOB_RECURSE cmakelist_files RELATIVE ${CMAKE_SOURCE_DIR} CMakeLists.txt)
   foreach(file ${cmakelist_files})
     # ignore the source directory itself and files in the build directory
-    if(NOT file STREQUAL CMakeLists.txt AND NOT file MATCHES "^${rel_build_dir}")
+    if(NOT file STREQUAL CMakeLists.txt AND NOT (file MATCHES "^${rel_build_dir}" OR file MATCHES "^build\\."))
       get_filename_component(package ${file} PATH)
       list(APPEND packages ${package})
     endif()
