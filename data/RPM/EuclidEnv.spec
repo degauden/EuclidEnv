@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.2.2
+Version:        1.3
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
