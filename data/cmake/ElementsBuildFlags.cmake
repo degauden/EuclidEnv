@@ -10,7 +10,7 @@ if(SGS_COMP STREQUAL "clang")
   SET (CMAKE_OBJDUMP       "${LLVM_OBJDUMP}")
   SET (CMAKE_RANLIB        "${LLVM_RANLIB}")
 endif()
-  
+
 
 # Special defaults
 if ( (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[7-9]")
@@ -33,19 +33,16 @@ set(ELEMENTS_FORTIFY_DEFAULT ON)
 option(ELEMENTS_HIDE_SYMBOLS
        "enable explicit symbol visibility on gcc-4"
        OFF)
-       
-option(ELEMENTS_CMT_RELEASE
-       "use CMT deafult release flags instead of the CMake ones"
-       ON)
+
 
 option(ELEMENTS_CPP11
        "enable C++11 compilation"
        ${ELEMENTS_CPP11_DEFAULT})
-       
+
 option(ELEMENTS_PARALLEL
        "enable C++11 parallel support with OpenMP"
        ${ELEMENTS_PARALLEL_DEFAULT})
-       
+
 option(ELEMENTS_FORTIFY
        "enable g++ fortify option"
        ${ELEMENTS_FORTIFY_DEFAULT})
@@ -53,6 +50,10 @@ option(ELEMENTS_FORTIFY
 option(USE_LOCAL_INSTALLAREA
        "Use local InstallArea for the Developers"
        OFF)
+
+option(OPT_DEBUG
+       "Enable optimisation for the Debug version"
+       ON)
 
 
 #--- Compilation Flags ---------------------------------------------------------
@@ -68,7 +69,7 @@ if(NOT ELEMENTS_FLAGS_SET)
         CACHE STRING "Flags used by the compiler during debug builds."
         FORCE)
 
-    if(ELEMENTS_CMT_RELEASE)
+    if (CMAKE_BUILD_TYPE STREQUAL "Release")
       set(CMAKE_CXX_FLAGS_RELEASE "/O2"
           CACHE STRING "Flags used by the compiler during release builds."
           FORCE)
@@ -89,34 +90,48 @@ if(NOT ELEMENTS_FLAGS_SET)
         CACHE STRING "Flags used by the compiler during all build types."
         FORCE)
 
-    # Build type compilation flags (if different from default or uknown to CMake)
-    if(ELEMENTS_CMT_RELEASE)
-      set(CMAKE_CXX_FLAGS_RELEASE "-O2 -DNDEBUG"
+    # Build type compilation flags (if different from default or unknown to CMake)
+    if (CMAKE_BUILD_TYPE STREQUAL "Release")
+      set(CMAKE_CXX_FLAGS_RELEASE "-O2"
           CACHE STRING "Flags used by the compiler during release builds."
           FORCE)
-      set(CMAKE_C_FLAGS_RELEASE "-O2 -DNDEBUG"
+      set(CMAKE_C_FLAGS_RELEASE "-O2"
           CACHE STRING "Flags used by the compiler during release builds."
           FORCE)
+      add_definitions(-DNDEBUG)
     endif()
 
 
     if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND SGS_COMPVERS VERSION_GREATER "47")
       # Use -Og with Debug builds in gcc >= 4.8
-      set(CMAKE_CXX_FLAGS_DEBUG "-Og -g"
+       set(CMAKE_CXX_FLAGS_DEBUG "-g"
           CACHE STRING "Flags used by the compiler during Debug builds."
           FORCE)
-      set(CMAKE_C_FLAGS_DEBUG "-Og -g"
+      set(CMAKE_C_FLAGS_DEBUG "-g"
           CACHE STRING "Flags used by the compiler during Debug builds."
           FORCE)
+      if(OPT_DEBUG)
+        set(CMAKE_CXX_FLAGS_DEBUG "-Og ${CMAKE_CXX_FLAGS_DEBUG}"
+            CACHE STRING "Flags used by the compiler during Debug builds."
+            FORCE)
+        set(CMAKE_C_FLAGS_DEBUG "-Og ${CMAKE_C_FLAGS_DEBUG}"
+            CACHE STRING "Flags used by the compiler during Debug builds."
+            FORCE)
+      endif()
     endif()
 
 
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG"
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g"
         CACHE STRING "Flags used by the compiler during Release with Debug Info builds."
         FORCE)
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g -DNDEBUG"
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g"
         CACHE STRING "Flags used by the compiler during Release with Debug Info builds."
         FORCE)
+
+    if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+        add_definitions(-DNDEBUG)
+    endif()
+
 
     set(CMAKE_CXX_FLAGS_COVERAGE "--coverage"
         CACHE STRING "Flags used by the compiler during coverage builds."
@@ -124,7 +139,7 @@ if(NOT ELEMENTS_FLAGS_SET)
     set(CMAKE_C_FLAGS_COVERAGE "--coverage"
         CACHE STRING "Flags used by the compiler during coverage builds."
         FORCE)
-        
+
     # @todo Check why the -D_GLIBCXX_PROFILE cannot be used with Boost.
     set(CMAKE_CXX_FLAGS_PROFILE "-pg"
         CACHE STRING "Flags used by the compiler during profile builds."
@@ -169,11 +184,7 @@ endif()
 
 
 if(UNIX)
-  add_definitions(-D_GNU_SOURCE -Dunix -Df2cFortran)
-
-  if (CMAKE_SYSTEM_NAME MATCHES Linux)
-    add_definitions(-Dlinux)
-  endif()
+  add_definitions(-D_GNU_SOURCE -Df2cFortran)
 endif()
 
 if(MSVC90)
@@ -214,16 +225,17 @@ if ( ELEMENTS_CPP11 )
 endif()
 
 if ( ELEMENTS_PARALLEL AND (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[2-9]") )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_PARALLEL -fopenmp")
+  add_definitions(-D_GLIBCXX_PARALLEL)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
 if ( ELEMENTS_FORTIFY AND (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[1-9]") )
-  if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND SGS_COMPVERS VERSION_GREATER "47")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORTIFY_SOURCE=2")
+  if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND SGS_COMPVERS VERSION_GREATER "47" AND OPT_DEBUG)
+    add_definitions(-D_FORTIFY_SOURCE=2)
   endif()
   if ( (CMAKE_BUILD_TYPE STREQUAL "Release") OR (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo") OR (CMAKE_BUILD_TYPE STREQUAL "MinSizeRel"))
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORTIFY_SOURCE=2")
-  endif()    
+    add_definitions(-D_FORTIFY_SOURCE=2)
+  endif()
 endif()
 
 
