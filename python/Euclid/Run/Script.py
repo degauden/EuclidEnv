@@ -17,6 +17,15 @@ except:
             env_py = os.path.dirname(env_conf)
             sys.path.insert(0, env_py)
             import EnvConfig
+        else:
+            env_conf_subdir = os.sep.join(["scripts", "EnvConfig", "__init__.py"])
+            env_conf_init = multiPathGetFirst(os.environ["CMAKE_PREFIX_PATH"], env_conf_subdir)
+            if env_conf_init :
+                env_conf = os.path.dirname(env_conf_init)
+                env_py = os.path.dirname(env_conf)
+                sys.path.insert(0, env_py)
+                import EnvConfig
+
     # use another fallback if CMAKE_PREFIX_PATH is not defined.
 
 from Euclid.Run.Lookup import getEnvXmlPath, findProject
