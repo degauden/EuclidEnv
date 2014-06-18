@@ -18,38 +18,19 @@ build_types = {
 
 # BINARY_TAG extraction
 
-def isNewStyleBinary(binary_tag):
-    """ check if the BINARY_TAG value is new styled """
-    newstyle = False
-    if len(binary_tag.split("-")) > 1 :
-        newstyle = True
-    return newstyle
-
-def isOldStyleBinary(binary_tag):
-    """ check if the BINARY_TAG value is not new styled """
-    return not isNewStyleBinary(binary_tag)
-
 def isBinaryType(binary_tag, btype):
     """ check if the BINARY_TAG value is one from the type """
     bintype = True
-    if isNewStyleBinary(binary_tag) :
-        if not binary_tag.endswith("-%s" % build_types[btype]) :
-            bintype = False
-    else :
-        if not binary_tag.endswith("_%s" % build_types[btype] ) :
-            bintype = False
+    if not binary_tag.endswith("-%s" % build_types[btype]) :
+        bintype = False
     return bintype
 
 
 def isBinaryDbg(binary_tag):
     """ check if the BINARY_TAG value is a debug one """
     bindbg = True
-    if isNewStyleBinary(binary_tag) :
-        if not binary_tag.endswith("-dbg") :
-            bindbg = False
-    else :
-        if not binary_tag.endswith("_dbg") :
-            bindbg = False
+    if not binary_tag.endswith("-dbg") :
+        bindbg = False
     return bindbg
 
 def isBinaryOpt(binary_tag):
@@ -64,44 +45,27 @@ def getBinaryDbg(binary_tag):
     """ convert BINARY_TAG to debug """
     btdbg = binary_tag
     if not isBinaryDbg(binary_tag) :
-        if isNewStyleBinary(binary_tag) :
-            if binary_tag.endswith("-opt") :
-                btdbg = "-".join(binary_tag.split("-")[:-1]) + "-dbg"
-            else :
-                btdbg += "-dbg"
+        if binary_tag.endswith("-opt") :
+            btdbg = "-".join(binary_tag.split("-")[:-1]) + "-dbg"
         else :
-            btdbg += "_dbg"
+            btdbg += "-dbg"
     return btdbg
 
 def getBinaryOpt(binary_tag):
     """ convert BINARY_TAG to optimized """
     btopt = binary_tag
     if isBinaryDbg(binary_tag) :
-        if isNewStyleBinary(binary_tag) :
-            btopt = "-".join(binary_tag.split("-")[:-1]) + "-opt"
-        else :
-            btopt = "_".join(binary_tag.split("_")[:-1])
+        btopt = "-".join(binary_tag.split("-")[:-1]) + "-opt"
     return btopt
 
 def getCompiler(binary_tag):
     """ extract compiler from BINARY_TAG """
-    compdef = None
-    if isNewStyleBinary(binary_tag) :
-        compdef = binary_tag.split("-")[2]
-    else :
-        if not binary_tag.startswith("win") :
-            compdef = binary_tag.split("_")[2]
-        else :
-            compdef = binary_tag.split("_")[1]
+    compdef = binary_tag.split("-")[2]
     return compdef
 
 def getPlatformType(binary_tag):
     """ extract platform type (slc5, slc4, etc) from BINARY_TAG """
-    platformtype = None
-    if isNewStyleBinary(binary_tag) :
-        platformtype = binary_tag.split("-")[1]
-    else :
-        platformtype = binary_tag.split("_")[0]
+    platformtype = binary_tag.split("-")[1]
     if platformtype == "sl6" :
         platformtype = "slc6"
     if platformtype == "sl5" :
@@ -115,21 +79,11 @@ def getPlatformType(binary_tag):
 
 def getArchitecture(binary_tag):
     """ extract architecture from BINARY_TAG """
-    architecture = None
-    if isNewStyleBinary(binary_tag) :
-        architecture = binary_tag.split("-")[0]
-        if architecture == "ia32" :
-            architecture = "i686"
-        if architecture == "amd64" :
-            architecture = "x86_64"
-    else :
-        archlist = binary_tag.split("_")
-        if not archlist[0].startswith("win") :
-            architecture = archlist[1]
-            if architecture == "i686" :
-                architecture = "ia32"
-            if architecture == "x86_64" :
-                architecture = "i686"
+    architecture = binary_tag.split("-")[0]
+    if architecture == "ia32" :
+        architecture = "i686"
+    if architecture == "amd64" :
+        architecture = "x86_64"
     return architecture
 
 def getBinaryTag(architecture, platformtype, compiler, debug=False):
@@ -206,8 +160,6 @@ def pathBinaryMatch(path, binary_tag):
         log.error("the value of BINARY_TAG %s is not supported" % binary_tag)
     else :
         match_str = "%s" % binary_tag
-        if isOldStyleBinary(binary_tag) and isBinaryOpt(binary_tag):
-            match_str = "%s(?!_dbg)" % binary_tag
         cfg_match = re.compile(match_str)
         if cfg_match.search(path) :
             selected = True
