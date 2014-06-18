@@ -34,6 +34,14 @@ def getBinaryOfType(binary_tag, btype):
         btother = "-".join(blist)
     return btother
 
+def getBinaryTypeName(binary_tag):
+    """ Function to extract the binary type"""
+    type_name = None
+    for j in build_types :
+        if binary_tag.endswith(build_types[j]):
+            type_name = j
+            
+    return type_name
 
 def getCompiler(binary_tag):
     """ extract compiler from BINARY_TAG """

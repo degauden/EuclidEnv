@@ -1,4 +1,4 @@
-from Euclid.Platform import NativeMachine, getBinaryOfType
+from Euclid.Platform import NativeMachine, getBinaryOfType, getBinaryTypeName
 from Euclid.Platform import isBinaryType
 import unittest
 
@@ -52,6 +52,21 @@ class PlatformTestCase(unittest.TestCase):
 
         self.assertEqual(getBinaryOfType("x86_64-fc20-gcc48-dbg", "RelWithDebInfo"), "x86_64-fc20-gcc48-o2g" )
         self.assertEqual(getBinaryOfType("x86_64-fc20-gcc48-opt", "RelWithDebInfo"), "x86_64-fc20-gcc48-o2g" )
+
+    def testTypeName(self):
+        self.assertEqual(getBinaryTypeName("x86_64-fc20-gcc48-dbg"), "Debug")
+        self.assertEqual(getBinaryTypeName("x86_64-fc20-gcc48-opt"), "Release")
+        self.assertEqual(getBinaryTypeName("x86_64-fc20-gcc48-cov"), "Coverage")
+        self.assertEqual(getBinaryTypeName("x86_64-fc20-gcc48-pro"), "Profile")
+        self.assertEqual(getBinaryTypeName("x86_64-fc20-gcc48-o2g"), "RelWithDebInfo")
+        self.assertEqual(getBinaryTypeName("x86_64-fc20-gcc48-min"), "MinSizeRel")
+
+        self.assertEqual(getBinaryTypeName("dbg"), "Debug")
+        self.assertEqual(getBinaryTypeName("opt"), "Release")
+        self.assertEqual(getBinaryTypeName("cov"), "Coverage")
+        self.assertEqual(getBinaryTypeName("pro"), "Profile")
+        self.assertEqual(getBinaryTypeName("o2g"), "RelWithDebInfo")
+        self.assertEqual(getBinaryTypeName("min"), "MinSizeRel")
 
 
     def testVersion(self):
