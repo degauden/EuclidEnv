@@ -49,7 +49,7 @@ def getCompiler(binary_tag):
     return compdef
 
 def getPlatformType(binary_tag):
-    """ extract platform type (slc5, slc4, etc) from BINARY_TAG """
+    """ extract platform type (slc5, slc6, etc) from BINARY_TAG """
     platformtype = binary_tag.split("-")[1]
     if platformtype == "sl7" :
         platformtype = "slc7"
@@ -57,10 +57,6 @@ def getPlatformType(binary_tag):
         platformtype = "slc6"
     if platformtype == "sl5" :
         platformtype = "slc5"
-    if platformtype == "sl4" :
-        platformtype = "slc4"
-    if platformtype == "sl3" :
-        platformtype = "slc3"
     return platformtype
 
 
@@ -94,21 +90,8 @@ def getBinaryTag(architecture, platformtype, compiler, debug=False):
             architecture = "x86_64"
         if compiler :
             binary_tag = "-".join([architecture, platformtype, compiler, "opt"])
-            if platformtype == "slc4" or platformtype == "slc3" or platformtype == "osx105":
-                if architecture in arch_runtime_compatiblity["ia32"] :
-                    architecture = "ia32"
-                elif architecture == "x86_64" :
-                    architecture = "amd64"
-                binary_tag = "_".join([platformtype, architecture, compiler])
         else :
             binary_tag = "-".join([architecture, platformtype, "opt"])
-            if platformtype == "slc4" or platformtype == "slc3" or platformtype == "osx105":
-                if architecture in arch_runtime_compatiblity["ia32"] :
-                    architecture = "ia32"
-                elif architecture == "x86_64" :
-                    architecture = "amd64"
-                binary_tag = "_".join([platformtype, architecture])
-
 
     if debug :
         binary_tag = getBinaryOfType(binary_tag, "Debug")
@@ -116,17 +99,17 @@ def getBinaryTag(architecture, platformtype, compiler, debug=False):
     return binary_tag
 
 # officially supported binaries
-binary_opt_list = ["slc4_ia32_gcc34", "slc4_amd64_gcc34",
-                   "x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
+binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
                    "x86_64-slc5-gcc46-opt", "i686-slc5-gcc46-opt",
                    "win32_vc71", "i686-winxp-vc9-opt",
                    "x86_64-slc5-icc11-opt", "i686-slc5-icc11-opt",
                    "x86_64-slc6-gcc46-opt", "i686-slc6-gcc46-opt",
-                   "x86_64-slc7-gcc48-opt", "i686-slc7-gcc48-opt"                   
+                   "x86_64-slc7-gcc48-opt", "i686-slc7-gcc48-opt",                   
+                   "x86_64-fc19-gcc48-opt", "i686-fc19-gcc48-opt",                   
+                   "x86_64-fc20-gcc48-opt", "i686-fc20-gcc48-opt"                   
                     ]
 # future possible supported binaries
-extra_binary_opt_list = ["slc3_ia32_gcc323",
-                         "x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
+extra_binary_opt_list = ["x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
                          "i686-slc5-gcc43-opt",
                          "i686-winxp-vc90-opt", "x86_64-winxp-vc90-opt",
                          "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt"]
@@ -214,14 +197,13 @@ lsb_flavour_aliases   = {
 
 flavor_runtime_compatibility = {
                                 "slc7"  : ["slc7"],
+                                "fc20"  : ["fc20", "fc19"],
+                                "fc19"  : ["fc19"],
                                 "slc6"  : ["slc6", "slc5"],
                                 "slc5"  : ["slc5", "slc4"],
-                                "slc4"  : ["slc4", "slc3"],
-                                "slc3"  : ["slc3"],
                                 "rh73"  : ["rh73"],
                                 "win32" : ["win32"],
                                 "win64" : ["win64"],
-                                "osx105": ["osx105"],
                                 "osx106": ["osx105", "osx106"]
                                 }
 
@@ -239,15 +221,12 @@ arch_runtime_compatiblity = {
 flavor_runtime_equivalence = {
                               "fc20"  : ["fc20"],
                               "fc19"  : ["fc19"],
-                              "slc7"  : ["slc7"],
+                              "slc7"  : ["slc7", "fc19", "fc10"],
                               "slc6"  : ["slc6"],
                               "slc5"  : ["slc5", "co5", "rhel5", "ub9", "fc13", "fc12", "fc11", "fc10"],
-                              "slc4"  : ["slc4", "co4", "rhel4", "deb4"],
-                              "slc3"  : ["slc3", "suse90", "suse100"],
                               "rh73"  : ["rh73", "suse80", "suse81", "suse82", "suse83"],
                               "win32" : ["win32"],
                               "win64" : ["win64"],
-                              "osx105": ["osx105"],
                               "osx106": ["osx106"]
                              }
 
@@ -257,12 +236,8 @@ supported_compilers = {
                        "slc7"   : ["gcc48"],
                        "slc6"   : ["gcc46","gcc45", "gcc44"],
                        "slc5"   : ["gcc46", "gcc43", "gcc45", "icc11"] ,
-                       "slc4"   : ["gcc34"],
-                       "slc3"   : ["gcc323"],
                        "win32"  : ["vc71", "vc9"],
                        "win64"  : ["vc71", "vc9"],
-                       "osx104" : ["gcc40"],
-                       "osx105" : ["gcc401"],
                        "osx106" : ["gcc42"]
                        }
 class NativeMachine:
