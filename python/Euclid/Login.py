@@ -51,7 +51,7 @@ if python_loc :
     sys.path.insert(0, python_loc)
 #============================================================================
 
-from Euclid.Platform import getBinaryDbg, getBinaryOpt
+from Euclid.Platform import getBinaryOfType
 from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryType, NativeMachine
 from Euclid.Version import ParseSvnVersion
@@ -404,9 +404,9 @@ class ELoginScript(SourceScript):
 
 
         if debug or sys.platform == "win32" :
-            ev["BINARY_TAG"] = getBinaryDbg(theconf)
+            ev["BINARY_TAG"] = getBinaryOfType(theconf, "Debug")
         else :
-            ev["BINARY_TAG"] = getBinaryOpt(theconf)
+            ev["BINARY_TAG"] = getBinaryOfType(theconf "Release")
         log.debug("BINARY_TAG is set to %s" % ev["BINARY_TAG"])
 
     def setSGShostos(self):

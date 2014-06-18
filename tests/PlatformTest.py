@@ -1,4 +1,4 @@
-from Euclid.Platform import NativeMachine
+from Euclid.Platform import NativeMachine, getBinaryOfType
 from Euclid.Platform import isBinaryType
 import unittest
 
@@ -44,6 +44,15 @@ class PlatformTestCase(unittest.TestCase):
         self.assertFalse(isBinaryType("x86_64-fc20-gcc48-opt", "Debug"))
         self.assertFalse(isBinaryType("x86_64-fc20-gcc48-dbg", "Release"))
         self.assertTrue(isBinaryType("x86_64-fc20-gcc48-opt", "Release"))
+    def testConvertBinaryType(self):
+        self.assertEqual(getBinaryOfType("x86_64-fc20-gcc48-dbg", "Debug"), "x86_64-fc20-gcc48-dbg" )
+        self.assertEqual(getBinaryOfType("x86_64-fc20-gcc48-opt", "Debug"), "x86_64-fc20-gcc48-dbg" )
+        self.assertEqual(getBinaryOfType("x86_64-fc20-gcc48-dbg", "Release"), "x86_64-fc20-gcc48-opt" )
+        self.assertEqual(getBinaryOfType("x86_64-fc20-gcc48-opt", "Release"), "x86_64-fc20-gcc48-opt" )
+
+        self.assertEqual(getBinaryOfType("x86_64-fc20-gcc48-dbg", "RelWithDebInfo"), "x86_64-fc20-gcc48-o2g" )
+        self.assertEqual(getBinaryOfType("x86_64-fc20-gcc48-opt", "RelWithDebInfo"), "x86_64-fc20-gcc48-o2g" )
+
 
     def testVersion(self):
         pass

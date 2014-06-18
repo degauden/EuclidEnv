@@ -25,22 +25,15 @@ def isBinaryType(binary_tag, btype):
         bintype = False
     return bintype
 
-def getBinaryDbg(binary_tag):
-    """ convert BINARY_TAG to debug """
-    btdbg = binary_tag
-    if not isBinaryType(binary_tag, "Debug") :
-        if binary_tag.endswith("-opt") :
-            btdbg = "-".join(binary_tag.split("-")[:-1]) + "-dbg"
-        else :
-            btdbg += "-dbg"
-    return btdbg
+def getBinaryOfType(binary_tag, btype):
+    "convert the BINARY_TAG to another type"
+    btother = binary_tag
+    if not isBinaryType(binary_tag, btype) :
+        blist = binary_tag.split("-")[:-1]
+        blist.append(build_types[btype])
+        btother = "-".join(blist)
+    return btother
 
-def getBinaryOpt(binary_tag):
-    """ convert BINARY_TAG to optimized """
-    btopt = binary_tag
-    if isBinaryType(binary_tag, "Debug") :
-        btopt = "-".join(binary_tag.split("-")[:-1]) + "-opt"
-    return btopt
 
 def getCompiler(binary_tag):
     """ extract compiler from BINARY_TAG """
@@ -110,7 +103,7 @@ def getBinaryTag(architecture, platformtype, compiler, debug=False):
 
 
     if debug :
-        binary_tag = getBinaryDbg(binary_tag)
+        binary_tag = getBinaryOfType(binary_tag, "Debug")
 
     return binary_tag
 
@@ -130,8 +123,8 @@ extra_binary_opt_list = ["slc3_ia32_gcc323",
                          "i686-winxp-vc90-opt", "x86_64-winxp-vc90-opt",
                          "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt"]
 
-binary_dbg_list = [ getBinaryDbg(x) for x in binary_opt_list ]
-extra_binary_dbg_list = [ getBinaryDbg(x) for x in extra_binary_opt_list ]
+binary_dbg_list = [ getBinaryOfType(x, "Debug") for x in binary_opt_list ]
+extra_binary_dbg_list = [ getBinaryOfType(x, "Debug") for x in extra_binary_opt_list ]
 
 binary_list = binary_opt_list + binary_dbg_list
 extra_binary_list = extra_binary_opt_list + extra_binary_dbg_list
