@@ -25,26 +25,10 @@ def isBinaryType(binary_tag, btype):
         bintype = False
     return bintype
 
-
-def isBinaryDbg(binary_tag):
-    """ check if the BINARY_TAG value is a debug one """
-    bindbg = True
-    if not binary_tag.endswith("-dbg") :
-        bindbg = False
-    return bindbg
-
-def isBinaryOpt(binary_tag):
-    """ check if the BINARY_TAG value is an optimized one """
-    binopt = True
-    if isBinaryDbg(binary_tag) :
-        binopt = False
-    return binopt
-
-
 def getBinaryDbg(binary_tag):
     """ convert BINARY_TAG to debug """
     btdbg = binary_tag
-    if not isBinaryDbg(binary_tag) :
+    if not isBinaryType(binary_tag, "Debug") :
         if binary_tag.endswith("-opt") :
             btdbg = "-".join(binary_tag.split("-")[:-1]) + "-dbg"
         else :
@@ -54,7 +38,7 @@ def getBinaryDbg(binary_tag):
 def getBinaryOpt(binary_tag):
     """ convert BINARY_TAG to optimized """
     btopt = binary_tag
-    if isBinaryDbg(binary_tag) :
+    if isBinaryType(binary_tag, "Debug") :
         btopt = "-".join(binary_tag.split("-")[:-1]) + "-opt"
     return btopt
 

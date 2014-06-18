@@ -53,7 +53,7 @@ if python_loc :
 
 from Euclid.Platform import getBinaryDbg, getBinaryOpt
 from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
-from Euclid.Platform import isBinaryDbg, NativeMachine
+from Euclid.Platform import isBinaryType, NativeMachine
 from Euclid.Version import ParseSvnVersion
 from Euclid.Script import SourceScript
 from Euclid.Path import pathPrepend, getClosestPath
@@ -395,7 +395,7 @@ class ELoginScript(SourceScript):
                     theconf = self._nativemachine.nativeBinaryTag(debug=debug)
 
         if theconf :
-            if isBinaryDbg(theconf) :
+            if isBinaryType(theconf, "Debug") :
                 debug = True
             self.binary = getArchitecture(theconf)
             self.platform = getPlatformType(theconf)

@@ -1,4 +1,5 @@
 from Euclid.Platform import NativeMachine
+from Euclid.Platform import isBinaryType
 import unittest
 
 class PlatformTestCase(unittest.TestCase):
@@ -38,6 +39,12 @@ class PlatformTestCase(unittest.TestCase):
         print machine.nativeCompiler()
         print machine.nativeBinaryTag()
         print machine.nativeBinaryTag(debug=True)
+    def testBinaryType(self):
+        self.assertTrue(isBinaryType("x86_64-fc20-gcc48-dbg", "Debug"))
+        self.assertFalse(isBinaryType("x86_64-fc20-gcc48-opt", "Debug"))
+        self.assertFalse(isBinaryType("x86_64-fc20-gcc48-dbg", "Release"))
+        self.assertTrue(isBinaryType("x86_64-fc20-gcc48-opt", "Release"))
+
     def testVersion(self):
         pass
 
