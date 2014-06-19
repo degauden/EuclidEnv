@@ -7,6 +7,9 @@ import logging
 
 # CMake Build Types
 
+default_build_type = "RelWithDebInfo"
+
+
 build_types = {
                 "Release"        : "opt",
                 "Debug"          : "dbg",
@@ -15,6 +18,7 @@ build_types = {
                 "RelWithDebInfo" : "o2g",
                 "MinSizeRel"     : "min"
               }
+
 
 # BINARY_TAG extraction
 
@@ -69,7 +73,7 @@ def getArchitecture(binary_tag):
         architecture = "x86_64"
     return architecture
 
-def getBinaryTag(architecture, platformtype, compiler, debug=False):
+def getBinaryTag(architecture, platformtype, compiler, binary_type=default_build_type):
     binary_tag = None
     if platformtype.startswith("win") :
         if compiler :
@@ -93,8 +97,7 @@ def getBinaryTag(architecture, platformtype, compiler, debug=False):
         else :
             binary_tag = "-".join([architecture, platformtype, "opt"])
 
-    if debug :
-        binary_tag = getBinaryOfType(binary_tag, "Debug")
+    binary_tag = getBinaryOfType(binary_tag, binary_type)
 
     return binary_tag
 
@@ -485,7 +488,7 @@ class NativeMachine:
                 break
         return cmtflavour
 
-    def compatibleBinaryTag(self, debug=False):
+    def compatibleBinaryTag(self, all_types=False):
         """ return the list of compatible binary tags """
         compatibles = []
         equiv = self.OSEquivalentFlavour()
@@ -501,39 +504,40 @@ class NativeMachine:
                     if nc :
                         allcomp.append(nc)
                     for c in allcomp :
-                        n = getBinaryTag(m, f, c, debug=False)
+                        n = getBinaryTag(m, f, c)
                         if n not in compatibles :
                             compatibles.append(n)
-                        if debug :
-                            n = getBinaryTag(m, f, c, debug=True)
-                            if n not in compatibles :
-                                compatibles.append(n)
+                        if all_types :
+                            for t in build_types :
+                                n = getBinaryTag(m, f, c, t)
+                                if n not in compatibles :
+                                    compatibles.append(n)
 
         return compatibles
 
-    def supportedBinaryTag(self, debug=False):
+    def supportedBinaryTag(self, all_types=False):
         """
         returns the list of supported binary tags among the compatible ones. This
         means the ones which are shipped and usable on a local site.
-        @param debug: if True returns also the debug configs. Otherwise only the opt ones.
+        @param all_types: if True returns also the debug configs. Otherwise only the opt ones.
         """
-        compatibles = self.compatibleBinaryTag(debug)
+        compatibles = self.compatibleBinaryTag(all_types)
         supported = []
         for c in compatibles :
             if c in binary_list and c not in supported:
                 supported.append(c)
         return supported
-    def nativeBinaryTag(self, debug=False):
+    def nativeBinaryTag(self, binary_type=default_build_type):
         """
         Returns the native configuration if possible. Guess also the compiler
         on linux platforms
-        @param debug: if True returns also the debug configs. Otherwise only the opt ones.
+        @param all_types: if True returns also the debug configs. Otherwise only the opt ones.
         """
         comp = self.nativeCompiler()
         mach = self.machine()
         osflav = self.binaryOSFlavour()
         natconf = getBinaryTag(architecture=mach, platformtype=osflav,
-                            compiler=comp, debug=debug)
+                            compiler=comp, binary_type=binary_type)
         return natconf
     def DiracPlatform(self):
         """

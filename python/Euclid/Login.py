@@ -51,7 +51,7 @@ if python_loc :
     sys.path.insert(0, python_loc)
 #============================================================================
 
-from Euclid.Platform import getBinaryOfType
+from Euclid.Platform import getBinaryOfType, build_types, default_build_type
 from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryType, NativeMachine
 from Euclid.Version import ParseSvnVersion
@@ -95,6 +95,7 @@ class ELoginScript(SourceScript):
         self.platform = ""
         self.binary = ""
         self.compdef = ""
+        self._target_binary_type = None
         self._nativemachine = None
         self._triedlocalsetup = False
         self._triedAFSsetup = False
@@ -339,17 +340,19 @@ class ELoginScript(SourceScript):
 
 
 
-    def getWildCardBinaryTag(self, wildcard=None, debug=False):
+    def getWildCardBinaryTag(self, wildcard=None):
         """
         returns the best matched BINARY_TAG for the wilcard string
         @param wildcard: text to be look for in the BINARY_TAG
         @type wildcard: string
-        @param debug: if the searched list includes also the dbg BINARY_TAG
-        @type debug: boolean
         """
         log = logging.getLogger()
         theconf = None
-        supported_configs = self._nativemachine.supportedBinaryTag(debug=debug)
+        if self._target_binary_type :
+            supported_configs = self._nativemachine.supportedBinaryTag(all_types=True)
+        else:
+            supported_configs = self._nativemachine.supportedBinaryTag()
+            
 
         supconf = supported_configs
 
@@ -367,7 +370,7 @@ class ELoginScript(SourceScript):
 
         return theconf
 
-    def setBinaryTag(self, debug=False):
+    def setBinaryTag(self):
         ev = self.Environment()
         opts = self.options
         log = logging.getLogger()
@@ -380,19 +383,27 @@ class ELoginScript(SourceScript):
                 theconf = opts.binary_tag
             else :
                 log.debug("Guessing BINARY_TAG")
-                theconf = self.getWildCardBinaryTag(debug=debug)
+                theconf = self.getWildCardBinaryTag()
                 if not theconf :
                     log.debug("Falling back on the native BINARY_TAG")
-                    theconf = self._nativemachine.nativeBinaryTag(debug=debug)
+                    if self._target_binary_type :
+                        theconf = self._nativemachine.nativeBinaryTag(binary_type=self._target_binary_type)
+                    else :
+                        theconf = self._nativemachine.nativeBinaryTag()
+                        
         else :
-            theconf = self.getWildCardBinaryTag(wildcard=opts.wbinary_tag, debug=True)
+            theconf = self.getWildCardBinaryTag(wildcard=opts.wbinary_tag)
             if not theconf :
                 if opts.binary_tag :
                     log.debug("Falling back on the previous BINARY_TAG")
                     theconf = opts.binary_tag
                 else :
                     log.debug("Falling back on the native BINARY_TAG")
-                    theconf = self._nativemachine.nativeBinaryTag(debug=debug)
+                    if self._target_binary_type :
+                        theconf = self._nativemachine.nativeBinaryTag(binary_type=self._target_binary_type)
+                    else :
+                        theconf = self._nativemachine.nativeBinaryTag()
+                        
 
         if theconf :
             if isBinaryType(theconf, "Debug") :
@@ -406,7 +417,7 @@ class ELoginScript(SourceScript):
         if debug or sys.platform == "win32" :
             ev["BINARY_TAG"] = getBinaryOfType(theconf, "Debug")
         else :
-            ev["BINARY_TAG"] = getBinaryOfType(theconf "Release")
+            ev["BINARY_TAG"] = getBinaryOfType(theconf, "Release")
         log.debug("BINARY_TAG is set to %s" % ev["BINARY_TAG"])
 
     def setSGShostos(self):
@@ -466,13 +477,13 @@ class ELoginScript(SourceScript):
         retextra = self.extra()
         return retenv, retaliases, retextra
 
-    def setEnv(self, debug=False):
+    def setEnv(self):
         log = logging.getLogger()
         log.debug("Entering the environment setup")
         self.setPath()
 
         self._nativemachine = NativeMachine()
-        self.setBinaryTag(debug)
+        self.setBinaryTag()
         self.setCMakePath()
 
         # this is use internally by the 'sgs-' compiler wrapper.
@@ -483,7 +494,7 @@ class ELoginScript(SourceScript):
 
         return self.copyEnv()
 
-    def setAliases(self, debug=False):
+    def setAliases(self):
         al = self.Aliases()
         if self.targetShell() == "sh" :
             al["ELogin"] = ". \\`/usr/bin/which  ELogin.%s\\`" % self.targetShell()
@@ -497,7 +508,7 @@ class ELoginScript(SourceScript):
 
 
 
-    def manifest(self, debug=False):
+    def manifest(self, binary_type=default_build_type):
         ev = self.Environment()
         opts = self.options
         if opts.log_level != "CRITICAL" :
@@ -522,20 +533,19 @@ class ELoginScript(SourceScript):
 
     def main(self):
         opts = self.options
-        debug = False
         for a in self.args :
-            if a == "debug" :
-                debug = True
+            if a in build_types :
+                self._target_binary_type = a
         # first part: the environment variables
         if not opts.shell_only :
-            self.setEnv(debug)
+            self.setEnv()
 
         # second part the aliases
-        self.setAliases(debug)
+        self.setAliases()
 
         if not opts.shell_only :
             # the shell-only part has to be completely silent
-            self.manifest(debug)
+            self.manifest()
 
         self.flush()
 
@@ -543,5 +553,5 @@ class ELoginScript(SourceScript):
 
 
 if __name__ == '__main__':
-    sys.exit(ELoginScript(usage="%prog [options] [debug]").run())
+    sys.exit(ELoginScript(usage="%prog [options] [type]").run())
 
