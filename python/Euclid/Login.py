@@ -52,6 +52,7 @@ if python_loc :
 #============================================================================
 
 from Euclid.Platform import getBinaryOfType, build_types, default_build_type
+from Euclid.Platform import getBinaryTypeName
 from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryType, NativeMachine
 from Euclid.Version import ParseSvnVersion
@@ -69,21 +70,21 @@ def getLoginEnv(optionlist=None):
         optionlist = []
     s = LoginScript()
     s.parseOpts(optionlist)
-    return s.setEnv()[0]
+    return s.setEnv()
 
 def getLoginAliases(optionlist=None):
     if not optionlist :
         optionlist = []
     s = LoginScript()
     s.parseOpts(optionlist)
-    return s.setEnv()[1]
+    return s.setAliases()
 
 def getLoginExtra(optionlist=None):
     if not optionlist :
         optionlist = []
     s = LoginScript()
     s.parseOpts(optionlist)
-    return s.setEnv()[2]
+    return s.setExtra()
 
 #-----------------------------------------------------------------------------------
 
@@ -111,10 +112,6 @@ class LoginScript(SourceScript):
                           dest="binary_tag",
                           help="set BINARY_TAG.",
                           fallback_env="BINARY_TAG")
-        parser.set_defaults(wbinary_tag=None)
-        parser.add_option("-w", "--wildcard-binary-tag",
-                          dest="wbinary_tag",
-                          help="choose the first BINARY_TAG that match the string in the list of supported ones")
         parser.set_defaults(userarea=None)
         parser.add_option("-u", "--userarea",
                           dest="userarea",
@@ -340,33 +337,24 @@ class LoginScript(SourceScript):
 
 
 
-    def getWildCardBinaryTag(self, wildcard=None):
+    def getSupportedBinaryTag(self):
         """
         returns the best matched BINARY_TAG for the wilcard string
-        @param wildcard: text to be look for in the BINARY_TAG
-        @type wildcard: string
         """
-        log = logging.getLogger()
         theconf = None
+        log = logging.getLogger()
+        
         if self._target_binary_type :
+            log.debug("Guessing BINARY_TAG for the %s type" % self._target_binary_type)
             supported_configs = self._nativemachine.supportedBinaryTag(all_types=True)
+            supported_configs = [ s for s in supported_configs if isBinaryType(s, self._target_binary_type)] 
         else:
+            log.debug("Guessing BINARY_TAG")
             supported_configs = self._nativemachine.supportedBinaryTag()
             
 
-        supconf = supported_configs
-
-        if wildcard :
-            log.debug("Looking for %s in the list of selected BINARY_TAGs." % wildcard)
-            supconf = [ c for c in supconf if wildcard in c ]
-
-        if supconf :
-            theconf = supconf[0]
-            if theconf not in supported_configs :
-                log.warning("%s is not in the list of distributed configurations" % theconf)
-                if supported_configs :
-                    log.warning("Please switch to a supported one with 'ELogin -c' before building")
-                    log.warning("Supported configs: %s" % ", ".join(supported_configs))
+        if supported_configs :
+            theconf = supported_configs[0]
 
         return theconf
 
@@ -377,47 +365,47 @@ class LoginScript(SourceScript):
         self.binary = None
         self.platform = None
         self.compdef = None
-        if not opts.wbinary_tag :
+        
+        if self._target_binary_type :
+            # the type has been explicitly set on the command line as argument
             if opts.binary_tag :
-                log.debug("Using provided BINARY_TAG %s" % opts.binary_tag)
-                theconf = opts.binary_tag
-            else :
-                log.debug("Guessing BINARY_TAG")
-                theconf = self.getWildCardBinaryTag()
-                if not theconf :
-                    log.debug("Falling back on the native BINARY_TAG")
-                    if self._target_binary_type :
-                        theconf = self._nativemachine.nativeBinaryTag(binary_type=self._target_binary_type)
-                    else :
-                        theconf = self._nativemachine.nativeBinaryTag()
-                        
+                log.debug("Ignoring the provided BINARY_TAG %s" % opts.binary_tag)                
+            theconf = self.getSupportedBinaryTag()
         else :
-            theconf = self.getWildCardBinaryTag(wildcard=opts.wbinary_tag)
-            if not theconf :
-                if opts.binary_tag :
-                    log.debug("Falling back on the previous BINARY_TAG")
-                    theconf = opts.binary_tag
-                else :
+            if opts.binary_tag :
+                # the binary has either beeen passed with the -b option or
+                # with the BINARY_TAG env variable
+                log.debug("Using the provided BINARY_TAG %s" % opts.binary_tag)
+                theconf = opts.binary_tag
+            else:
+                # the type is completely guessed
+                theconf = self.getSupportedBinaryTag()
+                if not theconf:
                     log.debug("Falling back on the native BINARY_TAG")
-                    if self._target_binary_type :
-                        theconf = self._nativemachine.nativeBinaryTag(binary_type=self._target_binary_type)
-                    else :
-                        theconf = self._nativemachine.nativeBinaryTag()
-                        
+                    theconf = self._nativemachine.nativeBinaryTag()
+            if theconf :
+                self._target_binary_type = getBinaryTypeName(theconf)                
 
         if theconf :
-            if isBinaryType(theconf, "Debug") :
-                debug = True
             self.binary = getArchitecture(theconf)
             self.platform = getPlatformType(theconf)
             self.compdef = getCompiler(theconf)
             opts.binary_tag = theconf
+        else :
+            log.error("Cannot set the BINARY_TAG environment variable")
 
+        supported_binarytags = self._nativemachine.supportedBinaryTag(all_types=True)
+        if opts.binary_tag not in supported_binarytags :
+            log.warning("%s is not in the list of distributed configurations" % opts.binary_tag)
+            if supported_binarytags :
+                log.warning("Please switch to a supported one with 'ELogin -c' before building")
+                log.warning("Supported binary tags: %s" % ", ".join(supported_binarytags))
 
-        if debug or sys.platform == "win32" :
+        if sys.platform == "win32" :
             ev["BINARY_TAG"] = getBinaryOfType(theconf, "Debug")
         else :
-            ev["BINARY_TAG"] = getBinaryOfType(theconf, "Release")
+            ev["BINARY_TAG"] = opts.binary_tag
+
         log.debug("BINARY_TAG is set to %s" % ev["BINARY_TAG"])
 
     def setSGShostos(self):
@@ -492,7 +480,7 @@ class LoginScript(SourceScript):
         # return a copy otherwise the environment gets restored
         # at the destruction of the instance
 
-        return self.copyEnv()
+        return self.copyEnv()[0]
 
     def setAliases(self):
         al = self.Aliases()
@@ -504,7 +492,11 @@ class LoginScript(SourceScript):
         al["ERun"] = "E-Run"
         al["EuclidRun"] = "E-Run"
 
-        return self.copyEnv()
+        return self.copyEnv()[1]
+    
+    def setExtra(self):
+#        ex = self.extra()
+        return self.copyEnv()[2]
 
 
 
@@ -530,12 +522,15 @@ class LoginScript(SourceScript):
 
             self.addEcho("-" * 80)
 
-
-    def main(self):
-        opts = self.options
+    def parseOpts(self, args):
+        SourceScript.parseOpts(self, args)
         for a in self.args :
             if a in build_types :
                 self._target_binary_type = a
+
+
+    def main(self):
+        opts = self.options
         # first part: the environment variables
         if not opts.shell_only :
             self.setEnv()

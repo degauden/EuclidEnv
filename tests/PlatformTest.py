@@ -27,8 +27,7 @@ class PlatformTestCase(unittest.TestCase):
         print machine.nativeBinaryTag("Debug")
         print "================================================================"
         self.assertEqual(machine.OSFlavour(teststring="Scientific Linux CERN SLC release 5.4 (Boron)"), "Scientific Linux")
-        print machine.OSVersion()
-        print machine.CMTSystem()
+        self.assertEqual(machine.OSVersion(), "5.4")
         print machine.binaryOSFlavour()
         print machine.OSEquivalentFlavour()
         print machine.compatibleBinaryTag()

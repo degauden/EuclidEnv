@@ -527,6 +527,7 @@ class NativeMachine:
             if c in binary_list and c not in supported:
                 supported.append(c)
         return supported
+    
     def nativeBinaryTag(self, binary_type=default_build_type):
         """
         Returns the native configuration if possible. Guess also the compiler
@@ -539,6 +540,7 @@ class NativeMachine:
         natconf = getBinaryTag(architecture=mach, platformtype=osflav,
                             compiler=comp, binary_type=binary_type)
         return natconf
+    
     def DiracPlatform(self):
         """
         return Dirac-style platform
