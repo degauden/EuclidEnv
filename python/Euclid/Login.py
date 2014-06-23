@@ -64,30 +64,30 @@ __version__ = ParseSvnVersion("$Id$", "$URL$")
 #-----------------------------------------------------------------------------------
 # Helper functions
 
-def getELoginEnv(optionlist=None):
+def getLoginEnv(optionlist=None):
     if not optionlist :
         optionlist = []
-    s = ELoginScript()
+    s = LoginScript()
     s.parseOpts(optionlist)
     return s.setEnv()[0]
 
-def getELoginAliases(optionlist=None):
+def getLoginAliases(optionlist=None):
     if not optionlist :
         optionlist = []
-    s = ELoginScript()
+    s = LoginScript()
     s.parseOpts(optionlist)
     return s.setEnv()[1]
 
-def getELoginExtra(optionlist=None):
+def getLoginExtra(optionlist=None):
     if not optionlist :
         optionlist = []
-    s = ELoginScript()
+    s = LoginScript()
     s.parseOpts(optionlist)
     return s.setEnv()[2]
 
 #-----------------------------------------------------------------------------------
 
-class ELoginScript(SourceScript):
+class LoginScript(SourceScript):
     _version = __version__
     _description = __doc__
     def __init__(self, usage=None, version=None):
@@ -553,5 +553,5 @@ class ELoginScript(SourceScript):
 
 
 if __name__ == '__main__':
-    sys.exit(ELoginScript(usage="%prog [options] [type]").run())
+    sys.exit(LoginScript(usage="%prog [options] [type]").run())
 
