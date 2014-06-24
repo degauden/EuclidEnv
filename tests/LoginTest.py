@@ -18,7 +18,7 @@ class LoginTestCase(unittest.TestCase):
         
     def testBinaryTagReUse(self):
         os.environ["BINARY_TAG"] = "x86_64-fc20-gcc48-dbg"
-        env = getLoginEnv(["--debug"])
+        env = getLoginEnv(["--silent"])
         self.assertEqual(env["BINARY_TAG"], "x86_64-fc20-gcc48-dbg")
         del os.environ["BINARY_TAG"]
         
@@ -27,7 +27,7 @@ class LoginTestCase(unittest.TestCase):
 #        self.assertEqual(env["BINARY_TAG"], "x86_64-slc7-gcc48-min")
         
     def testChooseBinaryType(self):
-        env = getLoginEnv(["--debug", "Release"])
+        env = getLoginEnv(["Release"])
         self.assertTrue(env["BINARY_TAG"].endswith("-opt"))
         
     

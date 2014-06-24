@@ -117,11 +117,20 @@ extra_binary_opt_list = ["x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
                          "i686-winxp-vc90-opt", "x86_64-winxp-vc90-opt",
                          "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt"]
 
-binary_dbg_list = [ getBinaryOfType(x, "Debug") for x in binary_opt_list ]
-extra_binary_dbg_list = [ getBinaryOfType(x, "Debug") for x in extra_binary_opt_list ]
+binary_type_list = {}
+extra_binary_type_list = {}
+for t in build_types :
+    binary_type_list[t] = [ getBinaryOfType(x, t) for x in binary_opt_list ]
+    extra_binary_type_list[t] = [ getBinaryOfType(x, t) for x in extra_binary_opt_list ]
 
-binary_list = binary_opt_list + binary_dbg_list
-extra_binary_list = extra_binary_opt_list + extra_binary_dbg_list
+binary_dbg_list = binary_type_list["Debug"]
+extra_binary_dbg_list = extra_binary_type_list["Debug"]
+
+binary_list = []
+extra_binary_list = []
+for t in build_types :
+    binary_list.extend(binary_type_list[t])
+    extra_binary_list.extend(extra_binary_type_list[t])
 
 
 def pathBinaryMatch(path, binary_tag):
@@ -200,8 +209,8 @@ lsb_flavour_aliases   = {
 
 flavor_runtime_compatibility = {
                                 "slc7"  : ["slc7"],
-                                "fc20"  : ["fc20", "fc19"],
-                                "fc19"  : ["fc19"],
+                                "fc20"  : ["fc20", "fc19", "slc7"],
+                                "fc19"  : ["fc19", "slc7"],
                                 "slc6"  : ["slc6", "slc5"],
                                 "slc5"  : ["slc5", "slc4"],
                                 "rh73"  : ["rh73"],
