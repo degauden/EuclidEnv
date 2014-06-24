@@ -29,6 +29,12 @@ class LoginTestCase(unittest.TestCase):
     def testChooseBinaryType(self):
         env = getLoginEnv(["Release"])
         self.assertTrue(env["BINARY_TAG"].endswith("-opt"))
+        env = getLoginEnv(["release"])
+        self.assertTrue(env["BINARY_TAG"].endswith("-opt"))
+        env = getLoginEnv(["RelWithDebInfo"])
+        self.assertTrue(env["BINARY_TAG"].endswith("-o2g"))
+        env = getLoginEnv(["dbg"])
+        self.assertTrue(env["BINARY_TAG"].endswith("-dbg"))
         
     
     def testAlias(self):

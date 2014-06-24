@@ -525,8 +525,11 @@ class LoginScript(SourceScript):
     def parseOpts(self, args):
         SourceScript.parseOpts(self, args)
         for a in self.args :
-            if a in build_types :
-                self._target_binary_type = a
+            for b in build_types :
+                if a.lower() == b.lower() :
+                    self._target_binary_type = b
+                elif a.lower() == build_types[b].lower() :
+                    self._target_binary_type = b
 
 
     def main(self):
