@@ -507,7 +507,7 @@ class NativeMachine:
                 for m in arch_runtime_compatiblity[machine] :
                     allcomp = []
                     if f in supported_compilers :
-                        allcomp += supported_compilers[f]
+                        allcomp.extend(supported_compilers[f])
                     # add the native compiler
                     nc = self.nativeCompiler()
                     if nc :

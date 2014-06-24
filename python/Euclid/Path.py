@@ -131,7 +131,7 @@ def pathRemove(path, path_components):
     path_match = []
     for c in path_components :
         if os.sep in c :
-            path_match += c.split(os.sep)
+            path_match.extend(c.split(os.sep))
         else :
             path_match.append(c)
     path_match = [ x for x in path_match if x ]
@@ -197,7 +197,7 @@ def multiPathUpdate(path, dirlist, interleaved=False, exist_check=False):
     pathlist = []
     if not interleaved :
         for d in dirlist :
-            pathlist += multiPathJoin(path, d, exist_check).split(os.pathsep)
+            pathlist.extend(multiPathJoin(path, d, exist_check).split(os.pathsep))
     else :
         for p in path.split(os.pathsep) :
             for d in dirlist :
