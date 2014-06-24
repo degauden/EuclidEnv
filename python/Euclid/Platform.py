@@ -7,6 +7,9 @@ import logging
 
 # CMake Build Types
 
+default_build_type = "RelWithDebInfo"
+
+
 build_types = {
                 "Release"        : "opt",
                 "Debug"          : "dbg",
@@ -16,123 +19,61 @@ build_types = {
                 "MinSizeRel"     : "min"
               }
 
+
 # BINARY_TAG extraction
-
-def isNewStyleBinary(binary_tag):
-    """ check if the BINARY_TAG value is new styled """
-    newstyle = False
-    if len(binary_tag.split("-")) > 1 :
-        newstyle = True
-    return newstyle
-
-def isOldStyleBinary(binary_tag):
-    """ check if the BINARY_TAG value is not new styled """
-    return not isNewStyleBinary(binary_tag)
 
 def isBinaryType(binary_tag, btype):
     """ check if the BINARY_TAG value is one from the type """
     bintype = True
-    if isNewStyleBinary(binary_tag) :
-        if not binary_tag.endswith("-%s" % build_types[btype]) :
-            bintype = False
-    else :
-        if not binary_tag.endswith("_%s" % build_types[btype] ) :
-            bintype = False
+    if not binary_tag.endswith("-%s" % build_types[btype]) :
+        bintype = False
     return bintype
 
+def getBinaryOfType(binary_tag, btype):
+    "convert the BINARY_TAG to another type"
+    btother = binary_tag
+    if not isBinaryType(binary_tag, btype) :
+        blist = binary_tag.split("-")[:-1]
+        blist.append(build_types[btype])
+        btother = "-".join(blist)
+    return btother
 
-def isBinaryDbg(binary_tag):
-    """ check if the BINARY_TAG value is a debug one """
-    bindbg = True
-    if isNewStyleBinary(binary_tag) :
-        if not binary_tag.endswith("-dbg") :
-            bindbg = False
-    else :
-        if not binary_tag.endswith("_dbg") :
-            bindbg = False
-    return bindbg
-
-def isBinaryOpt(binary_tag):
-    """ check if the BINARY_TAG value is an optimized one """
-    binopt = True
-    if isBinaryDbg(binary_tag) :
-        binopt = False
-    return binopt
-
-
-def getBinaryDbg(binary_tag):
-    """ convert BINARY_TAG to debug """
-    btdbg = binary_tag
-    if not isBinaryDbg(binary_tag) :
-        if isNewStyleBinary(binary_tag) :
-            if binary_tag.endswith("-opt") :
-                btdbg = "-".join(binary_tag.split("-")[:-1]) + "-dbg"
-            else :
-                btdbg += "-dbg"
-        else :
-            btdbg += "_dbg"
-    return btdbg
-
-def getBinaryOpt(binary_tag):
-    """ convert BINARY_TAG to optimized """
-    btopt = binary_tag
-    if isBinaryDbg(binary_tag) :
-        if isNewStyleBinary(binary_tag) :
-            btopt = "-".join(binary_tag.split("-")[:-1]) + "-opt"
-        else :
-            btopt = "_".join(binary_tag.split("_")[:-1])
-    return btopt
+def getBinaryTypeName(binary_tag):
+    """ Function to extract the binary type"""
+    type_name = None
+    for j in build_types :
+        if binary_tag.endswith(build_types[j]):
+            type_name = j
+            
+    return type_name
 
 def getCompiler(binary_tag):
     """ extract compiler from BINARY_TAG """
-    compdef = None
-    if isNewStyleBinary(binary_tag) :
-        compdef = binary_tag.split("-")[2]
-    else :
-        if not binary_tag.startswith("win") :
-            compdef = binary_tag.split("_")[2]
-        else :
-            compdef = binary_tag.split("_")[1]
+    compdef = binary_tag.split("-")[2]
     return compdef
 
 def getPlatformType(binary_tag):
-    """ extract platform type (slc5, slc4, etc) from BINARY_TAG """
-    platformtype = None
-    if isNewStyleBinary(binary_tag) :
-        platformtype = binary_tag.split("-")[1]
-    else :
-        platformtype = binary_tag.split("_")[0]
+    """ extract platform type (slc5, slc6, etc) from BINARY_TAG """
+    platformtype = binary_tag.split("-")[1]
+    if platformtype == "sl7" :
+        platformtype = "slc7"
     if platformtype == "sl6" :
         platformtype = "slc6"
     if platformtype == "sl5" :
         platformtype = "slc5"
-    if platformtype == "sl4" :
-        platformtype = "slc4"
-    if platformtype == "sl3" :
-        platformtype = "slc3"
     return platformtype
 
 
 def getArchitecture(binary_tag):
     """ extract architecture from BINARY_TAG """
-    architecture = None
-    if isNewStyleBinary(binary_tag) :
-        architecture = binary_tag.split("-")[0]
-        if architecture == "ia32" :
-            architecture = "i686"
-        if architecture == "amd64" :
-            architecture = "x86_64"
-    else :
-        archlist = binary_tag.split("_")
-        if not archlist[0].startswith("win") :
-            architecture = archlist[1]
-            if architecture == "i686" :
-                architecture = "ia32"
-            if architecture == "x86_64" :
-                architecture = "i686"
+    architecture = binary_tag.split("-")[0]
+    if architecture == "ia32" :
+        architecture = "i686"
+    if architecture == "amd64" :
+        architecture = "x86_64"
     return architecture
 
-def getBinaryTag(architecture, platformtype, compiler, debug=False):
+def getBinaryTag(architecture, platformtype, compiler, binary_type=default_build_type):
     binary_tag = None
     if platformtype.startswith("win") :
         if compiler :
@@ -153,46 +94,43 @@ def getBinaryTag(architecture, platformtype, compiler, debug=False):
             architecture = "x86_64"
         if compiler :
             binary_tag = "-".join([architecture, platformtype, compiler, "opt"])
-            if platformtype == "slc4" or platformtype == "slc3" or platformtype == "osx105":
-                if architecture in arch_runtime_compatiblity["ia32"] :
-                    architecture = "ia32"
-                elif architecture == "x86_64" :
-                    architecture = "amd64"
-                binary_tag = "_".join([platformtype, architecture, compiler])
         else :
             binary_tag = "-".join([architecture, platformtype, "opt"])
-            if platformtype == "slc4" or platformtype == "slc3" or platformtype == "osx105":
-                if architecture in arch_runtime_compatiblity["ia32"] :
-                    architecture = "ia32"
-                elif architecture == "x86_64" :
-                    architecture = "amd64"
-                binary_tag = "_".join([platformtype, architecture])
 
-
-    if debug :
-        binary_tag = getBinaryDbg(binary_tag)
+    binary_tag = getBinaryOfType(binary_tag, binary_type)
 
     return binary_tag
 
 # officially supported binaries
-binary_opt_list = ["slc4_ia32_gcc34", "slc4_amd64_gcc34",
-                   "x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
+binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
                    "x86_64-slc5-gcc46-opt", "i686-slc5-gcc46-opt",
                    "win32_vc71", "i686-winxp-vc9-opt",
                    "x86_64-slc5-icc11-opt", "i686-slc5-icc11-opt",
-                   "x86_64-slc6-gcc46-opt", "i686-slc6-gcc46-opt" ]
+                   "x86_64-slc6-gcc46-opt", "i686-slc6-gcc46-opt",
+                   "x86_64-slc7-gcc48-opt", "i686-slc7-gcc48-opt",                   
+                   "x86_64-fc19-gcc48-opt", "i686-fc19-gcc48-opt",                   
+                   "x86_64-fc20-gcc48-opt", "i686-fc20-gcc48-opt"                   
+                    ]
 # future possible supported binaries
-extra_binary_opt_list = ["slc3_ia32_gcc323",
-                         "x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
+extra_binary_opt_list = ["x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
                          "i686-slc5-gcc43-opt",
                          "i686-winxp-vc90-opt", "x86_64-winxp-vc90-opt",
                          "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt"]
 
-binary_dbg_list = [ getBinaryDbg(x) for x in binary_opt_list ]
-extra_binary_dbg_list = [ getBinaryDbg(x) for x in extra_binary_opt_list ]
+binary_type_list = {}
+extra_binary_type_list = {}
+for t in build_types :
+    binary_type_list[t] = [ getBinaryOfType(x, t) for x in binary_opt_list ]
+    extra_binary_type_list[t] = [ getBinaryOfType(x, t) for x in extra_binary_opt_list ]
 
-binary_list = binary_opt_list + binary_dbg_list
-extra_binary_list = extra_binary_opt_list + extra_binary_dbg_list
+binary_dbg_list = binary_type_list["Debug"]
+extra_binary_dbg_list = extra_binary_type_list["Debug"]
+
+binary_list = []
+extra_binary_list = []
+for t in build_types :
+    binary_list.extend(binary_type_list[t])
+    extra_binary_list.extend(extra_binary_type_list[t])
 
 
 def pathBinaryMatch(path, binary_tag):
@@ -206,8 +144,6 @@ def pathBinaryMatch(path, binary_tag):
         log.error("the value of BINARY_TAG %s is not supported" % binary_tag)
     else :
         match_str = "%s" % binary_tag
-        if isOldStyleBinary(binary_tag) and isBinaryOpt(binary_tag):
-            match_str = "%s(?!_dbg)" % binary_tag
         cfg_match = re.compile(match_str)
         if cfg_match.search(path) :
             selected = True
@@ -272,14 +208,14 @@ lsb_flavour_aliases   = {
                         }
 
 flavor_runtime_compatibility = {
+                                "slc7"  : ["slc7"],
+                                "fc20"  : ["fc20", "fc19", "slc7"],
+                                "fc19"  : ["fc19", "slc7"],
                                 "slc6"  : ["slc6", "slc5"],
                                 "slc5"  : ["slc5", "slc4"],
-                                "slc4"  : ["slc4", "slc3"],
-                                "slc3"  : ["slc3"],
                                 "rh73"  : ["rh73"],
                                 "win32" : ["win32"],
                                 "win64" : ["win64"],
-                                "osx105": ["osx105"],
                                 "osx106": ["osx105", "osx106"]
                                 }
 
@@ -297,28 +233,23 @@ arch_runtime_compatiblity = {
 flavor_runtime_equivalence = {
                               "fc20"  : ["fc20"],
                               "fc19"  : ["fc19"],
+                              "slc7"  : ["slc7", "fc19", "fc10"],
                               "slc6"  : ["slc6"],
                               "slc5"  : ["slc5", "co5", "rhel5", "ub9", "fc13", "fc12", "fc11", "fc10"],
-                              "slc4"  : ["slc4", "co4", "rhel4", "deb4"],
-                              "slc3"  : ["slc3", "suse90", "suse100"],
                               "rh73"  : ["rh73", "suse80", "suse81", "suse82", "suse83"],
                               "win32" : ["win32"],
                               "win64" : ["win64"],
-                              "osx105": ["osx105"],
                               "osx106": ["osx106"]
                              }
 
 supported_compilers = {
                        "fc20"   : ["gcc48"],
                        "fc19"   : ["gcc48"],
+                       "slc7"   : ["gcc48"],
                        "slc6"   : ["gcc46","gcc45", "gcc44"],
                        "slc5"   : ["gcc46", "gcc43", "gcc45", "icc11"] ,
-                       "slc4"   : ["gcc34"],
-                       "slc3"   : ["gcc323"],
                        "win32"  : ["vc71", "vc9"],
                        "win64"  : ["vc71", "vc9"],
-                       "osx104" : ["gcc40"],
-                       "osx105" : ["gcc401"],
                        "osx106" : ["gcc42"]
                        }
 class NativeMachine:
@@ -566,7 +497,7 @@ class NativeMachine:
                 break
         return cmtflavour
 
-    def compatibleBinaryTag(self, debug=False):
+    def compatibleBinaryTag(self, all_types=False):
         """ return the list of compatible binary tags """
         compatibles = []
         equiv = self.OSEquivalentFlavour()
@@ -582,40 +513,43 @@ class NativeMachine:
                     if nc :
                         allcomp.append(nc)
                     for c in allcomp :
-                        n = getBinaryTag(m, f, c, debug=False)
+                        n = getBinaryTag(m, f, c)
                         if n not in compatibles :
                             compatibles.append(n)
-                        if debug :
-                            n = getBinaryTag(m, f, c, debug=True)
-                            if n not in compatibles :
-                                compatibles.append(n)
+                        if all_types :
+                            for t in build_types :
+                                n = getBinaryTag(m, f, c, t)
+                                if n not in compatibles :
+                                    compatibles.append(n)
 
         return compatibles
 
-    def supportedBinaryTag(self, debug=False):
+    def supportedBinaryTag(self, all_types=False):
         """
         returns the list of supported binary tags among the compatible ones. This
         means the ones which are shipped and usable on a local site.
-        @param debug: if True returns also the debug configs. Otherwise only the opt ones.
+        @param all_types: if True returns also the debug configs. Otherwise only the opt ones.
         """
-        compatibles = self.compatibleBinaryTag(debug)
+        compatibles = self.compatibleBinaryTag(all_types)
         supported = []
         for c in compatibles :
             if c in binary_list and c not in supported:
                 supported.append(c)
         return supported
-    def nativeBinaryTag(self, debug=False):
+    
+    def nativeBinaryTag(self, binary_type=default_build_type):
         """
         Returns the native configuration if possible. Guess also the compiler
         on linux platforms
-        @param debug: if True returns also the debug configs. Otherwise only the opt ones.
+        @param all_types: if True returns also the debug configs. Otherwise only the opt ones.
         """
         comp = self.nativeCompiler()
         mach = self.machine()
         osflav = self.binaryOSFlavour()
         natconf = getBinaryTag(architecture=mach, platformtype=osflav,
-                            compiler=comp, debug=debug)
+                            compiler=comp, binary_type=binary_type)
         return natconf
+    
     def DiracPlatform(self):
         """
         return Dirac-style platform
