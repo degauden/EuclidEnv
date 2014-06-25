@@ -7,19 +7,23 @@ from Euclid.Temporary import TempDir
 import unittest
 import os
 
+
 class PathTestCase(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.tpath = "mysiteroot1:mysiteroot2"
-        self.sub1  = "lhcb"
-        self.sub2  = os.path.join("lcg", "external")
+        self.sub1 = "lhcb"
+        self.sub2 = os.path.join("lcg", "external")
+
     def tearDown(self):
         unittest.TestCase.tearDown(self)
 
     def testMultiJoin(self):
-        self.assertEqual(multiPathJoin(self.tpath, self.sub1), "mysiteroot1/lhcb:mysiteroot2/lhcb")
-        self.assertEqual(multiPathJoin(self.tpath, self.sub2), "mysiteroot1/lcg/external:mysiteroot2/lcg/external")
+        self.assertEqual(
+            multiPathJoin(self.tpath, self.sub1), "mysiteroot1/lhcb:mysiteroot2/lhcb")
+        self.assertEqual(multiPathJoin(self.tpath, self.sub2),
+                         "mysiteroot1/lcg/external:mysiteroot2/lcg/external")
 
     def testMultiUpdate(self):
         self.assertEqual(multiPathUpdate(self.tpath, [self.sub1, self.sub2]),
@@ -42,28 +46,29 @@ class PathTestCase(unittest.TestCase):
         p5 = "/dab/blu/df://tra:"
         self.assertEqual(cleanPath(p5, normalize=True), "/dab/blu/df://tra")
         p6 = ":/dab/blu/df:://tra:foo:bar/ssd/../bli"
-        self.assertEqual(cleanPath(p6, normalize=True), "/dab/blu/df://tra:foo:bar/bli")
+        self.assertEqual(
+            cleanPath(p6, normalize=True), "/dab/blu/df://tra:foo:bar/bli")
         p7 = ":/dab/blu/df:://tra:foo:bar/ssd/../bli"
         self.assertEqual(cleanPath(p7), "/dab/blu/df://tra:foo:bar/ssd/../bli")
 
     def testPathRemove(self):
         p1 = "/opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v6r3/InstallArea/scripts:/opt/LHCb/lib/lcg/external/Python/2.6.5/x86_64-slc5-gcc43-opt/bin:/opt/LHCb/lib/lcg/external/gcc/4.3.2/x86_64-slc5/bin:/opt/LHCb/lib/lhcb/COMPAT/COMPAT_v1r8/CompatSys/x86_64-slc5-gcc43-opt/bin:/opt/LHCb/lib/contrib/CMT/v1r20p20090520/Linux-x86_64"
-        cmpt = ["lcg","external","Python"]
+        cmpt = ["lcg", "external", "Python"]
         result = "/opt/LHCb/lib/lhcb/LBSCRIPTS/LBSCRIPTS_v6r3/InstallArea/scripts:/opt/LHCb/lib/lcg/external/gcc/4.3.2/x86_64-slc5/bin:/opt/LHCb/lib/lhcb/COMPAT/COMPAT_v1r8/CompatSys/x86_64-slc5-gcc43-opt/bin:/opt/LHCb/lib/contrib/CMT/v1r20p20090520/Linux-x86_64"
         self.assertEqual(pathRemove(p1, cmpt), result)
-        
+
     def testHasCommand(self):
         self.assertFalse(hasCommand("ddkfhd"))
         self.assertTrue(hasCommand("ls"))
-        
+
     def testUpWalk(self):
         p1 = "/usr/local/bin"
         l1 = ['/usr/local/bin', '/usr/local', '/usr', '/']
-        
-        l = [ r for r,d,o in upWalk(p1) ]
-        
+
+        l = [r for r, d, o in upWalk(p1)]
+
         self.assertEqual(l1, l)
-        
+
     def testGetClosestPath(self):
         t = TempDir()
         os.mkdir(os.path.join(t.getName(), "usr"))
@@ -77,25 +82,23 @@ class PathTestCase(unittest.TestCase):
         l1.append(os.path.join(os.sep + "bin"))
 
         ttop = os.path.join(t.getName(), "usr", "local", "bin", "toto")
-        
-        l = [ p for p in getClosestPath(ttop, "bin", alloccurences=True) ] 
+
+        l = [p for p in getClosestPath(ttop, "bin", alloccurences=True)]
 
         self.assertEqual(l1, l)
-        
+
         l3 = []
         l3.append(os.path.join(t.getName(), "usr", "local", "bin"))
-                
-        r = [ p for p in getClosestPath(ttop, "bin", alloccurences=False) ]
-        
+
+        r = [p for p in getClosestPath(ttop, "bin", alloccurences=False)]
+
         self.assertEqual(l3, r)
 
-
         l4 = []
-        
-        s = [ p for p in getClosestPath(ttop, "djldfdhf", alloccurences=False) ]
-        
+
+        s = [p for p in getClosestPath(ttop, "djldfdhf", alloccurences=False)]
+
         self.assertEqual(l4, s)
-        
 
 
 if __name__ == '__main__':

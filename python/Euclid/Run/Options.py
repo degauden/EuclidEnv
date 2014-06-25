@@ -4,11 +4,15 @@ Common functions to add common options to a OptionParser instance.
 
 import os
 
+
 class SearchPathEntry(object):
+
     def __init__(self, path):
         self.path = path
+
     def __str__(self):
         return str(self.path)
+
 
 def addSearchPath(parser):
     '''
@@ -38,6 +42,7 @@ def addSearchPath(parser):
 
     return parser
 
+
 def addOutputLevel(parser):
     '''
     Add options to get more or less messages.
@@ -57,6 +62,7 @@ def addOutputLevel(parser):
 
     return parser
 
+
 def addPlatform(parser):
     '''
     Add option to specify a platform.
@@ -64,7 +70,6 @@ def addPlatform(parser):
 
     parser.add_option('-b', '--platform',
                       help='runtime platform [default: %default]')
-
 
     if 'BINARY_TAG' in os.environ:
         platform = os.environ['BINARY_TAG']
@@ -75,7 +80,8 @@ def addPlatform(parser):
         if supported:
             platform = supported[0]
         else:
-            parser.error('unknown system, set the environment or use --platform')
+            parser.error(
+                'unknown system, set the environment or use --platform')
 
     parser.set_defaults(platform=platform)
 

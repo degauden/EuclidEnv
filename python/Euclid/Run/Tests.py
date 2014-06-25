@@ -6,6 +6,7 @@ import shutil
 
 latest_gaudi = 'v23r7'
 
+
 def prepare_tree(base, tree):
     from os import makedirs
     from os.path import dirname, join, exists
@@ -24,15 +25,19 @@ def prepare_tree(base, tree):
             if not exists(k):
                 makedirs(k)
 
+
 class TempDir(object):
+
     def __init__(self, tree=None):
         self.tmpdir = None
         self.tree = tree
+
     def __enter__(self):
         self.tmpdir = mkdtemp()
         if self.tree:
             prepare_tree(self.tmpdir, self.tree)
         return self.tmpdir
+
     def __exit__(self, type_, value, traceback):
         if self.tmpdir:
             shutil.rmtree(self.tmpdir)
@@ -42,10 +47,12 @@ def test_import():
     import Euclid.Run
     assert Euclid.Run.path
 
+
 def test_version():
     from Euclid.Run.Version import expandVersionAlias, isValidVersion
 
-    # this is a dummy test, waiting for a real implementation of version aliases
+    # this is a dummy test, waiting for a real implementation of version
+    # aliases
     assert expandVersionAlias('Gaudi', 'latest') == 'latest'
 
     assert isValidVersion('Gaudi', 'latest')
@@ -57,10 +64,10 @@ def test_version():
     assert not isValidVersion('Gaudi', 'a random string')
 
 
-
 def parse_args(func, args):
     from optparse import OptionParser
     return func(OptionParser(prog='dummy_program')).parse_args(args)
+
 
 def test_options_addOutputLevel():
     from Euclid.Run.Options import addOutputLevel
@@ -106,7 +113,9 @@ def test_options_addPlatform():
 
     import Euclid.Platform
     bk = Euclid.Platform.NativeMachine
+
     class dummy():
+
         def CMTSupportedConfig(self):
             return None
     Euclid.Platform.NativeMachine = dummy
@@ -168,10 +177,13 @@ def test_options_addSearchPath():
                   'lhcb-nightly-slot/%s' % yesterday: None}) as tmp:
         os.environ['LHCBNIGHTLIES'] = tmp
         opts, _ = parse_args(addSearchPath, ['--nightly', 'lhcb-nightly-slot'])
-        assert os.path.join(tmp, 'lhcb-nightly-slot', today) in map(str, opts.dev_dirs)
+        assert os.path.join(
+            tmp, 'lhcb-nightly-slot', today) in map(str, opts.dev_dirs)
         assert opts.nightly == ('lhcb-nightly-slot', today)
-        opts, _ = parse_args(addSearchPath, ['--nightly', 'lhcb-nightly-slot', yesterday])
-        assert os.path.join(tmp, 'lhcb-nightly-slot', yesterday) in map(str, opts.dev_dirs)
+        opts, _ = parse_args(
+            addSearchPath, ['--nightly', 'lhcb-nightly-slot', yesterday])
+        assert os.path.join(
+            tmp, 'lhcb-nightly-slot', yesterday) in map(str, opts.dev_dirs)
         assert opts.nightly == ('lhcb-nightly-slot', yesterday)
 
         try:
@@ -198,8 +210,6 @@ def test_options_addSearchPath():
         os.environ['LHCBNIGHTLIES'] = tmp
         opts, _ = parse_args(addSearchPath, ['--nightly', 'lhcb-nightly-slot'])
         assert '/extra/xml/dir' in map(str, opts.dev_dirs)
-
-
 
 
 def test_profiling():

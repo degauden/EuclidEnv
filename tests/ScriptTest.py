@@ -9,13 +9,16 @@ import os
 
 __version__ = "$Id: ScriptTest.py 122763 2011-05-03 12:16:51Z hmdegaud $"
 
+
 class ScriptTest(Script):
     _version = __version__
     _description = __doc__
+
     def defineOpts(self):
         parser = self.parser
         parser.set_defaults(toto_val="bla")
-        parser.add_option("-t", "--toto-val", help="set toto value [default %default]")
+        parser.add_option(
+            "-t", "--toto-val", help="set toto value [default %default]")
 
     def main(self):
         log = logging.getLogger()

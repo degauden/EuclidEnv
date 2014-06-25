@@ -1,6 +1,8 @@
 
 import sys
 import logging
+
+
 def run(cmd):
     # Prepare the profiler instance
     profiler = None
@@ -12,14 +14,15 @@ def run(cmd):
             import profile
             profiler = profile.Profile()
         except ImportError:
-            logging.warning('Cannot import cProfile or profile: ignoring --profile')
+            logging.warning(
+                'Cannot import cProfile or profile: ignoring --profile')
             exec cmd
     try:
         # if we managed to get the profiler instance, collect profiling stats,
         # and print them on stderr
         profiler.run(cmd)
 
-    except SystemExit: # intercept normal exit
+    except SystemExit:  # intercept normal exit
         # adapted from Python standard profiler.py
         import pstats
         stream = sys.stderr

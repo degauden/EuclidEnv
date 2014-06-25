@@ -6,6 +6,7 @@ import sys
 
 _default_log_format = "%(levelname)-8s: %(message)s"
 
+
 def setLogLevelCallBack(option, opt_str, value, parser):
     log = logging.getLogger()
     if opt_str == "--silent":
@@ -23,23 +24,26 @@ def setLogLevelCallBack(option, opt_str, value, parser):
         log.setLevel(logging.DEBUG)
         setattr(parser.values, option.dest, "DEBUG")
         log.info("setting log level to DEBUG")
-        if not sys.version_info < (2,5,1,0,0) : # when funcName was not available
-            formatter = logging.Formatter("%(levelname)-8s: %(funcName)-25s %(message)s")
-            for h in log.handlers :
+        # when funcName was not available
+        if not sys.version_info < (2, 5, 1, 0, 0):
+            formatter = logging.Formatter(
+                "%(levelname)-8s: %(funcName)-25s %(message)s")
+            for h in log.handlers:
                 h.setFormatter(formatter)
     if opt_str == "--log-level":
         log.setLevel(value)
         log.info("setting log level to %s" % value)
         setattr(parser.values, option.dest, value)
 
+
 def addDefaultLogger(parser, log_format=None):
     log = logging.getLogger()
     has_streamhandler = False
-    for h in log.handlers :
-        if isinstance(h, logging.StreamHandler) :
+    for h in log.handlers:
+        if isinstance(h, logging.StreamHandler):
             has_streamhandler = True
             break
-    if not has_streamhandler :
+    if not has_streamhandler:
         console = logging.StreamHandler()
         if not log_format:
             log_format = _default_log_format
@@ -79,10 +83,12 @@ def addDefaultLogger(parser, log_format=None):
 
 
 class NullHandler(logging.Handler):
+
     """ null handler for libraries. This is usefull when a top application doesn't
     define any logger. This handler has to be added to each library logger like:
      h = NullHandler()
      logging.getLogger("foo").addHandler(h)
     """
+
     def emit(self, record):
         pass

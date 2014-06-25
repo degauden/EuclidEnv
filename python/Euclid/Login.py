@@ -11,43 +11,44 @@ import os
 # other are delayed to the created setup script
 
 # first try to use the installed prefix path
-my_own_prefix="%(this_install_prefix)s"
+my_own_prefix = "%(this_install_prefix)s"
 has_prefix = False
 
-if os.path.exists(my_own_prefix) :
+if os.path.exists(my_own_prefix):
     has_prefix = True
 
-if has_prefix :
+if has_prefix:
     from distutils.sysconfig import get_python_lib
-    if my_own_prefix != "/usr" :
+    if my_own_prefix != "/usr":
         # funky location yeah
-        python_loc=get_python_lib(prefix=my_own_prefix)
+        python_loc = get_python_lib(prefix=my_own_prefix)
     else:
         # if the location is standard, don't try to be funny
         python_loc = None
-else :
+else:
     # use the local properties if the intall_path is no available
     try:
         _this_file = __file__
-    except NameError :
+    except NameError:
         # special procedure to handle the situation when __file__ is not defined.
         # It happens typically when trying to use pdb.
         from imp import find_module, load_module
         _ff, _filename, _desc = find_module("Euclid")
-        try :
+        try:
             lbconf_package = load_module('Euclid', _ff, _filename, _desc)
-            _ff, _filename, _desc = find_module('Login', lbconf_package.__path__)
+            _ff, _filename, _desc = find_module(
+                'Login', lbconf_package.__path__)
             _this_file = _filename
-        finally :
+        finally:
             _ff.close()
     # Bootstrapping the python location
     _pyeuc_dir = os.path.dirname(_this_file)
     _py_dir = os.path.dirname(_pyeuc_dir)
-    if os.path.basename(_pyeuc_dir) == "Euclid" :
+    if os.path.basename(_pyeuc_dir) == "Euclid":
         _base_dir = os.path.dirname(_py_dir)
         python_loc = _py_dir
 
-if python_loc :
+if python_loc:
     sys.path.insert(0, python_loc)
 #============================================================================
 
@@ -62,35 +63,40 @@ import logging
 import shutil
 
 __version__ = ParseSvnVersion("$Id$", "$URL$")
-#-----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Helper functions
 
+
 def getLoginEnv(optionlist=None):
-    if not optionlist :
+    if not optionlist:
         optionlist = []
     s = LoginScript()
     s.parseOpts(optionlist)
     return s.setEnv()
 
+
 def getLoginAliases(optionlist=None):
-    if not optionlist :
+    if not optionlist:
         optionlist = []
     s = LoginScript()
     s.parseOpts(optionlist)
     return s.setAliases()
 
+
 def getLoginExtra(optionlist=None):
-    if not optionlist :
+    if not optionlist:
         optionlist = []
     s = LoginScript()
     s.parseOpts(optionlist)
     return s.setExtra()
 
-#-----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
+
 
 class LoginScript(SourceScript):
     _version = __version__
     _description = __doc__
+
     def __init__(self, usage=None, version=None):
         SourceScript.__init__(self, usage, version)
         self.platform = ""
@@ -101,7 +107,7 @@ class LoginScript(SourceScript):
         self._triedlocalsetup = False
         self._triedAFSsetup = False
 
-#-----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 # Option definition
 
     def defineOpts(self):
@@ -136,118 +142,121 @@ class LoginScript(SourceScript):
                           dest="strip_path",
                           action="store_true",
                           help="activate the cleanup of invalid entries in pathes [default: %default]")
-#-----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
     def setPath(self):
         ev = self.Environment()
         opts = self.options
         log = logging.getLogger()
-        if not opts.strip_path :
+        if not opts.strip_path:
             log.debug("Disabling the path stripping")
             ev["E_NO_STRIP_PATH"] = "1"
-        else :
-            if ev.has_key("E_NO_STRIP_PATH") :
+        else:
+            if ev.has_key("E_NO_STRIP_PATH"):
                 log.debug("Reenabling the path stripping")
                 del ev["E_NO_STRIP_PATH"]
 
-        if python_loc :
-            if "PYTHONPATH" in ev :
+        if python_loc:
+            if "PYTHONPATH" in ev:
                 ev["PYTHONPATH"] = pathPrepend(ev["PYTHONPATH"],
                                                python_loc,
                                                exist_check=opts.strip_path,
                                                unique=opts.strip_path)
-            else :
+            else:
                 if opts.strip_path:
                     if os.path.exists(python_loc):
                         ev["PYTHONPATH"] = python_loc
-                else :
+                else:
                     ev["PYTHONPATH"] = python_loc
 
-
         if "PYTHONPATH" in ev:
-            log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]) )
+            log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]))
 
         bin_loc = None
 
         if python_loc:
-            bin_loc = getClosestPath(python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
-            if not bin_loc :
-                bin_loc = getClosestPath(python_loc, os.sep.join(["scripts", "ELogin.sh"]), alloccurences=False)
+            bin_loc = getClosestPath(
+                python_loc, os.sep.join(["bin", "ELogin.sh"]), alloccurences=False)
+            if not bin_loc:
+                bin_loc = getClosestPath(
+                    python_loc, os.sep.join(["scripts", "ELogin.sh"]), alloccurences=False)
 
-        if bin_loc :
+        if bin_loc:
             the_loc = os.path.dirname(bin_loc[0])
             ev["PATH"] = pathPrepend(ev["PATH"],
                                      the_loc,
                                      exist_check=opts.strip_path,
                                      unique=opts.strip_path)
 
-        log.debug("%s is set to %s" % ("PATH", ev["PATH"]) )
-
+        log.debug("%s is set to %s" % ("PATH", ev["PATH"]))
 
         # try the installed directory in $prefix/share/EuclidEnv/cmake/...
 
-        if python_loc :
+        if python_loc:
             python_prefix = python_loc
-        else :
+        else:
             python_prefix = "/usr"
 
-
         cmake_loc = getClosestPath(python_prefix,
-                                   os.sep.join(["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]),
+                                   os.sep.join(
+                                       ["share", "EuclidEnv", "cmake", "ElementsProjectConfig.cmake"]),
                                    alloccurences=False)
         if not cmake_loc:
             # use the local source directory
             cmake_loc = getClosestPath(python_prefix,
-                                       os.sep.join(["data", "cmake", "ElementsProjectConfig.cmake"]),
+                                       os.sep.join(
+                                           ["data", "cmake", "ElementsProjectConfig.cmake"]),
                                        alloccurences=False)
 
-        if cmake_loc :
+        if cmake_loc:
             the_loc = os.path.dirname(cmake_loc[0])
-            if "CMAKE_PREFIX_PATH" in ev :
+            if "CMAKE_PREFIX_PATH" in ev:
                 ev["CMAKE_PREFIX_PATH"] = pathPrepend(ev["CMAKE_PREFIX_PATH"],
                                                       the_loc,
                                                       exist_check=opts.strip_path,
                                                       unique=opts.strip_path)
-            elif os.path.exists(the_loc) :
+            elif os.path.exists(the_loc):
                 ev["CMAKE_PREFIX_PATH"] = the_loc
 
-        if "CMAKE_PREFIX_PATH" in ev :
-            log.debug("%s is set to %s" % ("CMAKE_PREFIX_PATH", ev["CMAKE_PREFIX_PATH"]) )
-
+        if "CMAKE_PREFIX_PATH" in ev:
+            log.debug("%s is set to %s" %
+                      ("CMAKE_PREFIX_PATH", ev["CMAKE_PREFIX_PATH"]))
 
         texmf_loc = getClosestPath(python_prefix,
-                                   os.sep.join(["share", "EuclidEnv", "texmf", "esgsdoc.cls"]),
+                                   os.sep.join(
+                                       ["share", "EuclidEnv", "texmf", "esgsdoc.cls"]),
                                    alloccurences=False)
         if not texmf_loc:
             # use the local source directory
             texmf_loc = getClosestPath(python_prefix,
-                                       os.sep.join(["data", "texmf", "esgsdoc.cls"]),
+                                       os.sep.join(
+                                           ["data", "texmf", "esgsdoc.cls"]),
                                        alloccurences=False)
 
-        if texmf_loc :
+        if texmf_loc:
             the_loc = os.path.dirname(texmf_loc[0])
-            if "TEXINPUTS" in ev :
+            if "TEXINPUTS" in ev:
                 ev["TEXINPUTS"] = pathPrepend(ev["TEXINPUTS"],
                                               the_loc,
                                               exist_check=opts.strip_path,
                                               unique=opts.strip_path)
-            elif os.path.exists(the_loc) :
+            elif os.path.exists(the_loc):
                 ev["TEXINPUTS"] = the_loc
 
-        if "TEXINPUTS" in ev :
-            log.debug("%s is set to %s" % ("TEXINPUTS", ev["TEXINPUTS"]) )
+        if "TEXINPUTS" in ev:
+            log.debug("%s is set to %s" % ("TEXINPUTS", ev["TEXINPUTS"]))
 
-#-----------------------------------------------------------------------------------
+#-------------------------------------------------------------------------
 
     def setHomeDir(self):
         ev = self.Environment()
         log = logging.getLogger()
-        if sys.platform == "win32" and not ev.has_key("HOME") :
+        if sys.platform == "win32" and not ev.has_key("HOME"):
             ev["HOME"] = os.path.join(ev["HOMEDRIVE"], ev["HOMEPATH"])
             log.debug("Setting HOME to %s" % ev["HOME"])
-        if sys.platform != "win32" :
+        if sys.platform != "win32":
             username = ev["USER"]
-        else :
+        else:
             username = ev["USERNAME"]
         log.debug("User name is %s" % username)
 
@@ -258,27 +267,27 @@ class LoginScript(SourceScript):
             hlist.append(hprof)
             hlist.append(os.path.join(ev["HOME"], ".bash_login"))
             hlist.append(os.path.join(ev["HOME"], ".profile"))
-            if not [ x for x in hlist if os.path.exists(x) ] :
-                if os.path.exists(sprof) :
-                    try :
+            if not [x for x in hlist if os.path.exists(x)]:
+                if os.path.exists(sprof):
+                    try:
                         shutil.copy(sprof, hprof)
                         log.warning("Copying %s to %s" % (sprof, hprof))
-                    except IOError :
-                        log.warning("Failed to copy %s to %s" % (sprof, hprof) )
+                    except IOError:
+                        log.warning("Failed to copy %s to %s" % (sprof, hprof))
             hbrc = os.path.join(ev["HOME"], ".bashrc")
             sbrc = os.path.join("/etc", "skel", ".bashrc")
-            if not os.path.exists(hbrc) :
-                if os.path.exists(sbrc) :
-                    try :
+            if not os.path.exists(hbrc):
+                if os.path.exists(sbrc):
+                    try:
                         shutil.copy(sbrc, hbrc)
                         log.warning("Copying %s to %s" % (sbrc, hbrc))
-                    except IOError :
-                        log.warning("Failed to copy %s to %s" % (sbrc, hbrc) )
-        if not ev.has_key("LD_LIBRARY_PATH") :
+                    except IOError:
+                        log.warning("Failed to copy %s to %s" % (sbrc, hbrc))
+        if not ev.has_key("LD_LIBRARY_PATH"):
             ev["LD_LIBRARY_PATH"] = ""
             log.debug("Setting a default LD_LIBRARY_PATH")
 
-        if not ev.has_key("ROOTSYS") :
+        if not ev.has_key("ROOTSYS"):
             ev["ROOTSYS"] = ""
             log.debug("Setting a default ROOTSYS")
 
@@ -288,54 +297,61 @@ class LoginScript(SourceScript):
         log = logging.getLogger()
         opts = self.options
         ev = self.Environment()
-        if not opts.remove_userarea :
+        if not opts.remove_userarea:
             newdir = False
-            if not opts.userarea :
-                opts.userarea = os.path.join(ev["HOME"], "Work") # @todo: use something different for window
+            if not opts.userarea:
+                # @todo: use something different for window
+                opts.userarea = os.path.join(ev["HOME"], "Work")
             ev["User_area"] = opts.userarea
             log.debug("User_area is set to %s" % ev["User_area"])
 
             rename_cmakeuser = False
-            if os.path.exists(opts.userarea) : # is a file, a directory or a valid link
-                if os.path.isfile(opts.userarea) : # is a file or a link pointing to a file
-                    log.warning("%s is a file"  % opts.userarea)
+            # is a file, a directory or a valid link
+            if os.path.exists(opts.userarea):
+                # is a file or a link pointing to a file
+                if os.path.isfile(opts.userarea):
+                    log.warning("%s is a file" % opts.userarea)
                     rename_cmakeuser = True
                     newdir = True
-                else : # is a directory or a link pointing to a directory. Nothing to do
+                # is a directory or a link pointing to a directory. Nothing to
+                # do
+                else:
                     log.debug("%s is a directory" % opts.userarea)
-            else : # doesn't exist or is an invalid link
-                if os.path.islink(opts.userarea) : # broken link
-                    log.warning("%s is a broken link"  % opts.userarea)
+            else:  # doesn't exist or is an invalid link
+                if os.path.islink(opts.userarea):  # broken link
+                    log.warning("%s is a broken link" % opts.userarea)
                     rename_cmakeuser = True
                 newdir = True
-            if rename_cmakeuser :
+            if rename_cmakeuser:
                 bak_userarea = opts.userarea + "_bak"
-                if not os.path.exists(bak_userarea) :
-                    if os.path.islink(bak_userarea) :
-                        try :
-                            os.remove(bak_userarea) # remove broken link
+                if not os.path.exists(bak_userarea):
+                    if os.path.islink(bak_userarea):
+                        try:
+                            os.remove(bak_userarea)  # remove broken link
                         except IOError:
                             log.warning("Can't remove %s" % bak_userarea)
-                    try :
+                    try:
                         os.rename(opts.userarea, opts.userarea + "_bak")
-                        log.warning("Renamed %s into %s" % (opts.userarea, opts.userarea + "_bak"))
+                        log.warning("Renamed %s into %s" %
+                                    (opts.userarea, opts.userarea + "_bak"))
                     except IOError:
-                        log.warning("Can't rename %s into %s" % (opts.userarea, opts.userarea + "_bak"))
-                else :
-                    log.warning("Can't backup %s because %s is in the way" % (opts.userarea, bak_userarea))
+                        log.warning("Can't rename %s into %s" %
+                                    (opts.userarea, opts.userarea + "_bak"))
+                else:
+                    log.warning(
+                        "Can't backup %s because %s is in the way" % (opts.userarea, bak_userarea))
                     log.warning("No %s directory created" % opts.userarea)
                     newdir = False
-            if newdir :
-                try :
+            if newdir:
+                try:
                     os.makedirs(opts.userarea)
-                    self.addEcho(" --- a new User_area directory has been created in your HOME directory")
+                    self.addEcho(
+                        " --- a new User_area directory has been created in your HOME directory")
                 except IOError:
                     log.warning("Can't create %s" % opts.userarea)
-        elif ev.has_key("User_area") :
+        elif ev.has_key("User_area"):
             del ev["User_area"]
             log.debug("Removed User_area from the environment")
-
-
 
     def getSupportedBinaryTag(self):
         """
@@ -343,17 +359,19 @@ class LoginScript(SourceScript):
         """
         theconf = None
         log = logging.getLogger()
-        
-        if self._target_binary_type :
-            log.debug("Guessing BINARY_TAG for the %s type" % self._target_binary_type)
-            supported_configs = self._nativemachine.supportedBinaryTag(all_types=True)
-            supported_configs = [ s for s in supported_configs if isBinaryType(s, self._target_binary_type)] 
+
+        if self._target_binary_type:
+            log.debug("Guessing BINARY_TAG for the %s type" %
+                      self._target_binary_type)
+            supported_configs = self._nativemachine.supportedBinaryTag(
+                all_types=True)
+            supported_configs = [
+                s for s in supported_configs if isBinaryType(s, self._target_binary_type)]
         else:
             log.debug("Guessing BINARY_TAG")
             supported_configs = self._nativemachine.supportedBinaryTag()
-            
 
-        if supported_configs :
+        if supported_configs:
             theconf = supported_configs[0]
 
         return theconf
@@ -365,14 +383,15 @@ class LoginScript(SourceScript):
         self.binary = None
         self.platform = None
         self.compdef = None
-        
-        if self._target_binary_type :
+
+        if self._target_binary_type:
             # the type has been explicitly set on the command line as argument
-            if opts.binary_tag :
-                log.debug("Ignoring the provided BINARY_TAG %s" % opts.binary_tag)                
+            if opts.binary_tag:
+                log.debug("Ignoring the provided BINARY_TAG %s" %
+                          opts.binary_tag)
             theconf = self.getSupportedBinaryTag()
-        else :
-            if opts.binary_tag :
+        else:
+            if opts.binary_tag:
                 # the binary has either beeen passed with the -b option or
                 # with the BINARY_TAG env variable
                 log.debug("Using the provided BINARY_TAG %s" % opts.binary_tag)
@@ -383,27 +402,31 @@ class LoginScript(SourceScript):
                 if not theconf:
                     log.debug("Falling back on the native BINARY_TAG")
                     theconf = self._nativemachine.nativeBinaryTag()
-            if theconf :
-                self._target_binary_type = getBinaryTypeName(theconf)                
+            if theconf:
+                self._target_binary_type = getBinaryTypeName(theconf)
 
-        if theconf :
+        if theconf:
             self.binary = getArchitecture(theconf)
             self.platform = getPlatformType(theconf)
             self.compdef = getCompiler(theconf)
             opts.binary_tag = theconf
-        else :
+        else:
             log.error("Cannot set the BINARY_TAG environment variable")
 
-        supported_binarytags = self._nativemachine.supportedBinaryTag(all_types=True)
-        if opts.binary_tag not in supported_binarytags :
-            log.warning("%s is not in the list of distributed configurations" % opts.binary_tag)
-            if supported_binarytags :
-                log.warning("Please switch to a supported one with 'ELogin -c' before building")
-                log.warning("Supported binary tags: %s" % ", ".join(supported_binarytags))
+        supported_binarytags = self._nativemachine.supportedBinaryTag(
+            all_types=True)
+        if opts.binary_tag not in supported_binarytags:
+            log.warning(
+                "%s is not in the list of distributed configurations" % opts.binary_tag)
+            if supported_binarytags:
+                log.warning(
+                    "Please switch to a supported one with 'ELogin -c' before building")
+                log.warning("Supported binary tags: %s" %
+                            ", ".join(supported_binarytags))
 
-        if sys.platform == "win32" :
+        if sys.platform == "win32":
             ev["BINARY_TAG"] = getBinaryOfType(theconf, "Debug")
-        else :
+        else:
             ev["BINARY_TAG"] = opts.binary_tag
 
         log.debug("BINARY_TAG is set to %s" % ev["BINARY_TAG"])
@@ -427,22 +450,20 @@ class LoginScript(SourceScript):
 
         prefix_path = []
 
-
-        if not opts.remove_userarea and ev.has_key("User_area") :
+        if not opts.remove_userarea and ev.has_key("User_area"):
             prefix_path.append(ev["User_area"])
 
-        if opts.sharedarea :
+        if opts.sharedarea:
             ev["EUCLIDPROJECTPATH"] = opts.sharedarea
 
-        if "EUCLIDPROJECTPATH" not in ev :
-            if os.path.exists("/opt/euclid") :
+        if "EUCLIDPROJECTPATH" not in ev:
+            if os.path.exists("/opt/euclid"):
                 ev["EUCLIDPROJECTPATH"] = "/opt/euclid"
 
-        if "EUCLIDPROJECTPATH" in ev :
+        if "EUCLIDPROJECTPATH" in ev:
             prefix_path.append(ev["EUCLIDPROJECTPATH"])
 
-
-        if not opts.remove_userarea and ev.has_key("User_area") :
+        if not opts.remove_userarea and ev.has_key("User_area"):
             prefix_path.append(ev["User_area"])
 
         if "CMAKE_PROJECT_PATH" not in ev:
@@ -450,12 +471,11 @@ class LoginScript(SourceScript):
 
         for p in prefix_path:
             ev["CMAKE_PROJECT_PATH"] = pathPrepend(ev["CMAKE_PROJECT_PATH"],
-                                                      p,
-                                                      exist_check=opts.strip_path,
-                                                      unique=opts.strip_path)
+                                                   p,
+                                                   exist_check=opts.strip_path,
+                                                   unique=opts.strip_path)
 
         log.debug("CMAKE_PROJECT_PATH is set to %s" % ev["CMAKE_PROJECT_PATH"])
-
 
     def copyEnv(self):
         ev = self.Environment()
@@ -484,64 +504,62 @@ class LoginScript(SourceScript):
 
     def setAliases(self):
         al = self.Aliases()
-        if self.targetShell() == "sh" :
+        if self.targetShell() == "sh":
             al["ELogin"] = ". \\`/usr/bin/which  ELogin.%s\\`" % self.targetShell()
-        else :
+        else:
             al["ELogin"] = "source \\`/usr/bin/which ELogin.%s\\`" % self.targetShell()
-            
+
         al["ERun"] = "E-Run"
         al["EuclidRun"] = "E-Run"
 
         return self.copyEnv()[1]
-    
+
     def setExtra(self):
-#        ex = self.extra()
+        #        ex = self.extra()
         return self.copyEnv()[2]
-
-
 
     def manifest(self, binary_type=default_build_type):
         ev = self.Environment()
         opts = self.options
-        if opts.log_level != "CRITICAL" :
+        if opts.log_level != "CRITICAL":
             self.addEcho("*" * 80)
             self.addEcho("*" + "---- Euclid Login ----".center(78) + "*")
-            if self.binary :
-                self.addEcho("*" + ("Building with %s on %s %s system (%s)" % (self.compdef, self.platform, self.binary, ev["BINARY_TAG"])).center(78) + "*")
-            else : # for windows
-                self.addEcho("*" + ("Building with %s on %s system (%s)" % (self.compdef, self.platform, ev["BINARY_TAG"])).center(78) + "*")
+            if self.binary:
+                self.addEcho("*" + ("Building with %s on %s %s system (%s)" % (
+                    self.compdef, self.platform, self.binary, ev["BINARY_TAG"])).center(78) + "*")
+            else:  # for windows
+                self.addEcho("*" + ("Building with %s on %s system (%s)" %
+                                    (self.compdef, self.platform, ev["BINARY_TAG"])).center(78) + "*")
             self.addEcho("*" * 80)
-            if ev.has_key("User_area") :
+            if ev.has_key("User_area"):
                 self.addEcho(" --- User_area is set to %s" % ev["User_area"])
-            if ev.has_key("EUCLIDPROJECTPATH") :
+            if ev.has_key("EUCLIDPROJECTPATH"):
                 self.addEcho(" --- EUCLIDPROJECTPATH is set to:")
-                for p in ev["EUCLIDPROJECTPATH"].split(os.pathsep) :
-                    if p :
+                for p in ev["EUCLIDPROJECTPATH"].split(os.pathsep):
+                    if p:
                         self.addEcho("    %s" % p)
-
 
             self.addEcho("-" * 80)
 
     def parseOpts(self, args):
         SourceScript.parseOpts(self, args)
-        for a in self.args :
-            for b in build_types :
-                if a.lower() == b.lower() :
+        for a in self.args:
+            for b in build_types:
+                if a.lower() == b.lower():
                     self._target_binary_type = b
-                elif a.lower() == build_types[b].lower() :
+                elif a.lower() == build_types[b].lower():
                     self._target_binary_type = b
-
 
     def main(self):
         opts = self.options
         # first part: the environment variables
-        if not opts.shell_only :
+        if not opts.shell_only:
             self.setEnv()
 
         # second part the aliases
         self.setAliases()
 
-        if not opts.shell_only :
+        if not opts.shell_only:
             # the shell-only part has to be completely silent
             self.manifest()
 
@@ -552,4 +570,3 @@ class LoginScript(SourceScript):
 
 if __name__ == '__main__':
     sys.exit(LoginScript(usage="%prog [options] [type]").run())
-

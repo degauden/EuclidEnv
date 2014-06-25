@@ -2,6 +2,7 @@
 import sys
 assert sys.version_info >= (2, 6), "Python >= 2.6 is required"
 
+
 def _defaultPath():
     '''
     Return the default search path, based on the variables CMAKE_PREFIX_PATH and
@@ -15,10 +16,13 @@ def _defaultPath():
 
 path = _defaultPath()
 
+
 class Error(RuntimeError):
+
     '''
     Base class for ERun exceptions.
     '''
+
 
 def execute(project, command, version="latest"):
     pass
