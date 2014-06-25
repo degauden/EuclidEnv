@@ -40,7 +40,8 @@ def main():
         parser.error('wrong number of arguments')
 
     if not opts.name:
-        opts.name = '{project}Dev_{version}'.format(project=project, version=version)
+        opts.name = '{project}Dev_{version}'.format(
+            project=project, version=version)
         local_project, local_version = project + 'Dev', version
     else:
         local_project, local_version = opts.name, 'HEAD'
@@ -49,7 +50,8 @@ def main():
 
     # Check options
     if not opts.user_area:
-        parser.error('user area not defined (environment variable User_release_area or option --user-area)')
+        parser.error(
+            'user area not defined (environment variable User_release_area or option --user-area)')
 
     if os.path.exists(devProjectDir):
         parser.error('directory "%s" already exist' % devProjectDir)
@@ -68,11 +70,13 @@ def main():
 
     use_cmake = os.path.exists(os.path.join(projectDir, 'manifest.xml'))
     if not use_cmake:
-        logging.warning('%s %s does not seem a CMake project', project, version)
+        logging.warning(
+            '%s %s does not seem a CMake project', project, version)
 
     # Create the dev project
     if not os.path.exists(opts.user_area):
-        logging.debug('creating user release area directory "%s"', opts.user_area)
+        logging.debug(
+            'creating user release area directory "%s"', opts.user_area)
         os.makedirs(opts.user_area)
 
     logging.debug('creating directory "%s"', devProjectDir)
@@ -89,7 +93,8 @@ def main():
                 local_version=local_version,
                 cmt_project=opts.name)
 
-    # FIXME: improve generation of searchPath files, so that they match the command line
+    # FIXME: improve generation of searchPath files, so that they match the
+    # command line
     templateDir = os.path.join(os.path.dirname(__file__), 'templates')
     templates = ['CMakeLists.txt', 'toolchain.cmake', 'Makefile',
                  'searchPath.py', 'searchPath.cmake',
@@ -108,16 +113,19 @@ def main():
     for templateName in templates:
         t = Template(open(os.path.join(templateDir, templateName)).read())
         logging.debug('creating "%s"', templateName)
-        open(os.path.join(devProjectDir, templateName), 'w').write(t.substitute(data))
+        open(os.path.join(devProjectDir, templateName), 'w').write(
+            t.substitute(data))
 
     # When the project name is not the same as the local project name, we need a
     # fake *Sys package for SetupProject (CMT only).
     if not use_cmake and project != local_project:
-        t = Template(open(os.path.join(templateDir, 'cmt/requirements_')).read())
+        t = Template(
+            open(os.path.join(templateDir, 'cmt/requirements_')).read())
         templateName = os.path.join(local_project + 'Sys', 'cmt/requirements')
         os.makedirs(os.path.dirname(os.path.join(devProjectDir, templateName)))
         logging.debug('creating "%s"', templateName)
-        open(os.path.join(devProjectDir, templateName), 'w').write(t.substitute(data))
+        open(os.path.join(devProjectDir, templateName), 'w').write(
+            t.substitute(data))
 
     # Success report
     finalMessage = '''

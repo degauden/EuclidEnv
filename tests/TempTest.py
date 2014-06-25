@@ -2,12 +2,17 @@ from Euclid.Temporary import TempDir
 import os
 
 import unittest
+
+
 class TestCase(unittest.TestCase):
+
     """ test case for the temporary directory class """
+
     def setUp(self):
         unittest.TestCase.setUp(self)
         self.samplebasename = "toto"
         self.tmpdir = TempDir(suffix="tempdir", prefix=self.samplebasename)
+
     def tearDown(self):
         unittest.TestCase.tearDown(self)
 
