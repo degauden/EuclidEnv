@@ -111,6 +111,10 @@ class ERun(EnvConfig.Script):
                           dest="auto_override",
                           help="Do not automatically prepend the projects %s" % auto_override_projects)
 
+        parser.add_option("--implicit-latest", action="store_true",
+                          dest="implicit_latest",
+                          help="Use the implicit latest version search")
+
         # Note: the profile is not used in the script class, but in the wrapper
         # it is added to the parser to appear in the help and for checking
         parser.add_option("--profile", action="store_true",
@@ -119,7 +123,8 @@ class ERun(EnvConfig.Script):
         parser.set_defaults(use=[],
                             runtime_projects=[],
                             overriding_projects=[],
-                            auto_override=True)
+                            auto_override=True,
+                            implicit_latest=False)
 
     def _parse_args(self, args=None):
         super(ERun, self)._parse_args(args)
