@@ -11,7 +11,6 @@ def isValidVersion(project, version):
     return (version.lower() in ('latest', 'head')
             or re.match(r"^v[0-9]+r[0-9]+(p[0-9]+)?(g[0-9]+)?$", version)
             or re.match(r"^[0-9]+\.[0-9]+(\.[0-9]+)?$", version)
-            or (project == 'LCGCMT' and re.match(r"^[0-9]+([a-z]?|rc[0-9]+)$", version))
             )
 
 
