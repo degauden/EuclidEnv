@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# @file: GaudiPolicy/cmt/fragments/merge_files.py
+# @file: Elements/cmake/scripts/merge_files.py
 # @purpose: merge_files <fragment> file into a 'per-project' <merged> file
 # @author: Sebastien Binet <binet@cern.ch>
 
@@ -170,9 +170,9 @@ if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.INFO)
 
-    if "GAUDI_BUILD_LOCK" in os.environ:
+    if "ELEMENTS_BUILD_LOCK" in os.environ:
         globalLock = locker.LockFile(
-            os.environ["GAUDI_BUILD_LOCK"], temporary=True)
+            os.environ["ELEMENTS_BUILD_LOCK"], temporary=True)
     else:
         globalLock = None
 

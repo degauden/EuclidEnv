@@ -111,6 +111,10 @@ class ERun(EnvConfig.Script):
                           dest="auto_override",
                           help="Do not automatically prepend the projects %s" % auto_override_projects)
 
+        parser.add_option("--implicit-latest", action="store_true",
+                          dest="implicit_latest",
+                          help="Use the implicit latest version search")
+
         # Note: the profile is not used in the script class, but in the wrapper
         # it is added to the parser to appear in the help and for checking
         parser.add_option("--profile", action="store_true",
@@ -119,7 +123,8 @@ class ERun(EnvConfig.Script):
         parser.set_defaults(use=[],
                             runtime_projects=[],
                             overriding_projects=[],
-                            auto_override=True)
+                            auto_override=True,
+                            implicit_latest=False)
 
     def _parse_args(self, args=None):
         super(ERun, self)._parse_args(args)
@@ -155,7 +160,7 @@ class ERun(EnvConfig.Script):
         # Check if the main project needs a special search path
         self.log.debug('check if we need extra search path')
         extra_path = projectExtraPath(
-            findProject(self.project, self.version, self.opts.platform))
+            findProject(self.project, self.version, self.opts.platform, self.opts.implicit_latest))
         if extra_path:
             self.log.debug('the project requires an extra search path')
             # we add the extra search path between the command line entries and
@@ -170,7 +175,8 @@ class ERun(EnvConfig.Script):
         env_path = []
         for p, v in projects:
             v = expandVersionAlias(p, v)
-            env_path.extend(getEnvXmlPath(p, v, self.opts.platform))
+            env_path.extend(
+                getEnvXmlPath(p, v, self.opts.platform, self.opts.implicit_latest))
         # FIXME: EnvConfig has got problems with unicode in the search path
         # ensure that we do not have unicode strings
         env_path = map(str, env_path)
