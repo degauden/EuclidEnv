@@ -104,12 +104,12 @@ def parseManifest(manifest):
     return (used_projects, data_packages)
 
 
-def getEnvXmlPath(project, version, platform):
+def getEnvXmlPath(project, version, platform, implicit_latest=False):
     '''
     Return the list of directories to be added to the Env XML search path for
     a given project.
     '''
-    pdir = findProject(project, version, platform)
+    pdir = findProject(project, version, platform, implicit_latest)
     search_path = [pdir]
     # manifests to parse
     manifests = [os.path.join(pdir, 'manifest.xml')]

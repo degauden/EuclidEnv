@@ -175,7 +175,8 @@ class ERun(EnvConfig.Script):
         env_path = []
         for p, v in projects:
             v = expandVersionAlias(p, v)
-            env_path.extend(getEnvXmlPath(p, v, self.opts.platform))
+            env_path.extend(
+                getEnvXmlPath(p, v, self.opts.platform, self.opts.implicit_latest))
         # FIXME: EnvConfig has got problems with unicode in the search path
         # ensure that we do not have unicode strings
         env_path = map(str, env_path)
