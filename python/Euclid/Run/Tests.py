@@ -60,7 +60,6 @@ def test_version():
     assert isValidVersion('Gaudi', latest_gaudi)
     assert isValidVersion('LHCb', 'v32r5p1')
     assert isValidVersion('LHCb', 'v32r4g1')
-    assert isValidVersion('LCGCMT', '64d')
     assert not isValidVersion('Gaudi', 'a random string')
 
 

@@ -214,9 +214,9 @@ def main(argv=None):
         level = logging.DEBUG
     logging.basicConfig(level=level)
 
-    if "GAUDI_BUILD_LOCK" in os.environ:
+    if "ELEMENTS_BUILD_LOCK" in os.environ:
         _scopedLock = locker.LockFile(
-            os.environ["GAUDI_BUILD_LOCK"], temporary=True)
+            os.environ["ELEMENTS_BUILD_LOCK"], temporary=True)
     # zip all the directories passed as arguments
     for d in args:
         zipdir(d, opts.no_pyc)

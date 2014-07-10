@@ -1,9 +1,11 @@
+# FIXME: when we drop Python 2.4, this should become 'from . import path'
+from Euclid.Run import path, Error
+from Euclid.Run.Version import getVersionDirs, versionSort
+
 
 import os
 import logging
 
-# FIXME: when we drop Python 2.4, this should become 'from . import path'
-from Euclid.Run import path, Error
 
 log = logging.getLogger(__name__)
 
@@ -36,9 +38,9 @@ class MissingProjectError(NotFoundError):
         return 'cannot find project {0} {1} for {2} in {3}'.format(*self.args)
 
 
-def findProject(name, version, platform):
+def findProject(name, version, platform, implicit_latest=False):
     '''
-    Find a Gaudi-based project in the directories specified in the 'path'
+    Find a Elements-based project in the directories specified in the 'path'
     variable.
 
     @param name: name of the project (case sensitive for local projects)
@@ -65,6 +67,12 @@ def findProject(name, version, platform):
             log.debug('OK')
             return d
     else:
+        if version == "latest" and implicit_latest:
+            for b in path:
+                all_versions = versionSort(
+                    getVersionDirs(os.path.join(b, name), bindir))
+                if all_versions:
+                    return all_versions[-1]
         raise MissingProjectError(name, version, platform, path)
 
 

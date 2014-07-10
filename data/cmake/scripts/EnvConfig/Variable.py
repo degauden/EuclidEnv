@@ -181,8 +181,8 @@ processors = [EnvExpander, PathNormalizer, DuplicatesRemover,
 # FIXME: these are back-ward compatibility hacks: we need a proper way to
 # add/remove processors
 if ('no-strip-path' in os.environ.get('CMTEXTRATAGS', '')
-        or 'GAUDI_NO_STRIP_PATH' in os.environ
-        or 'LB_NO_STRIP_PATH' in os.environ):
+        or 'ELEMENTS_NO_STRIP_PATH' in os.environ
+        or 'E_NO_STRIP_PATH' in os.environ):
     processors.remove(EmptyDirsRemover)
 
 if 'no-pyzip' in os.environ.get('CMTEXTRATAGS', ''):

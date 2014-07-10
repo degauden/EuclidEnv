@@ -160,7 +160,7 @@ class ERun(EnvConfig.Script):
         # Check if the main project needs a special search path
         self.log.debug('check if we need extra search path')
         extra_path = projectExtraPath(
-            findProject(self.project, self.version, self.opts.platform))
+            findProject(self.project, self.version, self.opts.platform, self.opts.implicit_latest))
         if extra_path:
             self.log.debug('the project requires an extra search path')
             # we add the extra search path between the command line entries and
