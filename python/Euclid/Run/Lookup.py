@@ -72,7 +72,7 @@ def findProject(name, version, platform, implicit_latest=False):
                 all_versions = versionSort(
                     getVersionDirs(os.path.join(b, name), bindir))
                 if all_versions:
-                    return all_versions[-1]
+                    return os.path.join(b, name, all_versions[-1], bindir)
         raise MissingProjectError(name, version, platform, path)
 
 
