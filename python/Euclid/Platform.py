@@ -16,9 +16,9 @@ build_types = {
     "Release": "opt",
     "Debug": "dbg",
     "Coverage": "cov",
-                "Profile": "pro",
-                "RelWithDebInfo": "o2g",
-                "MinSizeRel": "min"
+    "Profile": "pro",
+    "RelWithDebInfo": "o2g",
+    "MinSizeRel": "min"
 }
 
 
