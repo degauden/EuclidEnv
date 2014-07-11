@@ -95,7 +95,12 @@ def getLoginExtra(optionlist=None):
 
 class LoginScript(SourceScript):
     _version = __version__
-    _description = __doc__
+#    _description = __doc__
+    _description = """ 
+    %s
+    The type is to be chosen among the following list:
+    %s and the default is %s.
+    """ % (__doc__, ", ".join(build_types), default_build_type)
 
     def __init__(self, usage=None, version=None):
         SourceScript.__init__(self, usage, version)
