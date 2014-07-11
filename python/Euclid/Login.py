@@ -415,12 +415,14 @@ class LoginScript(SourceScript):
 
         supported_binarytags = self._nativemachine.supportedBinaryTag(
             all_types=True)
+        log.debug("This is the list of supported binary tags: %s" %
+                  " ,".join(supported_binarytags))
         if opts.binary_tag not in supported_binarytags:
             log.warning(
                 "%s is not in the list of distributed configurations" % opts.binary_tag)
             if supported_binarytags:
                 log.warning(
-                    "Please switch to a supported one with 'ELogin -c' before building")
+                    "Please switch to a supported one with 'ELogin -b <binary_tag>' before building")
                 log.warning("Supported binary tags: %s" %
                             ", ".join(supported_binarytags))
 
