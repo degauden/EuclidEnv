@@ -415,8 +415,6 @@ class LoginScript(SourceScript):
 
         supported_binarytags = self._nativemachine.supportedBinaryTag(
             all_types=True)
-        log.debug("This is the list of supported binary tags: %s" %
-                  " ,".join(supported_binarytags))
         if opts.binary_tag not in supported_binarytags:
             log.warning(
                 "%s is not in the list of distributed configurations" % opts.binary_tag)

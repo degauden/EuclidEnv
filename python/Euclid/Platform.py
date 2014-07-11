@@ -245,7 +245,7 @@ arch_runtime_compatiblity = {
 flavor_runtime_equivalence = {
     "fc20": ["fc20"],
     "fc19": ["fc19"],
-    "slc7": ["slc7", "fc19", "fc10"],
+    "slc7": ["slc7"],
     "slc6": ["slc6"],
     "slc5": ["slc5", "co5", "rhel5", "ub9", "fc13", "fc12", "fc11", "fc10"],
     "rh73": ["rh73", "suse80", "suse81", "suse82", "suse83"],
