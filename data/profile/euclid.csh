@@ -26,7 +26,7 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
   # login part. has to deal with the environment. The script can be called manually from 
   # .login
-  if ($?loginsh) then
+  if ($?loginsh || ! $?prompt) then
     if ( -r ${my_own_prefix4}/bin/Euclid_group_login.csh ) then
       set loginscr=${my_own_prefix4}/bin/Euclid_group_login.csh
     else

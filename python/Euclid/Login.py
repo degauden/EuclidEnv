@@ -96,6 +96,11 @@ def getLoginExtra(optionlist=None):
 class LoginScript(SourceScript):
     _version = __version__
     _description = __doc__
+    _description += """
+
+The type is to be chosen among the following list:
+%s and the default is %s.
+""" % (", ".join(build_types.keys()), default_build_type)
 
     def __init__(self, usage=None, version=None):
         SourceScript.__init__(self, usage, version)
@@ -420,7 +425,7 @@ class LoginScript(SourceScript):
                 "%s is not in the list of distributed configurations" % opts.binary_tag)
             if supported_binarytags:
                 log.warning(
-                    "Please switch to a supported one with 'ELogin -c' before building")
+                    "Please switch to a supported one with 'ELogin -b <binary_tag>' before building")
                 log.warning("Supported binary tags: %s" %
                             ", ".join(supported_binarytags))
 
