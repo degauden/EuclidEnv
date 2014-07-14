@@ -27,7 +27,7 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
 
   # login part. has to deal with the environment. The script can be called manually from 
   # .bash_profile
-  if (shopt -q login_shell || [[ -o login ]] || [[ -n "$E_BANNER" ]]) 2> /dev/null ; then
+  if (shopt -q login_shell || [[ -o login ]] || [[ -n "$E_BANNER" ]] || ! ([ "$PS1"] || [[ -o interactive ]] )) 2> /dev/null ; then
     if [[ -r ${my_own_prefix4}/bin/Euclid_group_login.sh ]]; then
       loginscr=${my_own_prefix4}/bin/Euclid_group_login.sh
     else
