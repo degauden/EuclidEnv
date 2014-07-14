@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.3.1
+Version:        1.4
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -54,3 +54,10 @@ ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Eucli
 
 
 %changelog
+* Mon Jul 14 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.4-1
+- Release of version 1.4
+- Fix the default BINARY_TAG and set it to the RelWithDebugInfo type.
+- Cure the logic for the full setup of the ELogin wrapper. It is done if
+  the shell is either a login one or non-interactive.
+- Add the "--implicit-latest" option to E-Run.
+
