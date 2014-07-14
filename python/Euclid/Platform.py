@@ -561,8 +561,9 @@ class NativeMachine:
         """
         compatibles = self.compatibleBinaryTag(all_types)
         supported = []
+        binary_set = set(binary_list)
         for c in compatibles:
-            if c in binary_list and c not in supported:
+            if c in binary_set and c not in supported:
                 supported.append(c)
         return supported
 
