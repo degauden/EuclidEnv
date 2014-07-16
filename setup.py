@@ -55,7 +55,7 @@ class my_install(_install):
 
     def get_login_scripts(self):
         p_list = []
-        for c in ["ELogin", "Euclid_group_login", "Euclid_group_setup"]:
+        for c in ["ELogin", "Euclid_group_login", "Euclid_group_setup", "Euclid_config"]:
             for s in ["sh", "csh"]:
                 file2fix = os.path.join(self.install_scripts, "%s.%s" % (c, s))
                 if os.path.exists(file2fix):

@@ -5,6 +5,9 @@
 # 4) /etc/default/Euclid
 # 5) /etc/sysconfig/euclid
 
+set my_own_prefix0 = "%(this_install_prefix)s"
+
+
 # default values if no config file is found
 setenv EUCLID_BASE /opt/euclid
 setenv EUCLID_USE_BASE no
@@ -26,6 +29,7 @@ if ( $?XDG_CONFIG_DIRS ) then
 endif
 set cfgfiles="$cfgfiles /etc/default/Euclid"
 set cfgfiles="$cfgfiles /etc/sysconfig/euclid"
+set cfgfiles="$cfgfiles $my_own_prefix0/etc/sysconfig/euclid"
 
 foreach c ( $cfgfiles )
   if ( -r $c ) then
@@ -73,3 +77,6 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
     endif        
   endif
 endif
+
+
+unset my_own_prefix0
