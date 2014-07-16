@@ -81,3 +81,4 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
 fi
 
 unset my_own_prefix0
+
