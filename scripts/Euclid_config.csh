@@ -59,11 +59,23 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
       endif
     endif
     if ( -d ${EUCLID_BASE}/python ) then
-      if ( $?PYTHONPATH ) then 
-        setenv PYTHONPATH ${EUCLID_BASE}/python:${PYTHONPATH}
+      set my_python_base = `python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))"`
+
+      if ( -d ${my_python_base} ) then
+        if ( $?PYTHONPATH ) then 
+          setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
+        else
+          setenv PYTHONPATH ${my_python_base}        
+        endif       
       else
-        setenv PYTHONPATH ${EUCLID_BASE}/python        
+        if ( $?PYTHONPATH ) then 
+          setenv PYTHONPATH ${EUCLID_BASE}/python:${PYTHONPATH}
+        else
+          setenv PYTHONPATH ${EUCLID_BASE}/python        
+        endif
       endif
+      
+      unset my_python_base
     endif
     if ( -d ${EUCLID_BASE} ) then
       if ( $?CMAKE_PREFIX_PATH ) then 

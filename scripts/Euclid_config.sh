@@ -61,11 +61,21 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
       fi
     fi
     if [[ -d ${EUCLID_BASE}/python ]]; then
-      if [[ -n "$PYTHONPATH" ]]; then 
-        export PYTHONPATH=${EUCLID_BASE}/python:${PYTHONPATH}
+      my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))")
+      if [[ -d ${my_python_base} ]]; then
+        if [[ -n "$PYTHONPATH" ]]; then 
+          export PYTHONPATH=${my_python_base}:${PYTHONPATH}
+        else
+          export PYTHONPATH=${my_python_base}
+        fi            
       else
-        export PYTHONPATH=${EUCLID_BASE}/python
+        if [[ -n "$PYTHONPATH" ]]; then 
+          export PYTHONPATH=${EUCLID_BASE}/python:${PYTHONPATH}
+        else
+          export PYTHONPATH=${EUCLID_BASE}/python
+        fi
       fi
+      unset my_python_base
     fi
     if [[ -d ${EUCLID_BASE} ]]; then
       if [[ -n "$CMAKE_PREFIX_PATH" ]]; then 
