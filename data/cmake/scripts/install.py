@@ -9,9 +9,9 @@ and only the files that it installed for the package.
 
 Command line:
 
-   install.py [-x exclusion1 [-x exclusion2 ...]] [-l logfile] source1 [source2 ...] dest  
+   install.py [-x exclusion1 [-x exclusion2 ...]] [-l logfile] source1 [source2 ...] dest
    install.py -u [-l logfile] [dest1 ...]
-   
+
 @author: Marco Clemencic <marco.clemencic@cern.ch>
 """
 _version = "$Id: install.py,v 1.15 2008/10/28 17:24:39 marcocle Exp $"
@@ -135,10 +135,10 @@ def filename_match(name, patterns, default=False):
 def expand_source_dir(source, destination, exclusions=[],
                       destname=None, logdir=realpath(".")):
     """
-    Generate the list of copies. 
+    Generate the list of copies.
     """
     expansion = {}
-    src_path, src_name = split(source)
+    src_path, _ = split(source)
     if destname:
         to_replace = source
         replacement = join(destination, destname)
@@ -163,18 +163,18 @@ def expand_source_dir(source, destination, exclusions=[],
     return expansion
 
 
-def remove(file, logdir):
-    file = normpath(join(logdir, file))
+def remove(filename, logdir):
+    filename = normpath(join(logdir, filename))
     try:
-        print "Remove '%s'" % file
-        os.remove(file)
+        print "Remove '%s'" % filename
+        os.remove(filename)
         # For python files, remove the compiled versions too
-        if splitext(file)[-1] == ".py":
+        if splitext(filename)[-1] == ".py":
             for c in ['c', 'o']:
-                if exists(file + c):
-                    print "Remove '%s'" % (file + c)
-                    os.remove(file + c)
-        file_path = split(file)[0]
+                if exists(filename + c):
+                    print "Remove '%s'" % (filename + c)
+                    os.remove(filename + c)
+        file_path = split(filename)[0]
         while file_path and (len(listdir(file_path)) == 0):
             print "Remove empty dir '%s'" % file_path
             rmdir(file_path)
@@ -268,7 +268,7 @@ def install(sources, destination, logfile, exclusions=[],
     copied.
     """
     for s in sources:
-        src_path, src_name = split(s)
+        _, src_name = split(s)
         if not exists(s):
             continue  # silently ignore missing sources
         elif not isdir(s):  # copy the file, without logging (?)

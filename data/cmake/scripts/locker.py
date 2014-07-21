@@ -1,3 +1,4 @@
+#@PydevCodeAnalysisIgnore
 ##########################################################
 # stolen and (slighty) adapted from:
 # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/65203
@@ -9,7 +10,7 @@ import time
 if os.name == 'nt':
     import msvcrt
 elif os.name == 'posix':
-    import fcntl
+    import fcntl  # @UnresolvedImport
     LOCK_EX = fcntl.F_WRLCK
     LOCK_SH = fcntl.F_RDLCK
     LOCK_NB = fcntl.F_UNLCK
@@ -17,33 +18,33 @@ else:
     raise RuntimeError("Locker only defined for nt and posix platforms")
 
 if os.name == 'nt':
-    def lock(file):
+    def lock(filename):
         """
-        Lock first 10 bytes of a file.
+        Lock first 10 bytes of a filename.
         """
-        pos = file.tell()  # remember current position
-        file.seek(0)
+        pos = filename.tell()  # remember current position
+        filename.seek(0)
         # By default, python tries about 10 times, then throws an exception.
         # We want to wait forever.
         acquired = False
         while not acquired:
             try:
-                msvcrt.locking(file.fileno(), msvcrt.LK_LOCK, 10)
+                msvcrt.locking(filename.fileno(), msvcrt.LK_LOCK, 10)
                 acquired = True
             except IOError, x:
                 # 36, AKA 'Resource deadlock avoided', is normal
                 if x.errno != 36:
                     raise
-        file.seek(pos)  # reset position
+        filename.seek(pos)  # reset position
 
-    def unlock(file):
+    def unlock(filename):
         """
-        Unlock first 10 bytes of a file.
+        Unlock first 10 bytes of a filename.
         """
-        pos = file.tell()  # remember current position
-        file.seek(0)
-        msvcrt.locking(file.fileno(), msvcrt.LK_UNLCK, 10)
-        file.seek(pos)  # reset position
+        pos = filename.tell()  # remember current position
+        filename.seek(0)
+        msvcrt.locking(filename.fileno(), msvcrt.LK_UNLCK, 10)
+        filename.seek(pos)  # reset position
 
 elif os.name == 'posix':
     import socket
@@ -78,8 +79,8 @@ elif os.name == 'posix':
 
     def _sleep(): time.sleep(8)
 
-    def lock(file):
-        fileName = file.name
+    def lock(filename):
+        fileName = filename.name
         tmpFileName = _tmpFileName(fileName)
         fp = open(tmpFileName, "w")
         fp.write(tmpFileName)
@@ -113,8 +114,8 @@ elif os.name == 'posix':
             pass
         return
 
-    def unlock(file):
-        fileName = file.name
+    def unlock(filename):
+        fileName = filename.name
         tmpFileName = _tmpFileName(fileName)
         lockFileName = _lckFileName(fileName)
 
@@ -123,7 +124,7 @@ elif os.name == 'posix':
         except OSError, e:
             if e.errno != errno.ENOENT:
                 raise
-        # remove the tmp file
+        # remove the tmp filename
         try:
             os.unlink(tmpFileName)
         except OSError, e:

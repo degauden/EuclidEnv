@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from sys import argv, stdout
+from sys import stdout
 from os import pathsep, listdir, environ, fdopen
 from os.path import exists, isdir, realpath
 from optparse import OptionParser, OptionValueError
