@@ -55,104 +55,106 @@ option(OPT_DEBUG
        "Enable optimisation for the Debug version"
        ON)
 
+option(ELEMENTS_LINKOPT
+       "Enable Link Time Optimisation"
+       OFF)
+
 
 #--- Compilation Flags ---------------------------------------------------------
 if(NOT ELEMENTS_FLAGS_SET)
   #message(STATUS "Setting cached build flags")
 
-  if(MSVC90)
-
-    set(CMAKE_CXX_FLAGS_DEBUG "/D_NDEBUG /MD /Zi /Ob0 /Od /RTC1"
-        CACHE STRING "Flags used by the compiler during debug builds."
-        FORCE)
-    set(CMAKE_C_FLAGS_DEBUG "/D_NDEBUG /MD /Zi /Ob0 /Od /RTC1"
-        CACHE STRING "Flags used by the compiler during debug builds."
-        FORCE)
-
-    if (CMAKE_BUILD_TYPE STREQUAL "Release")
-      set(CMAKE_CXX_FLAGS_RELEASE "/O2"
-          CACHE STRING "Flags used by the compiler during release builds."
-          FORCE)
-      set(CMAKE_C_FLAGS_RELEASE "/O2"
-          CACHE STRING "Flags used by the compiler during release builds."
-          FORCE)
-    endif()
-
-  else()
 
     # Common compilation flags
-    set(CMAKE_CXX_FLAGS
-        "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas"
-        CACHE STRING "Flags used by the compiler during all build types."
+  set(CMAKE_CXX_FLAGS
+      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal"
+      CACHE STRING "Flags used by the compiler during all build types."
+      FORCE)
+  set(CMAKE_C_FLAGS
+      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal"
+      CACHE STRING "Flags used by the compiler during all build types."
+      FORCE)
+
+  # Build type compilation flags (if different from default or unknown to CMake)
+  set(CMAKE_CXX_FLAGS_RELEASE "-O2"
+      CACHE STRING "Flags used by the compiler during release builds."
+      FORCE)
+  set(CMAKE_C_FLAGS_RELEASE "-O2"
+      CACHE STRING "Flags used by the compiler during release builds."
+      FORCE)
+
+  if (ELEMENTS_LINKOPT AND SGS_COMPVERS VERSION_GREATER "47")
+    set(CMAKE_CXX_FLAGS_RELEASE "-flto ${CMAKE_CXX_FLAGS_RELEASE}"
+        CACHE STRING "Flags used by the compiler during release builds."
         FORCE)
-    set(CMAKE_C_FLAGS
-        "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas"
-        CACHE STRING "Flags used by the compiler during all build types."
+    set(CMAKE_C_FLAGS_RELEASE "-flto ${CMAKE_C_FLAGS_RELEASE}"
+        CACHE STRING "Flags used by the compiler during release builds."
         FORCE)
-
-    # Build type compilation flags (if different from default or unknown to CMake)
-    if (CMAKE_BUILD_TYPE STREQUAL "Release")
-      set(CMAKE_CXX_FLAGS_RELEASE "-O2"
-          CACHE STRING "Flags used by the compiler during release builds."
-          FORCE)
-      set(CMAKE_C_FLAGS_RELEASE "-O2"
-          CACHE STRING "Flags used by the compiler during release builds."
-          FORCE)
-      add_definitions(-DNDEBUG)
-    endif()
-
-
-    if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND SGS_COMPVERS VERSION_GREATER "47")
-      # Use -Og with Debug builds in gcc >= 4.8
-       set(CMAKE_CXX_FLAGS_DEBUG "-g"
-          CACHE STRING "Flags used by the compiler during Debug builds."
-          FORCE)
-      set(CMAKE_C_FLAGS_DEBUG "-g"
-          CACHE STRING "Flags used by the compiler during Debug builds."
-          FORCE)
-      if(OPT_DEBUG)
-        set(CMAKE_CXX_FLAGS_DEBUG "-Og ${CMAKE_CXX_FLAGS_DEBUG}"
-            CACHE STRING "Flags used by the compiler during Debug builds."
-            FORCE)
-        set(CMAKE_C_FLAGS_DEBUG "-Og ${CMAKE_C_FLAGS_DEBUG}"
-            CACHE STRING "Flags used by the compiler during Debug builds."
-            FORCE)
-      endif()
-    endif()
-
-
-    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g"
-        CACHE STRING "Flags used by the compiler during Release with Debug Info builds."
-        FORCE)
-    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g"
-        CACHE STRING "Flags used by the compiler during Release with Debug Info builds."
-        FORCE)
-
-    if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-        add_definitions(-DNDEBUG)
-    endif()
-
-
-    set(CMAKE_CXX_FLAGS_COVERAGE "--coverage"
-        CACHE STRING "Flags used by the compiler during coverage builds."
-        FORCE)
-    set(CMAKE_C_FLAGS_COVERAGE "--coverage"
-        CACHE STRING "Flags used by the compiler during coverage builds."
-        FORCE)
-
-    # @todo Check why the -D_GLIBCXX_PROFILE cannot be used with Boost.
-    set(CMAKE_CXX_FLAGS_PROFILE "-pg"
-        CACHE STRING "Flags used by the compiler during profile builds."
-        FORCE)
-    set(CMAKE_C_FLAGS_PROFILE "-pg"
-        CACHE STRING "Flags used by the compiler during profile builds."
-        FORCE)
-
-    # The others are already marked as 'advanced' by CMake, these are custom.
-    mark_as_advanced(CMAKE_C_FLAGS_COVERAGE CMAKE_CXX_FLAGS_COVERAGE
-                     CMAKE_C_FLAGS_PROFILE CMAKE_CXX_FLAGS_PROFILE)
-
   endif()
+
+
+
+  if (SGS_COMPVERS VERSION_GREATER "47")
+    # Use -Og with Debug builds in gcc >= 4.8
+     set(CMAKE_CXX_FLAGS_DEBUG "-g"
+        CACHE STRING "Flags used by the compiler during Debug builds."
+        FORCE)
+    set(CMAKE_C_FLAGS_DEBUG "-g"
+        CACHE STRING "Flags used by the compiler during Debug builds."
+        FORCE)
+    if(OPT_DEBUG)
+      set(CMAKE_CXX_FLAGS_DEBUG "-Og ${CMAKE_CXX_FLAGS_DEBUG}"
+          CACHE STRING "Flags used by the compiler during Debug builds."
+          FORCE)
+      set(CMAKE_C_FLAGS_DEBUG "-Og ${CMAKE_C_FLAGS_DEBUG}"
+          CACHE STRING "Flags used by the compiler during Debug builds."
+          FORCE)
+    endif()
+  endif()
+
+
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g"
+      CACHE STRING "Flags used by the compiler during Release with Debug Info builds."
+      FORCE)
+  set(CMAKE_C_FLAGS_RELWITHDEBINFO "-O2 -g"
+      CACHE STRING "Flags used by the compiler during Release with Debug Info builds."
+      FORCE)
+  if (ELEMENTS_LINKOPT AND SGS_COMPVERS VERSION_GREATER "47")
+    set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-flto ${CMAKE_CXX_FLAGS_RELWITHDEBINFO}"
+        CACHE STRING "Flags used by the compiler during release builds."
+        FORCE)
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "-flto ${CMAKE_C_FLAGS_RELWITHDEBINFO}"
+        CACHE STRING "Flags used by the compiler during release builds."
+        FORCE)
+  endif()
+
+
+
+  if (CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo" OR CMAKE_BUILD_TYPE STREQUAL "Release")
+      add_definitions(-DNDEBUG)
+  endif()
+
+
+
+  set(CMAKE_CXX_FLAGS_COVERAGE "--coverage"
+      CACHE STRING "Flags used by the compiler during coverage builds."
+      FORCE)
+  set(CMAKE_C_FLAGS_COVERAGE "--coverage"
+      CACHE STRING "Flags used by the compiler during coverage builds."
+      FORCE)
+
+  # @todo Check why the -D_GLIBCXX_PROFILE cannot be used with Boost.
+  set(CMAKE_CXX_FLAGS_PROFILE "-pg"
+      CACHE STRING "Flags used by the compiler during profile builds."
+      FORCE)
+  set(CMAKE_C_FLAGS_PROFILE "-pg"
+      CACHE STRING "Flags used by the compiler during profile builds."
+      FORCE)
+
+  # The others are already marked as 'advanced' by CMake, these are custom.
+  mark_as_advanced(CMAKE_C_FLAGS_COVERAGE CMAKE_CXX_FLAGS_COVERAGE
+                   CMAKE_C_FLAGS_PROFILE CMAKE_CXX_FLAGS_PROFILE)
+
 
   #--- Link shared flags -------------------------------------------------------
   if (CMAKE_SYSTEM_NAME MATCHES Linux)
@@ -187,12 +189,6 @@ if(UNIX)
   add_definitions(-D_GNU_SOURCE -Df2cFortran)
 endif()
 
-if(MSVC90)
-  add_definitions(/wd4275 /wd4251 /wd4351)
-  add_definitions(-DBOOST_ALL_DYN_LINK -DBOOST_ALL_NO_LIB)
-  add_definitions(/nologo)
-endif()
-
 if(APPLE)
   # by default, CMake uses the option -bundle for modules, but we need -dynamiclib for them too
   string(REPLACE "-bundle" "-dynamiclib" CMAKE_SHARED_MODULE_CREATE_C_FLAGS "${CMAKE_SHARED_MODULE_CREATE_C_FLAGS}")
@@ -202,7 +198,8 @@ endif()
 
 #--- Special build flags -------------------------------------------------------
 if ((ELEMENTS_HIDE_SYMBOLS) AND (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[0-9]"))
-  add_compiler_export_flags()
+  set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+  set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
   add_definitions(-DELEMENTS_HIDE_SYMBOLS)
 endif()
 

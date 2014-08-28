@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from subprocess import Popen, PIPE, call
+from subprocess import call
 from os.path import dirname
 
 import sys

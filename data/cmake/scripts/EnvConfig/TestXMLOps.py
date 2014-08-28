@@ -7,8 +7,8 @@ import unittest
 import os
 from StringIO import StringIO
 
-from EnvConfig import Control
-from EnvConfig import xmlModule
+from EnvConfig import Control  # @UnresolvedImport
+from EnvConfig import xmlModule  # @UnresolvedImport
 
 
 class Test(unittest.TestCase):

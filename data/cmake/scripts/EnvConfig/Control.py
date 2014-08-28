@@ -7,7 +7,7 @@ import xmlModule
 import os
 from time import gmtime, strftime
 import Variable
-import EnvConfig
+import EnvConfig  # @UnresolvedImport
 import logging
 
 

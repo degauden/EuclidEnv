@@ -7,7 +7,7 @@ import sys
 from Euclid.Path import multiPathGetFirst
 
 try:
-    import EnvConfig
+    import EnvConfig  # @UnresolvedImport @UnusedImport
 except:
     if os.environ.get("CMAKE_PREFIX_PATH", None):
         env_conf_subdir = os.sep.join(["EnvConfig", "__init__.py"])
@@ -17,7 +17,7 @@ except:
             env_conf = os.path.dirname(env_conf_init)
             env_py = os.path.dirname(env_conf)
             sys.path.insert(0, env_py)
-            import EnvConfig
+            import EnvConfig  # @UnusedImport @UnresolvedImport @Reimport
         else:
             env_conf_subdir = os.sep.join(
                 ["scripts", "EnvConfig", "__init__.py"])
@@ -27,7 +27,7 @@ except:
                 env_conf = os.path.dirname(env_conf_init)
                 env_py = os.path.dirname(env_conf)
                 sys.path.insert(0, env_py)
-                import EnvConfig
+                import EnvConfig  # @UnresolvedImport @Reimport
 
     # use another fallback if CMAKE_PREFIX_PATH is not defined.
 

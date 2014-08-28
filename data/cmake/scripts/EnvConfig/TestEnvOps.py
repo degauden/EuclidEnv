@@ -5,12 +5,11 @@ Created on Jul 12, 2011
 '''
 import unittest
 import os
-import sys
 import shutil
 from tempfile import mkdtemp
 
-from EnvConfig import Variable
-from EnvConfig import Control
+from EnvConfig import Variable  # @UnresolvedImport
+from EnvConfig import Control  # @UnresolvedImport
 
 # Keep only some Variable processors.
 saved_processors = Variable.processors
@@ -418,7 +417,7 @@ class Test(unittest.TestCase):
         # set the basic search path to the minimal default
         if 'ENVXMLPATH' in os.environ:
             del os.environ['ENVXMLPATH']
-        import EnvConfig
+        import EnvConfig  # @UnresolvedImport
         saved_path = list(EnvConfig.path)
         EnvConfig.path[:] = ['.']
 

@@ -55,7 +55,7 @@ class my_install(_install):
 
     def get_login_scripts(self):
         p_list = []
-        for c in ["ELogin", "Euclid_group_login", "Euclid_group_setup"]:
+        for c in ["ELogin", "Euclid_group_login", "Euclid_group_setup", "Euclid_config"]:
             for s in ["sh", "csh"]:
                 file2fix = os.path.join(self.install_scripts, "%s.%s" % (c, s))
                 if os.path.exists(file2fix):
@@ -101,7 +101,7 @@ class my_install(_install):
 
 
 setup(name="EuclidEnv",
-      version="1.4",
+      version="1.5",
       description="Euclid Environment Scripts",
       author="Hubert Degaudenzi",
       author_email="Hubert.Degaudenzi@unige.ch",

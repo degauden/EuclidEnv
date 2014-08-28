@@ -5,6 +5,8 @@
 # 4) /etc/default/Euclid
 # 5) /etc/sysconfig/euclid
 
+my_own_prefix0="%(this_install_prefix)s"
+
 # default values if no config file is found
 export EUCLID_BASE=/opt/euclid
 export EUCLID_USE_BASE=no
@@ -27,6 +29,7 @@ if [[ -n "$XDG_CONFIG_DIRS" ]]; then
 fi
 cfgfiles="$cfgfiles /etc/default/Euclid"
 cfgfiles="$cfgfiles /etc/sysconfig/euclid"
+cfgfiles="$cfgfiles $my_own_prefix0/etc/sysconfig/euclid"
 
 
 for c in $cfgfiles
@@ -58,11 +61,21 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
       fi
     fi
     if [[ -d ${EUCLID_BASE}/python ]]; then
-      if [[ -n "$PYTHONPATH" ]]; then 
-        export PYTHONPATH=${EUCLID_BASE}/python:${PYTHONPATH}
+      my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))")
+      if [[ -d ${my_python_base} ]]; then
+        if [[ -n "$PYTHONPATH" ]]; then 
+          export PYTHONPATH=${my_python_base}:${PYTHONPATH}
+        else
+          export PYTHONPATH=${my_python_base}
+        fi            
       else
-        export PYTHONPATH=${EUCLID_BASE}/python
+        if [[ -n "$PYTHONPATH" ]]; then 
+          export PYTHONPATH=${EUCLID_BASE}/python:${PYTHONPATH}
+        else
+          export PYTHONPATH=${EUCLID_BASE}/python
+        fi
       fi
+      unset my_python_base
     fi
     if [[ -d ${EUCLID_BASE} ]]; then
       if [[ -n "$CMAKE_PREFIX_PATH" ]]; then 
@@ -76,3 +89,6 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
     fi                
   fi
 fi
+
+unset my_own_prefix0
+
