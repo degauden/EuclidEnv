@@ -55,10 +55,14 @@ ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Eucli
 
 
 %changelog
+* Thu Aug 28 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.5-1
+- Release of version 1.5
+- adapted from Elements 3.0
+- mostly a removal of the win32 part
+
 * Mon Jul 14 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.4-1
 - Release of version 1.4
 - Fix the default BINARY_TAG and set it to the RelWithDebugInfo type.
 - Cure the logic for the full setup of the ELogin wrapper. It is done if
   the shell is either a login one or non-interactive.
 - Add the "--implicit-latest" option to E-Run.
-
