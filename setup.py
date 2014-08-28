@@ -12,6 +12,11 @@ def get_data_files(input_dir, output_dir):
         da_files = []
         for f in files:
             da_files.append(os.path.join(root, f))
+#             splf = os.path.splitext(f)
+#             if splf[1] == ".py":
+#                 pass
+#                 da_files.append(os.path.join(root, splf[0] + ".pyo"))
+#                 da_files.append(os.path.join(root, splf[0] + ".pyc"))
         result.append(
             (os.sep.join([output_dir] + root.split(os.sep)[1:]), da_files))
     return result
