@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.4
+Version:        1.5
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -14,7 +14,7 @@ BuildRequires:  python-devel
 Prefix:         /usr
 Prefix:         /etc
 
-%description 
+%description
 This package include the scripts to for setting up the run-time and
 development environment. This involves the main ELogin script.
 
@@ -32,7 +32,7 @@ CFLAGS="$RPM_OPT_FLAGS" %{__python} setup.py build
 rm -rf $RPM_BUILD_ROOT
 %{__python} setup.py install -O1 --skip-build --skip-install-fix --root $RPM_BUILD_ROOT
 
- 
+
 %files
 %doc
 # For noarch packages: sitelib
@@ -50,8 +50,8 @@ python_loc=$(%{__python} -c "from distutils.sysconfig import get_python_lib; pri
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX0/bin/ELogin.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX0/bin/Euclid_group_{login,setup}.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
-${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh  
-${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Euclid/Login.py  
+${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh
+${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Euclid/Login.py
 
 
 %changelog
