@@ -306,7 +306,7 @@ The type is to be chosen among the following list:
             newdir = False
             if not opts.userarea:
                 # @todo: use something different for window
-                opts.userarea = os.path.join(ev["HOME"], "Work")
+                opts.userarea = os.path.join(ev["HOME"], "Work", "Projects")
             ev["User_area"] = opts.userarea
             log.debug("User_area is set to %s" % ev["User_area"])
 
