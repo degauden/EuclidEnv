@@ -528,7 +528,13 @@ The type is to be chosen among the following list:
         opts = self.options
         if opts.log_level != "CRITICAL":
             self.addEcho("*" * 80)
-            self.addEcho("*" + "---- Euclid Login ----".center(78) + "*")
+            vers = ParseSvnVersion("", "$URL$")
+            if vers:
+                self.addEcho(
+                    "*" + ("---- Euclid Login %s ----" % vers).center(78) + "*")
+            else:
+                self.addEcho(
+                    "*" + "---- Euclid Login ----".center(78) + "*")
             if self.binary:
                 self.addEcho("*" + ("Building with %s on %s %s system (%s)" % (
                     self.compdef, self.platform, self.binary, ev["BINARY_TAG"])).center(78) + "*")
