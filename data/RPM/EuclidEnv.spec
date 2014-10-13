@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.6
+Version:        1.7
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -55,6 +55,10 @@ ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Eucli
 
 
 %changelog
+* Mon Oct 13 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.7-1
+- updated to the Elements 3.2 cmake library.
+- fixed the version extraction from the SVN tags.
+
 * Mon Oct 6 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.6-1
 - imported the cmake library from Elements 3.1
 - fixed the User_area location default from ~/Work to ~/Work/Projects.
