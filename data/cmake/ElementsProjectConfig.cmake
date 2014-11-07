@@ -1,7 +1,7 @@
 # - ElementsProject
 # Define the macros used by Elements-based projects.
 #
-# Authors: Pere Mato, Marco Clemencic
+# Authors: Pere Mato, Marco Clemencic, Hubert Degaudenzi
 #
 # Commit Id: $Format:%H$
 
@@ -89,11 +89,6 @@ endif()
 include(CMakeParseArguments)
 
 find_package(PythonInterp)
-
-if(PYTHONINTERP_FOUND)
-  find_package(Nose)
-endif()
-
 
 #-------------------------------------------------------------------------------
 # elements_project(project version
@@ -317,6 +312,44 @@ macro(elements_project project version)
   #--- Global actions for the project
   #message(STATUS "CMAKE_MODULE_PATH -> ${CMAKE_MODULE_PATH}")
   include(ElementsBuildFlags)
+
+  # get the python test framework
+
+  if(PYTHONINTERP_FOUND)
+    if(USE_PYTHON_NOSE)
+      find_package(Nose)
+      if(NOSE_FOUND)
+        message(STATUS "Using the Nose python test framework")
+        set(PYFRMK_TEST ${NOSE_EXECUTABLE})
+        set(PYFRMK_NAME "PythonNose")
+      else()
+        message(WARNING "The Nose python test framework cannot be found")
+        find_package(PyTest)
+        if(PYTEST_FOUND)
+          message(WARNING "Using Py.Test instead")
+          set(PYFRMK_TEST ${PYTEST_EXECUTABLE})
+          set(PYFRMK_NAME "PyTest")
+        endif()
+      endif()
+    else()
+      find_package(PyTest)
+      if(PYTEST_FOUND)
+        message(STATUS "Using the Py.Test python test framework")
+        set(PYFRMK_TEST ${PYTEST_EXECUTABLE})
+        set(PYFRMK_NAME "PyTest")
+      else()
+        message(WARNING "The Py.Test python test framework cannot be found")
+        find_package(Nose)
+        if(NOSE_FOUND)
+          message(WARNING "Using Nose instead")
+          set(PYFRMK_TEST ${NOSE_EXECUTABLE})
+          set(PYFRMK_NAME "PythonNose")
+        endif()
+      endif()
+    endif()
+  endif()
+
+
   # Generate the version header for the project.
   string(TOUPPER ${project} _proj)
   if(versheader_cmd)
@@ -1224,6 +1257,7 @@ macro(elements_collect_subdir_deps)
     set(${_p}_DEPENDENCIES)
     # parse the CMakeLists.txt
     file(READ ${CMAKE_SOURCE_DIR}/${_p}/CMakeLists.txt file_contents)
+    filter_comments(file_contents)
     string(REGEX MATCHALL "elements_depends_on_subdirs *\\(([^)]+)\\)" vars "${file_contents}")
     foreach(var ${vars})
       # extract the individual subdir names
@@ -1254,6 +1288,24 @@ macro(__visit__ _p)
     list(APPEND out_packages ${_p})
   endif()
 endmacro()
+
+
+function(filter_comments var)
+  # Convert file contents into a CMake list (where each element in the list
+  # is one line of the file)
+  #
+  STRING(REGEX REPLACE ";" "\\\\;" contents2 "${${var}}")
+  STRING(REGEX REPLACE "\n" ";" contents2 "${contents2}")
+  foreach(__t ${contents2})
+    if (NOT "${__t}" MATCHES "^ *#+")
+      LIST(APPEND contents3 ${__t})
+    endif()
+  endforeach()
+  STRING(REGEX REPLACE ";" "\n" contents3 "${contents3}")
+  STRING(REGEX REPLACE "\\\\;" ";" contents3 "${contents3}")
+  set(${var} ${contents3} PARENT_SCOPE)
+endfunction()
+
 #-------------------------------------------------------------------------------
 # elements_sort_subdirectories(var)
 #
@@ -1314,12 +1366,21 @@ endfunction()
 #-------------------------------------------------------------------------------
 # elements_subdir(name version)
 #
-# Declare name and version of the subdirectory.
+# Declare name and version of the subdirectory. The version now is optional.
+# It is recommended not to set one.
 #-------------------------------------------------------------------------------
-macro(elements_subdir name version)
+macro(elements_subdir name)
   elements_get_package_name(_guessed_name)
   if (NOT _guessed_name STREQUAL "${name}")
     message(WARNING "Declared subdir name (${name}) does not match the name of the directory (${_guessed_name})")
+  endif()
+
+  set (extra_macro_args ${ARGN})
+  list(LENGTH extra_macro_args num_extra_args)
+  if (${num_extra_args} GREATER 0)
+    list(GET extra_macro_args 0 version)
+  else()
+    set(version 1.0)
   endif()
 
   # Set useful variables and properties
@@ -2096,19 +2157,49 @@ function(elements_install_headers)
   set_property(GLOBAL APPEND PROPERTY PROJ_HAS_INCLUDE TRUE)
 endfunction()
 
+#---------------------------------------------------------------------------------------------------
+# add_python_test_dir(dir1
+#                     PREFIX ""
+#                     NAME ""
+#                     PATTERN *.py
+#                     )
+#
+# Add the python files in the directory as test. It collects the python test files
+# and add a test for the python test framework (py.test, nose or unittest)
+#---------------------------------------------------------------------------------------------------
 function(add_python_test_dir subdir)
 
-  if(NOT ${subdir})
-    set(subdir tests/python)
+  CMAKE_PARSE_ARGUMENTS(PYTEST_ARG "" "PREFIX;PATTERN;NAME" "" ${ARGN})
+
+  if(NOT PYTEST_ARG_PATTERN)
+    set(PYTEST_ARG_PATTERN "*.py")
   endif()
 
-  if(NOSE_FOUND)
-    elements_add_test(PythonNose
-                      COMMAND ${NOSE_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/${subdir})
+  if(PYFRMK_TEST)
+    set(pytest_type ${PYFRMK_NAME})
+  else()
+    set(pytest_type Python)
+  endif()
+
+  if(PYTEST_ARG_NAME)
+      set(pytest_name ${PYTEST_ARG_NAME})
+  else()
+    if(PYTEST_ARG_PREFIX)
+      set(pytest_name ${PYTEST_ARG_PREFIX}.${pytest_type})
+    else()
+     set(pytest_name ${pytest_type})
+    endif()
+  endif()
+
+  elements_expand_sources(pysrcs ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/${PYTEST_ARG_PATTERN})
+
+  if(PYFRMK_TEST)
+    elements_add_test(${pytest_name}
+                      COMMAND ${PYFRMK_TEST} ${pysrcs})
   else()
     if(NOT PYTHON_VERSION_STRING VERSION_LESS "2.7")
-      elements_add_test(Python
-                        COMMAND ${PYTHON_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR}/${subdir} -p "*.py" )
+      elements_add_test(${pytest_name}
+                        COMMAND ${PYTHON_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR}/${subdir} -p "${PYTEST_ARG_PATTERN}" )
 
     endif()
   endif()
@@ -2275,7 +2366,8 @@ macro(elements_install_cmake_modules)
             PATTERN "*.in"
             PATTERN "CVS" EXCLUDE
             PATTERN ".svn" EXCLUDE)
-  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH} PARENT_SCOPE)
+  set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
+  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} PARENT_SCOPE)
   set_property(DIRECTORY PROPERTY ELEMENTS_EXPORTED_CMAKE ON)
   set_property(GLOBAL APPEND PROPERTY PROJ_HAS_CMAKE TRUE)
 endmacro()

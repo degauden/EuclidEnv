@@ -1,9 +1,11 @@
 # -*- cmake -*-
 
+if(NOT LLVM_FOUND)
+
 find_program(LLVM_AR
              NAMES llvm-ar
          	 DOC "LLVM ar")
-         	 
+
 find_program(LLVM_LINKER
              NAMES llvm-link
          	 DOC "LLVM linker")
@@ -20,7 +22,7 @@ find_program(LLVM_RANLIB
              NAMES llvm-ranlib
          	 DOC "LLVM ranlib")
 
-# handle the QUIETLY and REQUIRED arguments and set ODB_FOUND to TRUE if
+# handle the QUIETLY and REQUIRED arguments and set LLVM_FOUND to TRUE if
 # all listed variables are TRUE
 INCLUDE(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(LLVM  DEFAULT_MSG
@@ -33,3 +35,5 @@ IF(LLVM_FOUND)
     MESSAGE(STATUS "Found LLVM objdump (LLVM_OBJDUMP = ${LLVM_OBJDUMP})")
     MESSAGE(STATUS "Found LLVM ranlib (LLVM_RANLIB = ${LLVM_RANLIB})")
 ENDIF()
+
+endif()
