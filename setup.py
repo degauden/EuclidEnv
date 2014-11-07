@@ -106,7 +106,7 @@ class my_install(_install):
 
 
 setup(name="EuclidEnv",
-      version="1.7",
+      version="1.8",
       description="Euclid Environment Scripts",
       author="Hubert Degaudenzi",
       author_email="Hubert.Degaudenzi@unige.ch",

@@ -1,0 +1,4 @@
+2014-11-07  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.8
+	  - moved to the Elements 3.3 version of the cmake library.
