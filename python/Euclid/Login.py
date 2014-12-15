@@ -103,12 +103,12 @@ The type is to be chosen among the following list:
 """ % (", ".join(build_types.keys()), default_build_type)
 
     def __init__(self, usage=None, version=None):
+        self._nativemachine = NativeMachine()
         SourceScript.__init__(self, usage, version)
         self.platform = ""
         self.binary = ""
         self.compdef = ""
         self._target_binary_type = None
-        self._nativemachine = NativeMachine()
         self._triedlocalsetup = False
         self._triedAFSsetup = False
 
