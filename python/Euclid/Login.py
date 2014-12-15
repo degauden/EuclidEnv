@@ -108,7 +108,7 @@ The type is to be chosen among the following list:
         self.binary = ""
         self.compdef = ""
         self._target_binary_type = None
-        self._nativemachine = None
+        self._nativemachine = NativeMachine()
         self._triedlocalsetup = False
         self._triedAFSsetup = False
 
@@ -147,19 +147,18 @@ The type is to be chosen among the following list:
                           dest="strip_path",
                           action="store_true",
                           help="activate the cleanup of invalid entries in pathes [default: %default]")
-#-------------------------------------------------------------------------
+# specific native platform options
+        if self._nativemachine.OSType() == "Darwin":
+            parser.add_option("--macport-location",
+                              dest="macport_location",
+                              help="Set the MacOSX port install base",
+                              fallback_env="MACPORT_LOCATION")
 
-    def setPath(self):
+#-------------------------------------------------------------------------
+    def setOwnPath(self):
         ev = self.Environment()
         opts = self.options
         log = logging.getLogger()
-        if not opts.strip_path:
-            log.debug("Disabling the path stripping")
-            ev["E_NO_STRIP_PATH"] = "1"
-        else:
-            if ev.has_key("E_NO_STRIP_PATH"):
-                log.debug("Reenabling the path stripping")
-                del ev["E_NO_STRIP_PATH"]
 
         if python_loc:
             if "PYTHONPATH" in ev:
@@ -250,6 +249,36 @@ The type is to be chosen among the following list:
 
         if "TEXINPUTS" in ev:
             log.debug("%s is set to %s" % ("TEXINPUTS", ev["TEXINPUTS"]))
+
+
+#-------------------------------------------------------------------------
+
+    def setPath(self):
+        ev = self.Environment()
+        opts = self.options
+        log = logging.getLogger()
+        if not opts.strip_path:
+            log.debug("Disabling the path stripping")
+            ev["E_NO_STRIP_PATH"] = "1"
+        else:
+            if ev.has_key("E_NO_STRIP_PATH"):
+                log.debug("Reenabling the path stripping")
+                del ev["E_NO_STRIP_PATH"]
+
+        self.setOwnPath()
+
+        if (self._nativemachine.OSType() == "Darwin"):
+            if ("MACPORT_LOCATION" not in ev) and os.path.exists("/opt/local"):
+                ev["MACPORT_LOCATION"] = "/opt/local"
+
+            if "MACPORT_LOCATION" in ev:
+                log.debug("%s is set to %s" %
+                          ("MACPORT_LOCATION", ev["MACPORT_LOCATION"]))
+                mac_bin = os.path.join(ev["MACPORT_LOCATION"], "bin")
+                ev["PATH"] = pathPrepend(ev["PATH"],
+                                         mac_bin,
+                                         exist_check=opts.strip_path,
+                                         unique=opts.strip_path)
 
 #-------------------------------------------------------------------------
 
@@ -482,11 +511,13 @@ The type is to be chosen among the following list:
 
         log.debug("CMAKE_PROJECT_PATH is set to %s" % ev["CMAKE_PROJECT_PATH"])
 
-        if (self._nativemachine.OSType() == "Darwin") and os.path.exists("/opt/local"):
+        if "MACPORT_LOCATION" in ev:
             if "CMAKEFLAGS" in ev:
-                ev["CMAKEFLAGS"] += "-DCMAKE_FIND_FRAMEWORK=LAST -DCMAKE_FIND_ROOT_PATH=/opt/local"
+                ev["CMAKEFLAGS"] += "-DCMAKE_FIND_FRAMEWORK=LAST"
+                ev["CMAKEFLAGS"] += "-DCMAKE_FIND_ROOT_PATH=%s" % ev["MACPORT_LOCATION"]
             else:
-                ev["CMAKEFLAGS"] = "-DCMAKE_FIND_FRAMEWORK=LAST -DCMAKE_FIND_ROOT_PATH=/opt/local"
+                ev["CMAKEFLAGS"] = "-DCMAKE_FIND_FRAMEWORK=LAST"
+                ev["CMAKEFLAGS"] += "-DCMAKE_FIND_ROOT_PATH=%s" % ev["MACPORT_LOCATION"]
 
     def copyEnv(self):
         ev = self.Environment()
@@ -501,7 +532,6 @@ The type is to be chosen among the following list:
         log.debug("Entering the environment setup")
         self.setPath()
 
-        self._nativemachine = NativeMachine()
         self.setBinaryTag()
         self.setCMakePath()
 
