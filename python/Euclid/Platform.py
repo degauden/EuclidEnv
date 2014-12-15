@@ -431,7 +431,7 @@ class NativeMachine:
                             if d.startswith('/usr')]
                            if os.path.exists(c)).next()
                     compstr = " ".join(
-                        os.popen(gpp + " --version").readlines())[:-1]
+                        os.popen3(gpp + " --version")[1].readlines())[:-1]
                     m = re.search(r"\ +(\d+(?:\.\d+)*)", compstr)
                     if m:
                         self._compversion = m.group(1)
