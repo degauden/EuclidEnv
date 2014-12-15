@@ -123,7 +123,8 @@ binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
 extra_binary_opt_list = ["x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
                          "i686-slc5-gcc43-opt",
                          "i686-winxp-vc90-opt", "x86_64-winxp-vc90-opt",
-                         "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt"]
+                         "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt",
+                         "x86_64-osx109-clang34-opt"]
 
 binary_type_list = {}
 extra_binary_type_list = {}
@@ -262,7 +263,8 @@ supported_compilers = {
     "slc5": ["gcc46", "gcc43", "gcc45", "icc11"],
     "win32": ["vc71", "vc9"],
     "win64": ["vc71", "vc9"],
-    "osx106": ["gcc42"]
+    "osx106": ["gcc42"],
+    "osx109": ["clang34"]
 }
 
 
