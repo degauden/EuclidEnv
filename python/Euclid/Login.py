@@ -482,6 +482,12 @@ The type is to be chosen among the following list:
 
         log.debug("CMAKE_PROJECT_PATH is set to %s" % ev["CMAKE_PROJECT_PATH"])
 
+        if (self._nativemachine.OSType() == "Darwin") and os.path.exists("/opt/local"):
+            if "CMAKEFLAGS" in ev:
+                ev["CMAKEFLAGS"] += "-DCMAKE_FIND_FRAMEWORK=LAST -DCMAKE_FIND_ROOT_PATH=/opt/local"
+            else:
+                ev["CMAKEFLAGS"] = "-DCMAKE_FIND_FRAMEWORK=LAST -DCMAKE_FIND_ROOT_PATH=/opt/local"
+
     def copyEnv(self):
         ev = self.Environment()
         retenv = dict(ev.env)
