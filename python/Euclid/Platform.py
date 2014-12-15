@@ -440,7 +440,10 @@ class NativeMachine:
                            if os.path.exists(c)).next()
                     compstr = " ".join(
                         os.popen3(gpp + " --version")[1].readlines())[:-1]
-                    m = re.search(r"\ +(\d+(?:\.\d+)*)", compstr)
+                    if root_name == "clang++":
+                        m = re.search(r"\([^)]*LLVM *(\d+\.?\d*)", compstr)
+                    else:
+                        m = re.search(r"\ +(\d+(?:\.\d+)*)", compstr)
                     if m:
                         self._compversion = m.group(1)
                     else:
