@@ -426,9 +426,13 @@ class NativeMachine:
             if self._ostype == "Windows":
                 self._compversion = "vc9"
             else:
+                root_name = "g++"
+                if self._ostype == "Darwin" and self.OSVersion(position=2) == "10.9":
+                    root_name = "clang++"
+
                 try:
                     gpp = (c for c in
-                           [os.path.join(d, "g++")
+                           [os.path.join(d, root_name)
                             for d in os.environ["PATH"].split(os.pathsep)
                             if d.startswith('/usr')]
                            if os.path.exists(c)).next()
@@ -455,16 +459,19 @@ class NativeMachine:
             if self._ostype == "Windows":
                 self._compiler = self.nativeCompilerVersion()
             else:
+                root_name = "gcc"
+                if self._ostype == "Darwin" and self.OSVersion(position=2) == "10.9":
+                    root_name = "clang"
                 try:
                     cvers = [
                         int(c) for c in self.nativeCompilerVersion(position=2).split(".")]
-                    self._compiler = "gcc%d%d" % (cvers[0], cvers[1])
+                    self._compiler = "%s%d%d" % (root_name, cvers[0], cvers[1])
                     if cvers[0] == 3 and cvers[1] < 4:
-                        self._compiler = "gcc%s" % self.nativeCompilerVersion(
-                            position=3).replace(".", "")
+                        self._compiler = "%s%s" % (root_name, self.nativeCompilerVersion(
+                            position=3).replace(".", ""))
                     if self._ostype == "Darwin" and self.OSVersion(position=2) == "10.5":
-                        self._compiler = "gcc%s" % self.nativeCompilerVersion(
-                            position=3).replace(".", "")
+                        self._compiler = "%s%s" % (root_name, self.nativeCompilerVersion(
+                            position=3).replace(".", ""))
                 except:
                     self._compiler = None
         return self._compiler
