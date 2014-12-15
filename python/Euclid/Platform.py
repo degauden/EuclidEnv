@@ -427,8 +427,10 @@ class NativeMachine:
                 self._compversion = "vc9"
             else:
                 root_name = "g++"
-                if self._ostype == "Darwin" and self.OSVersion(position=2) == "10.9":
-                    root_name = "clang++"
+
+                if self._ostype == "Darwin":
+                    if tuple([int(v) for v in self.OSVersion().split(".")]) >= (10, 9):
+                        root_name = "clang++"
 
                 try:
                     gpp = (c for c in
@@ -460,8 +462,9 @@ class NativeMachine:
                 self._compiler = self.nativeCompilerVersion()
             else:
                 root_name = "gcc"
-                if self._ostype == "Darwin" and self.OSVersion(position=2) == "10.9":
-                    root_name = "clang"
+                if self._ostype == "Darwin":
+                    if tuple([int(v) for v in self.OSVersion().split(".")]) >= (10, 9):
+                        root_name = "clang"
                 try:
                     cvers = [
                         int(c) for c in self.nativeCompilerVersion(position=2).split(".")]
