@@ -153,6 +153,11 @@ The type is to be chosen among the following list:
                               dest="macport_location",
                               help="Set the MacOSX port install base",
                               fallback_env="MACPORT_LOCATION")
+            parser.set_defaults(use_macport=True)
+            parser.add_option("--no-macport",
+                              dest="use_macport",
+                              action="store_false",
+                              help="prevent the setup of the Mac Port location")
 
 #-------------------------------------------------------------------------
     def setOwnPath(self):
