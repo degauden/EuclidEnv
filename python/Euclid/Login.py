@@ -279,6 +279,11 @@ The type is to be chosen among the following list:
                                          mac_bin,
                                          exist_check=opts.strip_path,
                                          unique=opts.strip_path)
+                mac_man = os.path.join(ev["MACPORT_LOCATION"], "man")
+                ev["MANPATH"] = pathPrepend(ev["MANPATH"],
+                                            mac_man,
+                                            exist_check=opts.strip_path,
+                                            unique=opts.strip_path)
 
 #-------------------------------------------------------------------------
 
