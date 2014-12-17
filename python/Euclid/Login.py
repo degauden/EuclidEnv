@@ -595,7 +595,10 @@ The type is to be chosen among the following list:
                 for p in ev["EUCLIDPROJECTPATH"].split(os.pathsep):
                     if p:
                         self.addEcho("    %s" % p)
-
+            if self._nativemachine.OSType() == "Darwin" and opts.use_macport:
+                if ev.has_key("MACPORT_LOCATION"):
+                    self.addEcho(" --- Using MacPort location from %s" %
+                                 ev["MACPORT_LOCATION"])
             self.addEcho("-" * 80)
 
     def parseOpts(self, args):
