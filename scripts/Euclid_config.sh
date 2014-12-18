@@ -32,7 +32,7 @@ cfgfiles="$cfgfiles /etc/sysconfig/euclid"
 cfgfiles="$cfgfiles $my_own_prefix0/etc/sysconfig/euclid"
 
 
-for c in $cfgfiles
+for c in $(echo $cfgfiles)
 do
   if [[ -r $c ]]; then
     export EUCLID_CONFIG_FILE=$c
@@ -44,7 +44,7 @@ done
 unset c
 unset cfgfiles
 
-# prepend path entries to the environment 
+# prepend path entries to the environment
 if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
   if [[ -d ${EUCLID_BASE} ]]; then
     if [[ -d ${EUCLID_BASE}/bin ]]; then
@@ -54,7 +54,7 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
       export PATH=${EUCLID_BASE}/scripts:${PATH}
     fi
     if [[ -d ${EUCLID_BASE}/lib ]]; then
-      if [[ -n "$LD_LIBRARY_PATH" ]]; then 
+      if [[ -n "$LD_LIBRARY_PATH" ]]; then
         export LD_LIBRARY_PATH=${EUCLID_BASE}/lib:${LD_LIBRARY_PATH}
       else
         export LD_LIBRARY_PATH=${EUCLID_BASE}/lib
@@ -63,13 +63,13 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
     if [[ -d ${EUCLID_BASE}/python ]]; then
       my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))")
       if [[ -d ${my_python_base} ]]; then
-        if [[ -n "$PYTHONPATH" ]]; then 
+        if [[ -n "$PYTHONPATH" ]]; then
           export PYTHONPATH=${my_python_base}:${PYTHONPATH}
         else
           export PYTHONPATH=${my_python_base}
-        fi            
+        fi
       else
-        if [[ -n "$PYTHONPATH" ]]; then 
+        if [[ -n "$PYTHONPATH" ]]; then
           export PYTHONPATH=${EUCLID_BASE}/python:${PYTHONPATH}
         else
           export PYTHONPATH=${EUCLID_BASE}/python
@@ -78,15 +78,15 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
       unset my_python_base
     fi
     if [[ -d ${EUCLID_BASE} ]]; then
-      if [[ -n "$CMAKE_PREFIX_PATH" ]]; then 
+      if [[ -n "$CMAKE_PREFIX_PATH" ]]; then
         export CMAKE_PREFIX_PATH=${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
       else
-        export CMAKE_PREFIX_PATH=${EUCLID_BASE}        
+        export CMAKE_PREFIX_PATH=${EUCLID_BASE}
       fi
       if [[ -d ${EUCLID_BASE}/cmake ]]; then
         export CMAKE_PREFIX_PATH=${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
-      fi                
-    fi                
+      fi
+    fi
   fi
 fi
 
