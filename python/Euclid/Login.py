@@ -523,11 +523,11 @@ The type is to be chosen among the following list:
 
         if "MACPORT_LOCATION" in ev:
             if "CMAKEFLAGS" in ev:
-                ev["CMAKEFLAGS"] += "-DCMAKE_FIND_FRAMEWORK=LAST"
-                ev["CMAKEFLAGS"] += "-DCMAKE_FIND_ROOT_PATH=%s" % ev["MACPORT_LOCATION"]
+                ev["CMAKEFLAGS"] += " -DCMAKE_FIND_FRAMEWORK=LAST"
+                ev["CMAKEFLAGS"] += " -DCMAKE_FIND_ROOT_PATH=%s" % ev["MACPORT_LOCATION"]
             else:
                 ev["CMAKEFLAGS"] = "-DCMAKE_FIND_FRAMEWORK=LAST"
-                ev["CMAKEFLAGS"] += "-DCMAKE_FIND_ROOT_PATH=%s" % ev["MACPORT_LOCATION"]
+                ev["CMAKEFLAGS"] += " -DCMAKE_FIND_ROOT_PATH=%s" % ev["MACPORT_LOCATION"]
 
     def copyEnv(self):
         ev = self.Environment()
