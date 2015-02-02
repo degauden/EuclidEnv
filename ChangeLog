@@ -1,3 +1,10 @@
+2015-02-02  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.9
+	  - update the cmake library to the Elements 3.4 version.
+	  - various fixes for the Darwin platform.
+	  - new version of the latex class with the new Euclid logo.
+
 2014-11-07  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.8

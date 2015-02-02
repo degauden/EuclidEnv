@@ -150,7 +150,7 @@
 
 % This is when we will have a Euclid logo again!
 \newcommand{\setEsgsDocLogo}[1]{\def\@esgsDocLogo{#1}}
-\setEsgsDocLogo{esgs_logo}
+\setEsgsDocLogo{EC_logo.png}
 
 % you own DPC, institute or funding logo for front page
 \newcommand{\setEsgsDocLocalLogo}[1]{\def\@esgsDocLocalLogo{#1}}
@@ -254,8 +254,9 @@
 %  Definitions used in title page and headers
 %------------------------------------------------------------
 %
-\newcolumntype{C}[1]{>{\centering\arraybackslash\hspace{0pt}}p{#1}}
-\newcolumntype{R}[1]{>{\RaggedLeft\hspace{0pt}}p{#1}}
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \definecolor{light-gray}{gray}{0.80}
 
 \newcommand\T{\rule{0pt}{0.6cm}}       % Top strut
@@ -446,11 +447,11 @@
 %\newcommand\B{\rule[-0.4cm]{0pt}{0pt}} % Bottom strut
 \hspace*{-0.4cm}\begin{tabular}{ | C{3.0cm} | C{8.6cm} | p{1.3cm} p{4.4cm} |}
 \hline
-\multirow{2}{*}[0.4cm]{\resizebox{2.6cm}{!}{\includegraphics{\@esaDocLogo}}} & \multirow{4}{*}{\parbox[c]{8.2cm}{\textit{\Large\bf \esgsDocTitle }}}
+\multirow{2}{*}[0.4cm]{\resizebox{2.6cm}{!}{\includegraphics{\@esaDocLogo}}} & \multirow{4}{*}{\parbox[c]{8.2cm}{\textit{\Large\bf \esgsDocShortTitle }}}
 & Ref: & \esgsDocRef \T \\
                                  &         & Issue: & \esgsDocIssue .\esgsDocRevision \\
 \cline{1-1}
-\multirow{2}{*}[-0.1cm]{Euclid Consortium} &  & Date: & \esgsDocDate \\
+\multirow{2}{*}[-0.04cm]{\resizebox{1.98cm}{!}{\includegraphics{\@esgsDocLogo}}} &  & Date: & \esgsDocDate \\
 & & Page: & \thepage/\pageref{LastPage} \B \\
 \hline
 \end{tabular}

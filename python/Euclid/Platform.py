@@ -123,7 +123,8 @@ binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
 extra_binary_opt_list = ["x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
                          "i686-slc5-gcc43-opt",
                          "i686-winxp-vc90-opt", "x86_64-winxp-vc90-opt",
-                         "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt"]
+                         "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt",
+                         "x86_64-osx109-clang34-opt"]
 
 binary_type_list = {}
 extra_binary_type_list = {}
@@ -262,7 +263,8 @@ supported_compilers = {
     "slc5": ["gcc46", "gcc43", "gcc45", "icc11"],
     "win32": ["vc71", "vc9"],
     "win64": ["vc71", "vc9"],
-    "osx106": ["gcc42"]
+    "osx106": ["gcc42"],
+    "osx109": ["clang34"]
 }
 
 
@@ -424,15 +426,24 @@ class NativeMachine:
             if self._ostype == "Windows":
                 self._compversion = "vc9"
             else:
+                root_name = "g++"
+
+                if self._ostype == "Darwin":
+                    if tuple([int(v) for v in self.OSVersion().split(".")]) >= (10, 9):
+                        root_name = "clang++"
+
                 try:
                     gpp = (c for c in
-                           [os.path.join(d, "g++")
+                           [os.path.join(d, root_name)
                             for d in os.environ["PATH"].split(os.pathsep)
                             if d.startswith('/usr')]
                            if os.path.exists(c)).next()
                     compstr = " ".join(
-                        os.popen(gpp + " --version").readlines())[:-1]
-                    m = re.search(r"\ +(\d+(?:\.\d+)*)", compstr)
+                        os.popen3(gpp + " --version")[1].readlines())[:-1]
+                    if root_name == "clang++":
+                        m = re.search(r"\([^)]*LLVM *(\d+\.?\d*)", compstr)
+                    else:
+                        m = re.search(r"\ +(\d+(?:\.\d+)*)", compstr)
                     if m:
                         self._compversion = m.group(1)
                     else:
@@ -453,16 +464,20 @@ class NativeMachine:
             if self._ostype == "Windows":
                 self._compiler = self.nativeCompilerVersion()
             else:
+                root_name = "gcc"
+                if self._ostype == "Darwin":
+                    if tuple([int(v) for v in self.OSVersion().split(".")]) >= (10, 9):
+                        root_name = "clang"
                 try:
                     cvers = [
                         int(c) for c in self.nativeCompilerVersion(position=2).split(".")]
-                    self._compiler = "gcc%d%d" % (cvers[0], cvers[1])
+                    self._compiler = "%s%d%d" % (root_name, cvers[0], cvers[1])
                     if cvers[0] == 3 and cvers[1] < 4:
-                        self._compiler = "gcc%s" % self.nativeCompilerVersion(
-                            position=3).replace(".", "")
+                        self._compiler = "%s%s" % (root_name, self.nativeCompilerVersion(
+                            position=3).replace(".", ""))
                     if self._ostype == "Darwin" and self.OSVersion(position=2) == "10.5":
-                        self._compiler = "gcc%s" % self.nativeCompilerVersion(
-                            position=3).replace(".", "")
+                        self._compiler = "%s%s" % (root_name, self.nativeCompilerVersion(
+                            position=3).replace(".", ""))
                 except:
                     self._compiler = None
         return self._compiler

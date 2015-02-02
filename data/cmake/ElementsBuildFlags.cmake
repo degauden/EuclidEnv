@@ -12,9 +12,17 @@ if(SGS_COMP STREQUAL "clang")
 endif()
 
 
+if(NOT BUILD_PREFIX_NAME)
+  set(BUILD_PREFIX_NAME "build" CACHE STRING "Prefix name for the build directory" FORCE)
+endif()
+
+message(STATUS "The build prefix is set to ${BUILD_PREFIX_NAME}")
+set_property(GLOBAL APPEND PROPERTY CMAKE_EXTRA_FLAGS "-DBUILD_PREFIX_NAME:STRING=${BUILD_PREFIX_NAME}")
+
+
 # Special defaults
 if ( (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[7-9]")
-    OR (SGS_COMP STREQUAL clang AND SGS_COMPVERS MATCHES "3[0-3]") )
+    OR (SGS_COMP STREQUAL clang AND SGS_COMPVERS MATCHES "3[0-9]") )
   # C++11 is enable by default on gcc47 and gcc48
   set(ELEMENTS_CPP11_DEFAULT ON)
 else()
@@ -172,7 +180,7 @@ if(NOT ELEMENTS_FLAGS_SET)
     set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--enable-new-dtags -Wl,--as-needed -Wl,--no-undefined  -Wl,-z,max-page-size=0x1000"
         CACHE STRING "Flags used by the linker during the creation of modules."
         FORCE)
-    set(CMAKE_EXE_LINKER_FLAGS "-Wl,--enable-new-dtags ${CMAKE_EXE_LINKER_FLAGS}"
+    set(CMAKE_EXE_LINKER_FLAGS "-Wl,--enable-new-dtags -Wl,--as-needed ${CMAKE_EXE_LINKER_FLAGS}"
         CACHE STRING "Flags used by the linker during the creation of exe's."
         FORCE)
   endif()
@@ -277,12 +285,17 @@ endif()
 #--- Special flags -------------------------------------------------------------
 add_definitions(-DBOOST_FILESYSTEM_VERSION=3)
 
-if((SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "47|48|max") OR ELEMENTS_CPP11)
+if((SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "47|48|49|max") OR ELEMENTS_CPP11)
   set(GCCXML_CXX_FLAGS "${GCCXML_CXX_FLAGS} -D__STRICT_ANSI__")
 endif()
 
-if(SGS_COMP STREQUAL gcc AND SGS_COMPVERS STREQUAL 43)
-  # The -pedantic flag gives problems on GCC 4.3.
-  string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
-  string(REPLACE "-pedantic" "" CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}")
+if(SGS_COMP STREQUAL gcc)
+  if(SGS_COMPVERS STREQUAL 43)
+    # The -pedantic flag gives problems on GCC 4.3.
+    string(REPLACE "-pedantic" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    string(REPLACE "-pedantic" "" CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}")
+  elseif(SGS_COMPVERS MATCHES "4[8-9]")
+    string(REPLACE "-pedantic" "-Wpedantic" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+    string(REPLACE "-pedantic" "-Wpedantic" CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}")
+  endif()
 endif()
