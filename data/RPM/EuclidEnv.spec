@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.8
+Version:        1.9
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -55,6 +55,11 @@ ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Eucli
 
 
 %changelog
+* Mon Feb 2 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.9-1
+- update the cmake library to the Elements 3.4 version.
+- various fixes for the Darwin platform.
+- new version of the latex class with the new Euclid logo.
+
 * Fri Nov 7 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.8-1
 - updated the cmake library to the Elements 3.3 version.
 
