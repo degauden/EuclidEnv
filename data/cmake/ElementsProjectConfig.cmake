@@ -7,6 +7,19 @@
 
 cmake_minimum_required(VERSION 2.8.5)
 
+# FIXME: use of LOCATION property is deprecated and should be replaced with the
+#        generator expression $<TARGET_FILE>, but the way we use it requires
+#        CMake >= 2.8.12, so we must keep the old behavior until we bump the
+#        cmake_minimum_required version. (policy added in CMake 3.0)
+if(NOT CMAKE_VERSION VERSION_LESS 3.0) # i.e CMAKE_VERSION >= 3.0
+  cmake_policy(SET CMP0026 OLD)
+  if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    cmake_policy(SET CMP0042 OLD)
+  endif()
+endif()
+
+
+
 # Preset the CMAKE_MODULE_PATH from the environment, if not already defined.
 if(NOT CMAKE_MODULE_PATH)
   # Note: this works even if the envirnoment variable is not set.
@@ -193,7 +206,7 @@ macro(elements_project project version)
   # Note: it's a bit a duplicate of the one used in elements_external_project_environment
   #       but we need it here because the other one is meant to include also
   #       the external libraries required by the subdirectories.
-  set(binary_paths)
+  set(binary_paths $ENV{CMAKE_PREFIX_PATH}/scripts)
 
   # environment description
   set(project_environment)
@@ -252,14 +265,30 @@ macro(elements_project project version)
     set(versheader_cmd ${PYTHON_EXECUTABLE} ${versheader_cmd})
   endif()
 
-  find_program(boosttestmain_cmd createBoostTestMain.py HINTS ${binary_paths})
-  if(boosttestmain_cmd)
-    set(boosttestmain_cmd ${PYTHON_EXECUTABLE} ${boosttestmain_cmd})
+  find_program(versmodule_cmd createProjVersModule.py HINTS ${binary_paths})
+  if(versmodule_cmd)
+    set(versmodule_cmd ${PYTHON_EXECUTABLE} ${versmodule_cmd})
   endif()
 
-  find_program(cppunittestmain_cmd createCppUnitTestMain.py HINTS ${binary_paths})
-  if(cppunittestmain_cmd)
-    set(cppunittestmain_cmd ${PYTHON_EXECUTABLE} ${cppunittestmain_cmd})
+  find_program(thisheader_cmd createThisProjHeader.py HINTS ${binary_paths})
+  if(thisheader_cmd)
+    set(thisheader_cmd ${PYTHON_EXECUTABLE} ${thisheader_cmd})
+  endif()
+
+  find_program(thismodule_cmd createThisProjModule.py HINTS ${binary_paths})
+  if(thismodule_cmd)
+    set(thismodule_cmd ${PYTHON_EXECUTABLE} ${thismodule_cmd})
+  endif()
+
+
+  find_program(Boost_testmain_cmd createBoostTestMain.py HINTS ${binary_paths})
+  if(Boost_testmain_cmd)
+    set(Boost_testmain_cmd ${PYTHON_EXECUTABLE} ${Boost_testmain_cmd})
+  endif()
+
+  find_program(CppUnit_testmain_cmd createCppUnitTestMain.py HINTS ${binary_paths})
+  if(CppUnit_testmain_cmd)
+    set(CppUnit_testmain_cmd ${PYTHON_EXECUTABLE} ${CppUnit_testmain_cmd})
   endif()
 
 
@@ -278,7 +307,9 @@ macro(elements_project project version)
   find_program(pythonprogramscript_cmd createPythonProgramScript.py HINTS ${binary_paths})
   set(pythonprogramscript_cmd ${PYTHON_EXECUTABLE} ${pythonprogramscript_cmd})
 
-  mark_as_advanced(env_cmd merge_cmd versheader_cmd boosttestmain_cmd cppunittestmain_cmd
+  mark_as_advanced(env_cmd merge_cmd versheader_cmd versmodule_cmd
+                   thisheader_cmd thismodule_cmd
+                   Boost_testmain_cmd CppUnit_testmain_cmd
                    zippythondir_cmd elementsrun_cmd
                    rpmbuild_wrap_cmd)
 
@@ -291,6 +322,9 @@ macro(elements_project project version)
 
   install(PROGRAMS cmake/scripts/rpmbuild_wrap.py DESTINATION scripts OPTIONAL)
   install(PROGRAMS cmake/scripts/createProjVersHeader.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/createProjVersModule.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/createThisProjHeader.py DESTINATION scripts OPTIONAL)
+  install(PROGRAMS cmake/scripts/createThisProjModule.py DESTINATION scripts OPTIONAL)
   install(PROGRAMS cmake/scripts/createBoostTestMain.py DESTINATION scripts OPTIONAL)
   install(PROGRAMS cmake/scripts/install.py DESTINATION scripts OPTIONAL)
   install(PROGRAMS cmake/scripts/locker.py DESTINATION scripts OPTIONAL)
@@ -352,6 +386,7 @@ macro(elements_project project version)
 
   # Generate the version header for the project.
   string(TOUPPER ${project} _proj)
+
   if(versheader_cmd)
     execute_process(COMMAND
                     ${versheader_cmd} --quiet
@@ -359,8 +394,34 @@ macro(elements_project project version)
     install(FILES ${CMAKE_BINARY_DIR}/include/${_proj}_VERSION.h DESTINATION include)
     set_property(GLOBAL APPEND PROPERTY PROJ_HAS_INCLUDE TRUE)
   endif()
+
+  if(thisheader_cmd)
+    execute_process(COMMAND
+                    ${thisheader_cmd} --quiet
+                    ${project} ${CMAKE_BINARY_DIR}/include/ThisProject.h)
+    # This header is by design only local. It is then not installed
+  endif()
+
   # Add generated headers to the include path.
   include_directories(${CMAKE_BINARY_DIR}/include)
+
+  if(versmodule_cmd)
+    execute_process(COMMAND
+                    ${versmodule_cmd} --quiet
+                    ${project} ${CMAKE_PROJECT_VERSION} ${CMAKE_BINARY_DIR}/python/${_proj}_VERSION.py)
+    install(FILES ${CMAKE_BINARY_DIR}/python/${_proj}_VERSION.py DESTINATION python)
+    set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
+  endif()
+
+  if(thismodule_cmd)
+    execute_process(COMMAND
+                    ${thismodule_cmd} --quiet
+                    ${project} ${CMAKE_BINARY_DIR}/python/ThisProject.py)
+    install(FILES ${CMAKE_BINARY_DIR}/python/ThisProject.py DESTINATION python)
+    set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
+  endif()
+
+
 
   #--- Collect settings for subdirectories
   set(library_path)
@@ -435,7 +496,7 @@ macro(elements_project project version)
         PREPEND PYTHONPATH \${.}/python
         PREPEND PYTHONPATH \${.}/python/lib-dynload
         PREPEND ELEMENTS_CONF_PATH \${.}/conf
-        PREPEND ELEMENTS_AUX_PATH \${.}/aux)
+        PREPEND ELEMENTS_AUX_PATH \${.}/auxdir)
   #     (installation dirs added to build env to be able to test pre-built bins)
   set(project_build_environment ${project_build_environment}
         PREPEND PATH ${CMAKE_INSTALL_PREFIX}/scripts
@@ -444,7 +505,7 @@ macro(elements_project project version)
         PREPEND PYTHONPATH ${CMAKE_INSTALL_PREFIX}/python
         PREPEND PYTHONPATH ${CMAKE_INSTALL_PREFIX}/python/lib-dynload
         PREPEND ELEMENTS_CONF_PATH ${CMAKE_INSTALL_PREFIX}/conf
-        PREPEND ELEMENTS_AUX_PATH ${CMAKE_INSTALL_PREFIX}/aux)
+        PREPEND ELEMENTS_AUX_PATH ${CMAKE_INSTALL_PREFIX}/auxdir)
 
   message(STATUS "  environment for local subdirectories")
   #   - project root (for relocatability)
@@ -494,6 +555,11 @@ macro(elements_project project version)
     if(EXISTS ${CMAKE_SOURCE_DIR}/${package}/aux)
       set(project_build_environment ${project_build_environment}
           PREPEND ELEMENTS_AUX_PATH \${${_proj}_PROJECT_ROOT}/${package}/aux)
+    endif()
+
+    if(EXISTS ${CMAKE_SOURCE_DIR}/${package}/auxdir)
+      set(project_build_environment ${project_build_environment}
+          PREPEND ELEMENTS_AUX_PATH \${${_proj}_PROJECT_ROOT}/${package}/auxdir)
     endif()
 
 
@@ -555,7 +621,7 @@ macro(elements_project project version)
   set(CPACK_PACKAGE_RELEASE 1)
   set(CPACK_PACKAGE_VENDOR "The Euclid Consortium")
 
-  set(CPACK_SOURCE_IGNORE_FILES "/InstallArea/;/build\\\\..*/;/\\\\.svn/;/\\\\.settings/;\\\\..*project;\\\\.gitignore")
+  set(CPACK_SOURCE_IGNORE_FILES "/InstallArea/;/${BUILD_PREFIX_NAME}\\\\..*/;/\\\\.svn/;/\\\\.settings/;\\\\..*project;\\\\.gitignore")
 
   # RPM packaging specific stuff
   set(CPACK_RPM_PACKAGE_RELOCATABLE TRUE)
@@ -586,6 +652,17 @@ macro(elements_project project version)
     endforeach()
     #message(STATUS "The regular objects: ${CPACK_RPM_DEBINFO_FILES}")
   endif()
+
+#------------------------------------------------------------------------------
+  get_property(cmake_extra_flags GLOBAL PROPERTY CMAKE_EXTRA_FLAGS)
+
+  if(cmake_extra_flags)
+    foreach(_do ${cmake_extra_flags})
+      set(CPACK_EXTRA_CMAKEFLAGS "${CPACK_EXTRA_CMAKEFLAGS} ${_do}")
+    endforeach()
+    #message(STATUS "The extra CMake flags: ${CPACK_EXTRA_CMAKEFLAGS}")
+  endif()
+
 
 #------------------------------------------------------------------------------
   get_property(regular_lib_objects GLOBAL PROPERTY REGULAR_LIB_OBJECTS)
@@ -722,7 +799,7 @@ macro(elements_project project version)
 
     add_custom_target(targz
                       COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_TARGZ_DIR}
-                      COMMAND ${TAR_EXECUTABLE} zcf ${PROJECT_TARGZ_DIR}/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.tar.gz --exclude "build.*" --exclude "./.*" --exclude "./InstallArea" --transform "s/./${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}/"  .
+                      COMMAND ${TAR_EXECUTABLE} zcf ${PROJECT_TARGZ_DIR}/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.tar.gz --exclude "${BUILD_PREFIX_NAME}.*" --exclude "./.*" --exclude "./InstallArea" --transform "s/./${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}/"  .
                       WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
                       COMMENT "Generating The Source TarBall ${PROJECT_TARGZ_DIR}/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}.tar.gz" VERBATIM
     )
@@ -1353,7 +1430,7 @@ function(elements_get_packages var)
   file(GLOB_RECURSE cmakelist_files RELATIVE ${CMAKE_SOURCE_DIR} CMakeLists.txt)
   foreach(file ${cmakelist_files})
     # ignore the source directory itself and files in the build directory
-    if(NOT file STREQUAL CMakeLists.txt AND NOT (file MATCHES "^${rel_build_dir}" OR file MATCHES "^build\\."))
+    if(NOT file STREQUAL CMakeLists.txt AND NOT (file MATCHES "^${rel_build_dir}" OR file MATCHES "^${BUILD_PREFIX_NAME}\\."))
       get_filename_component(package ${file} PATH)
       list(APPEND packages ${package})
     endif()
@@ -1965,40 +2042,24 @@ function(elements_add_unit_test name)
                           COMMAND  ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/tests
                           COMMENT "Generating The ${package}/tests directory" VERBATIM)
       endif()
-    endif()
-
-
-    if (${${name}_UNIT_TEST_TYPE} STREQUAL "Boost")
-      set(testmain_file ${CMAKE_CURRENT_BINARY_DIR}/tests/BoostTestMain.cpp)
-      add_custom_command (
-                          OUTPUT ${testmain_file}
-                          COMMAND ${boosttestmain_cmd} --quiet ${package} ${testmain_file}
+      set(testmain_file ${CMAKE_CURRENT_BINARY_DIR}/tests/${${name}_UNIT_TEST_TYPE}TestMain.cpp)
+      set_source_files_properties(${testmain_file} PROPERTIES GENERATED TRUE)
+      if(NOT TARGET ${package}_${${name}_UNIT_TEST_TYPE}TestMain)
+        add_custom_target(${package}_${${name}_UNIT_TEST_TYPE}TestMain
+                          COMMAND ${${${name}_UNIT_TEST_TYPE}_testmain_cmd} --quiet ${package} ${testmain_file}
                           DEPENDS ${package}_tests_dir
-                         )
-#      set_property(TARGET testmain_file DEPENDS ${package}_tests_dir)
+                          COMMENT "Generating the ${package} ${${name}_UNIT_TEST_TYPE}TestMain.cpp" VERBATIM)
+      endif()
       set(srcs ${srcs} ${testmain_file})
-    endif()
-
-    if (${${name}_UNIT_TEST_TYPE} STREQUAL "CppUnit")
-      set(testmain_file ${CMAKE_CURRENT_BINARY_DIR}/tests/CppUnitTestMain.cpp)
-      add_custom_command (
-                          OUTPUT ${testmain_file}
-                          COMMAND ${cppunittestmain_cmd} --quiet ${package} ${testmain_file}
-                          DEPENDS ${package}_tests_dir
-                         )
-#      set_property(TARGET testmain_file DEPENDS ${package}_tests_dir)
-      set(srcs ${srcs} ${testmain_file})
-    endif()
-
-
-    if (${${name}_UNIT_TEST_TYPE} STREQUAL "None")
-      elements_add_executable(${executable} ${srcs}
-                              LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
-                              INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
-    else()
       elements_add_executable(${executable} ${srcs}
                               LINK_LIBRARIES ${ARG_LINK_LIBRARIES} ${${name}_UNIT_TEST_TYPE}
                               INCLUDE_DIRS ${ARG_INCLUDE_DIRS} ${${name}_UNIT_TEST_TYPE})
+      add_dependencies(${executable} ${package}_${${name}_UNIT_TEST_TYPE}TestMain)
+
+    else()
+      elements_add_executable(${executable} ${srcs}
+                              LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                              INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
     endif()
 
 
@@ -2033,12 +2094,12 @@ endfunction()
 
 #-------------------------------------------------------------------------------
 # elements_add_test(<name>
-#                [FRAMEWORK options1 options2 ...|COMMAND cmd args ...]
-#                [WORKING_DIRECTORY dir]
-#                [ENVIRONMENT variable[+]=value ...]
-#                [DEPENDS other_test ...]
-#                [FAILS] [PASSREGEX regex] [FAILREGEX regex]
-#                [TIMEOUT seconds])
+#                   [FRAMEWORK options1 options2 ...|COMMAND cmd args ...]
+#                   [WORKING_DIRECTORY dir]
+#                   [ENVIRONMENT variable[+]=value ...]
+#                   [DEPENDS other_test ...]
+#                   [FAILS] [PASSREGEX regex] [FAILREGEX regex]
+#                   [TIMEOUT seconds])
 #
 # Declare a run-time test in the subdirectory.
 # The test can be of the types:
@@ -2135,17 +2196,21 @@ endfunction()
 function(elements_install_headers)
   set(has_local_headers FALSE)
   foreach(hdr_dir ${ARGN})
-    install(DIRECTORY ${hdr_dir}
-            DESTINATION include
-            FILES_MATCHING
+    if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${hdr_dir})
+      install(DIRECTORY ${hdr_dir}
+              DESTINATION include
+              FILES_MATCHING
               PATTERN "*.h"
               PATTERN "*.icpp"
               PATTERN "*.hpp"
               PATTERN "*.hxx"
               PATTERN "CVS" EXCLUDE
               PATTERN ".svn" EXCLUDE)
-    if(NOT IS_ABSOLUTE ${hdr_dir})
-      set(has_local_headers TRUE)
+      if(NOT IS_ABSOLUTE ${hdr_dir})
+        set(has_local_headers TRUE)
+      endif()
+    else()
+      message(FATAL_ERROR "No ${hdr_dir} directory for header files in the ${CMAKE_CURRENT_SOURCE_DIR} location")
     endif()
   endforeach()
   # flag the current directory as one that installs headers
@@ -2153,8 +2218,8 @@ function(elements_install_headers)
   #   dependent subdirs
   if(has_local_headers)
     set_property(DIRECTORY PROPERTY INSTALLS_LOCAL_HEADERS TRUE)
+    set_property(GLOBAL APPEND PROPERTY PROJ_HAS_INCLUDE TRUE)
   endif()
-  set_property(GLOBAL APPEND PROPERTY PROJ_HAS_INCLUDE TRUE)
 endfunction()
 
 #---------------------------------------------------------------------------------------------------
@@ -2227,34 +2292,38 @@ endfunction()
 # FIXME: it should be cleaner
 #-------------------------------------------------------------------------------
 function(elements_install_python_modules)
-  install(DIRECTORY python/
-          DESTINATION python
-          FILES_MATCHING
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python)
+    install(DIRECTORY python/
+            DESTINATION python
+            FILES_MATCHING
             PATTERN "*.py"
             PATTERN "CVS" EXCLUDE
             PATTERN ".svn" EXCLUDE)
-  # check for the presence of the __init__.py's and install them if needed
-  file(GLOB sub-dir RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} python/*)
-  foreach(dir ${sub-dir})
-    if(NOT dir STREQUAL python/.svn
-       AND IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${dir}
-       AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/__init__.py)
-      set(pyfile ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/__init__.py)
-      file(RELATIVE_PATH pyfile ${CMAKE_BINARY_DIR} ${pyfile})
-      message(WARNING "The file  ${pyfile} is missing. I shall install an empty one.")
-      if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/__init__.py)
-        file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/__init__.py "# Empty file generated automatically\n")
+    # check for the presence of the __init__.py's and install them if needed
+    file(GLOB sub-dir RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} python/*)
+    foreach(dir ${sub-dir})
+      if(NOT dir STREQUAL python/.svn
+         AND IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${dir}
+         AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/__init__.py)
+        set(pyfile ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/__init__.py)
+        file(RELATIVE_PATH pyfile ${CMAKE_BINARY_DIR} ${pyfile})
+        message(WARNING "The file  ${pyfile} is missing. I shall install an empty one.")
+        if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/__init__.py)
+          file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/__init__.py "# Empty file generated automatically\n")
+        endif()
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
+                DESTINATION ${CMAKE_INSTALL_PREFIX}/${dir})
       endif()
-      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/__init__.py
-              DESTINATION ${CMAKE_INSTALL_PREFIX}/${dir})
+      # Add the Python module name to the list of provided ones.
+      get_filename_component(modname ${dir} NAME)
+      set_property(DIRECTORY APPEND PROPERTY has_python_modules ${modname})
+    endforeach()
+    set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
+    if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/python)
+      add_python_test_dir(tests/python)
     endif()
-    # Add the Python module name to the list of provided ones.
-    get_filename_component(modname ${dir} NAME)
-    set_property(DIRECTORY APPEND PROPERTY has_python_modules ${modname})
-  endforeach()
-  set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
-  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/python)
-    add_python_test_dir(tests/python)
+  else()
+    message(FATAL_ERROR "No python directory in the ${CMAKE_CURRENT_SOURCE_DIR} location")
   endif()
 endfunction()
 
@@ -2264,15 +2333,19 @@ endfunction()
 # Declare that the package needs to install the content of the 'scripts' directory.
 #---------------------------------------------------------------------------------------------------
 function(elements_install_scripts)
-  install(DIRECTORY scripts/ DESTINATION scripts
-          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
-                           GROUP_EXECUTE GROUP_READ
-                           WORLD_EXECUTE WORLD_READ
-          PATTERN "CVS" EXCLUDE
-          PATTERN ".svn" EXCLUDE
-          PATTERN "*~" EXCLUDE
-          PATTERN "*.pyc" EXCLUDE)
-  set_property(GLOBAL APPEND PROPERTY PROJ_HAS_SCRIPTS TRUE)
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/scripts)
+    install(DIRECTORY scripts/ DESTINATION scripts
+            FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                             GROUP_EXECUTE GROUP_READ
+                             WORLD_EXECUTE WORLD_READ
+            PATTERN "CVS" EXCLUDE
+            PATTERN ".svn" EXCLUDE
+            PATTERN "*~" EXCLUDE
+            PATTERN "*.pyc" EXCLUDE)
+    set_property(GLOBAL APPEND PROPERTY PROJ_HAS_SCRIPTS TRUE)
+  else()
+    message(FATAL_ERROR "No scripts directory in the ${CMAKE_CURRENT_SOURCE_DIR} location")
+  endif()
 endfunction()
 
 #---------------------------------------------------------------------------------------------------
@@ -2281,12 +2354,27 @@ endfunction()
 # Declare that the package needs to install the content of the 'aux' directory.
 #---------------------------------------------------------------------------------------------------
 function(elements_install_aux_files)
-  install(DIRECTORY aux/
-          DESTINATION aux
-          PATTERN "CVS" EXCLUDE
-          PATTERN ".svn" EXCLUDE
-          PATTERN "*~" EXCLUDE)
-  set_property(GLOBAL APPEND PROPERTY PROJ_HAS_AUX TRUE)
+  # early check at configure time for the existence of the directory
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/aux OR IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxdir)
+    if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/aux)
+      message(WARNING "The aux directory name in the ${CMAKE_CURRENT_SOURCE_DIR} location is dangerous. Please rename it to auxdir")
+      install(DIRECTORY aux/
+              DESTINATION auxdir
+              PATTERN "CVS" EXCLUDE
+              PATTERN ".svn" EXCLUDE
+              PATTERN "*~" EXCLUDE)
+    endif()
+    if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/auxdir)
+      install(DIRECTORY auxdir/
+              DESTINATION auxdir
+              PATTERN "CVS" EXCLUDE
+              PATTERN ".svn" EXCLUDE
+              PATTERN "*~" EXCLUDE)
+    endif()
+    set_property(GLOBAL APPEND PROPERTY PROJ_HAS_AUX TRUE)
+  else()
+    message(FATAL_ERROR "No auxdir directory in the ${CMAKE_CURRENT_SOURCE_DIR} location")
+  endif()
 endfunction()
 
 #---------------------------------------------------------------------------------------------------
@@ -2295,12 +2383,16 @@ endfunction()
 # Declare that the package needs to install the content of the 'conf' directory.
 #---------------------------------------------------------------------------------------------------
 function(elements_install_conf_files)
-  install(DIRECTORY conf/
-          DESTINATION conf
-          PATTERN "CVS" EXCLUDE
-          PATTERN ".svn" EXCLUDE
-          PATTERN "*~" EXCLUDE)
-  set_property(GLOBAL APPEND PROPERTY PROJ_HAS_CONF TRUE)
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/conf)
+    install(DIRECTORY conf/
+            DESTINATION conf
+            PATTERN "CVS" EXCLUDE
+            PATTERN ".svn" EXCLUDE
+            PATTERN "*~" EXCLUDE)
+    set_property(GLOBAL APPEND PROPERTY PROJ_HAS_CONF TRUE)
+  else()
+    message(FATAL_ERROR "No conf directory in the ${CMAKE_CURRENT_SOURCE_DIR} location")
+  endif()
 endfunction()
 
 
@@ -2473,7 +2565,7 @@ set(${CMAKE_PROJECT_NAME}_LIBRARY_DIRS \${_dir}/lib)
 set(${CMAKE_PROJECT_NAME}_BINARY_PATH \${_dir}/bin \${_dir}/scripts)
 set(${CMAKE_PROJECT_NAME}_PYTHON_PATH \${_dir}/python)
 set(${CMAKE_PROJECT_NAME}_CONF_PATH \${_dir}/conf)
-set(${CMAKE_PROJECT_NAME}_AUX_PATH \${_dir}/aux)
+set(${CMAKE_PROJECT_NAME}_AUX_PATH \${_dir}/auxdir)
 
 set(${CMAKE_PROJECT_NAME}_COMPONENT_LIBRARIES ${component_libraries})
 set(${CMAKE_PROJECT_NAME}_LINKER_LIBRARIES ${linker_libraries})
