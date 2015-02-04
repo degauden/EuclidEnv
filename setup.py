@@ -5,6 +5,8 @@ import os
 import sys
 from subprocess import call
 
+__version__ = "1.9"
+
 
 def get_data_files(input_dir, output_dir):
     result = []
@@ -100,13 +102,17 @@ class my_install(_install):
                 if use_local_install:
                     proc_list += self.get_profile_scripts()
 
-            for p in proc_list:
-                print "Fixing %s with the %s prefix path" % (p, self.install_base)
-                call(["python", fixscript, self.install_base, p])
+                for p in proc_list:
+                    print "Fixing %s with the %s prefix path" % (p, self.install_base)
+                    call(["python", fixscript, self.install_base, p])
+
+                if os.path.exists(file2fix):
+                    call(
+                        ["python", fixscript, "-n", "this_install_version", self.install_base, p])
 
 
 setup(name="EuclidEnv",
-      version="1.9",
+      version=__version__,
       description="Euclid Environment Scripts",
       author="Hubert Degaudenzi",
       author_email="Hubert.Degaudenzi@unige.ch",
