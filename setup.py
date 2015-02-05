@@ -107,8 +107,9 @@ class my_install(_install):
                     call(["python", fixscript, self.install_base, p])
 
                 if os.path.exists(file2fix):
+                    print "Fixing %s with the %s version" % (file2fix, __version__)
                     call(
-                        ["python", fixscript, "-n", "this_install_version", self.install_base, p])
+                        ["python", fixscript, "-n", "this_install_version", __version__, file2fix])
 
 
 setup(name="EuclidEnv",
