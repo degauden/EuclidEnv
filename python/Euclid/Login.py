@@ -17,6 +17,13 @@ has_prefix = False
 if os.path.exists(my_own_prefix):
     has_prefix = True
 
+my_own_version = "%(this_install_version)s"
+has_version = False
+
+if not my_own_version.startswith("%"):
+    has_version = True
+
+
 if has_prefix:
     from distutils.sysconfig import get_python_lib
     if my_own_prefix != "/usr":
@@ -56,13 +63,16 @@ from Euclid.Platform import getBinaryOfType, build_types, default_build_type
 from Euclid.Platform import getBinaryTypeName
 from Euclid.Platform import getCompiler, getPlatformType, getArchitecture
 from Euclid.Platform import isBinaryType, NativeMachine
-from Euclid.Version import ParseSvnVersion
 from Euclid.Script import SourceScript
 from Euclid.Path import pathPrepend, getClosestPath
 import logging
 import shutil
 
-__version__ = ParseSvnVersion("$Id$", "$URL$")
+__version__ = ""
+
+if has_version:
+    __version__ = my_own_version
+
 #-------------------------------------------------------------------------
 # Helper functions
 
@@ -574,7 +584,7 @@ The type is to be chosen among the following list:
         opts = self.options
         if opts.log_level != "CRITICAL":
             self.addEcho("*" * 80)
-            vers = ParseSvnVersion("", "$URL$")
+            vers = __version__
             if vers:
                 self.addEcho(
                     "*" + ("---- Euclid Login %s ----" % vers).center(78) + "*")

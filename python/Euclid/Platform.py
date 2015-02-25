@@ -117,14 +117,16 @@ binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
                    "x86_64-slc6-gcc46-opt", "i686-slc6-gcc46-opt",
                    "x86_64-slc7-gcc48-opt", "i686-slc7-gcc48-opt",
                    "x86_64-fc19-gcc48-opt", "i686-fc19-gcc48-opt",
-                   "x86_64-fc20-gcc48-opt", "i686-fc20-gcc48-opt"
+                   "x86_64-fc20-gcc48-opt", "i686-fc20-gcc48-opt",
+                   "x86_64-fc21-gcc49-opt", "i686-fc21-gcc49-opt",
+                   "x86_64-osx109-clang34-opt"
                    ]
 # future possible supported binaries
 extra_binary_opt_list = ["x86_64-slc5-gcc34-opt", "i686-slc5-gcc34-opt",
                          "i686-slc5-gcc43-opt",
                          "i686-winxp-vc90-opt", "x86_64-winxp-vc90-opt",
-                         "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt",
-                         "x86_64-osx109-clang34-opt"]
+                         "osx105_ia32_gcc401", "x86_64-osx106-gcc42-opt"
+                         ]
 
 binary_type_list = {}
 extra_binary_type_list = {}
@@ -222,6 +224,7 @@ lsb_flavour_aliases = {
 
 flavor_runtime_compatibility = {
     "slc7": ["slc7"],
+    "fc21": ["fc21", "fc20", "fc19", "slc7"],
     "fc20": ["fc20", "fc19", "slc7"],
     "fc19": ["fc19", "slc7"],
     "slc6": ["slc6", "slc5"],
@@ -244,6 +247,7 @@ arch_runtime_compatiblity = {
 }
 
 flavor_runtime_equivalence = {
+    "fc21": ["fc21"],
     "fc20": ["fc20"],
     "fc19": ["fc19"],
     "slc7": ["slc7"],
@@ -256,6 +260,7 @@ flavor_runtime_equivalence = {
 }
 
 supported_compilers = {
+    "fc21": ["gcc49"],
     "fc20": ["gcc48"],
     "fc19": ["gcc48"],
     "slc7": ["gcc48"],
