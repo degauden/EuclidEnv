@@ -1,3 +1,9 @@
+2015-02-26  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.10
+	  - update the cmake library to the Elements 3.5 version.
+      - fixes for the MacPort warnings.
+
 2015-02-02  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.9
