@@ -5,7 +5,7 @@ python_loc=`python -c "from distutils.sysconfig import get_python_lib; print(get
 
 if [[ -r ${python_loc}/Euclid/Login.py ]]; then
   ELogin_tmpfile=`python ${python_loc}/Euclid/Login.py --shell=sh --mktemp "$@"`
-  ELoginStatus="$?"  
+  ELoginStatus="$?"
 else
   ELogin_tmpfile=`python -m Euclid.Login --shell=sh --mktemp "$@"`
   ELoginStatus="$?"
@@ -16,11 +16,15 @@ unset python_loc
 needs_cleanup=no
 
 if [[ "$ELoginStatus" = 0 && -n "$ELogin_tmpfile" ]]; then
-  . $ELogin_tmpfile
+  if [[ -r $ELogin_tmpfile ]]; then
+    . $ELogin_tmpfile
+    rm -f $ELogin_tmpfile
+  else
+    echo "$ELogin_tmpfile"
+  fi
   needs_cleanup=yes
 fi
 
-rm -f $ELogin_tmpfile
 unset ELogin_tmpfile
 
 if [[ "$needs_cleanup" = "yes" ]]; then
