@@ -78,6 +78,36 @@ class my_install(_install):
                 p_list.append(file2fix)
         return p_list
 
+    def fix_install_path(self):
+        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        proc_list = self.get_login_scripts()
+        file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
+        if os.path.exists(file2fix):
+            proc_list.append(file2fix)
+        if use_local_install:
+            proc_list += self.get_profile_scripts()
+
+        for p in proc_list:
+            print "Fixing %s with the %s prefix path" % (p, self.install_base)
+            call(["python", fixscript, self.install_base, p])
+
+        if os.path.exists(file2fix):
+            print "Fixing %s with the %s version" % (file2fix, __version__)
+            call(
+                ["python", fixscript, "-n", "this_install_version", __version__, file2fix])
+
+    def create_extended_init(self):
+        init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
+
+        if not os.path.exists(init_file):
+            print "Creating the %s file" % init_file
+            init_content = """# This is the initial setup for the Euclid namespace package
+from pkgutil import extend_path
+__path__ = extend_path(__path__, __name__)  # @ReservedAssignment
+
+"""
+            open(init_file, "w").write(init_content)
+
     def run(self):
         _install.run(self)
         # postinstall
@@ -91,26 +121,8 @@ class my_install(_install):
             # print "This is the install headers %s" % self.install_headers
             # print "This is the install scripts %s" % self.install_scripts
             # print "This is the install data %s" % self.install_data
-
-            if os.path.exists(os.path.join(self.install_scripts, "FixInstallPath")):
-                fixscript = os.path.join(
-                    self.install_scripts, "FixInstallPath")
-                proc_list = self.get_login_scripts()
-                file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
-                if os.path.exists(file2fix):
-                    proc_list.append(file2fix)
-                if use_local_install:
-                    proc_list += self.get_profile_scripts()
-
-                for p in proc_list:
-                    print "Fixing %s with the %s prefix path" % (p, self.install_base)
-                    call(["python", fixscript, self.install_base, p])
-
-                if os.path.exists(file2fix):
-                    print "Fixing %s with the %s version" % (file2fix, __version__)
-                    call(
-                        ["python", fixscript, "-n", "this_install_version", __version__, file2fix])
-
+            self.fix_install_path()
+            self.create_extended_init()
 
 setup(name="EuclidEnv",
       version=__version__,
