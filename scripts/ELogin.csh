@@ -7,7 +7,7 @@ set python_loc = `python -c "from distutils.sysconfig import get_python_lib; pri
 
 if ( -r ${python_loc}/Euclid/Login.py ) then
   set ELogin_tmpfile = `python ${python_loc}/Euclid/Login.py --shell=csh --mktemp ${*:q}`
-  set ELoginStatus = $?  
+  set ELoginStatus = $?
 else
   set ELogin_tmpfile = `python -m Euclid.Login --shell=csh --mktemp ${*:q}`
   set ELoginStatus = $?
@@ -18,11 +18,15 @@ unset python_loc
 set needs_cleanup = no
 
 if ( ! $ELoginStatus && "$ELogin_tmpfile" != "") then
-  source $ELogin_tmpfile
+if ( -r $ELogin_tmpfile ) then
+    source $ELogin_tmpfile
+    rm -f $ELogin_tmpfile
+  else
+    echo "$ELogin_tmpfile"
+  endif
   set needs_cleanup = yes
 endif
 
-rm -f $ELogin_tmpfile
 unset ELogin_tmpfile
 
 if ( "$needs_cleanup" == "yes" ) then
@@ -33,9 +37,9 @@ if ( "$needs_cleanup" == "yes" ) then
     else
       set stripscr=`/usr/bin/which StripPath.csh`
     endif
-  
+
     source ${stripscr}
-  
+
     unset stripscr
 
   endif
