@@ -53,6 +53,12 @@ ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREF
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Euclid/Login.py
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_install_version %{version} $python_loc/Euclid/Login.py
+if [[ ! -f "${python_loc}/Euclid/__init__.py" ]]; then
+cat << EOF > ${python_loc}/Euclid/__init__.py
+from pkgutil import extend_path
+__path__ = extend_path(__path__, __name__)  # @ReservedAssignment
+EOF
+fi
 
 
 %changelog
