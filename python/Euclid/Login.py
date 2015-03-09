@@ -622,6 +622,12 @@ The type is to be chosen among the following list:
 
     def main(self):
         opts = self.options
+
+        log = logging.getLogger()
+
+        if has_prefix:
+            log.debug("The installation prefix is: %s" % my_own_prefix)
+
         # first part: the environment variables
         if not opts.shell_only:
             self.setEnv()
