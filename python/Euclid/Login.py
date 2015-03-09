@@ -180,7 +180,7 @@ The type is to be chosen among the following list:
             log.debug("%s is set to %s" % (envvar, ev[envvar]))
             if not ev[envvar].endswith(os.pathsep):
                 log.warn(
-                    "The %s variable doesn't end with a %s" % (envvar, os.pathsep))
+                    "The %s variable doesn't end with a \"%s\"" % (envvar, os.pathsep))
 
 #-------------------------------------------------------------------------
     def setOwnPath(self):
@@ -275,7 +275,24 @@ The type is to be chosen among the following list:
             elif os.path.exists(the_loc):
                 ev["TEXINPUTS"] = the_loc
 
-        self._check_env_var("TEXINPUTS")
+#-------------------------------------------------------------------------
+
+    def fixPath(self):
+
+        ev = self.Environment()
+        log = logging.getLogger()
+
+        var_list = ["MANPATH", "TEXINPUTS"]
+
+        for v in var_list:
+            if v in ev:
+                if not ev[v].endswith(os.pathsep):
+                    log.debug("Adding \"%s\" to the %s variable" %
+                              (os.pathsep, v))
+                    ev[v] += os.pathsep
+
+        for v in var_list:
+            self._check_env_var(v)
 
 #-------------------------------------------------------------------------
 
@@ -311,7 +328,7 @@ The type is to be chosen among the following list:
                                             exist_check=opts.strip_path,
                                             unique=opts.strip_path)
 
-        self._check_env_var("MANPATH")
+        self.fixPath()
 
 #-------------------------------------------------------------------------
 
