@@ -318,15 +318,23 @@ The type is to be chosen among the following list:
                 log.debug("%s is set to %s" %
                           ("MACPORT_LOCATION", ev["MACPORT_LOCATION"]))
                 mac_bin = os.path.join(ev["MACPORT_LOCATION"], "bin")
-                ev["PATH"] = pathPrepend(ev["PATH"],
-                                         mac_bin,
-                                         exist_check=opts.strip_path,
-                                         unique=opts.strip_path)
+
+                if "PATH" in ev:
+                    ev["PATH"] = pathPrepend(ev["PATH"],
+                                             mac_bin,
+                                             exist_check=opts.strip_path,
+                                             unique=opts.strip_path)
+                elif os.path.exists(mac_bin):
+                    ev["PATH"] = mac_bin
+
                 mac_man = os.path.join(ev["MACPORT_LOCATION"], "man")
-                ev["MANPATH"] = pathPrepend(ev["MANPATH"],
-                                            mac_man,
-                                            exist_check=opts.strip_path,
-                                            unique=opts.strip_path)
+                if "MANPATH" in ev:
+                    ev["MANPATH"] = pathPrepend(ev["MANPATH"],
+                                                mac_man,
+                                                exist_check=opts.strip_path,
+                                                unique=opts.strip_path)
+                elif os.path.exists(mac_man):
+                    ev["MANPATH"] = mac_man
 
         self.fixPath()
 
