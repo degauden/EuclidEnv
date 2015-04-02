@@ -298,6 +298,7 @@ The type is to be chosen among the following list:
 
     def setPath(self):
         ev = self.Environment()
+        al = self.Aliases()
         opts = self.options
         log = logging.getLogger()
         if not opts.strip_path:
@@ -326,6 +327,8 @@ The type is to be chosen among the following list:
                                              unique=opts.strip_path)
                 elif os.path.exists(mac_bin):
                     ev["PATH"] = mac_bin
+
+                al["make"] = "gmake"
 
                 mac_man = os.path.join(ev["MACPORT_LOCATION"], "man")
                 if "MANPATH" in ev:
