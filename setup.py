@@ -36,7 +36,9 @@ for a in sys.argv:
 
 if use_local_install:
     etc_files = [("../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
-                                       os.path.join("data", "profile", "euclid.csh")]),
+                                       os.path.join("data", "profile", "euclid.csh"),
+                                       os.path.join("data", "profile", "tmpdir.sh"),
+                                       os.path.join("data", "profile", "tmpdir.csh")]),
                  ("../etc/sysconfig",
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
