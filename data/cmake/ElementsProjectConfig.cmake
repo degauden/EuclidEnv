@@ -635,7 +635,8 @@ macro(elements_project project version)
 
   set(CPACK_RPM_REGULAR_FILES "%files")
   set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
-%defattr(-,root,root,-)")
+%defattr(-,root,root,-)
+%{_prefix}")
   set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
 %{_prefix}/${CPACK_PACKAGE_NAME}Environment.xml")
   set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
@@ -645,6 +646,8 @@ macro(elements_project project version)
   get_property(regular_bin_objects GLOBAL PROPERTY REGULAR_BIN_OBJECTS)
 
   if(regular_bin_objects)
+    set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
+%{_bindir}")
     list(SORT regular_bin_objects)
     foreach(_do ${regular_bin_objects})
       set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
@@ -668,6 +671,8 @@ macro(elements_project project version)
   get_property(regular_lib_objects GLOBAL PROPERTY REGULAR_LIB_OBJECTS)
 
   if(regular_lib_objects)
+    set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
+%{libdir}")
     list(SORT regular_lib_objects)
     foreach(_do ${regular_lib_objects})
       set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
@@ -1009,7 +1014,13 @@ macro(_elements_use_other_projects)
   Check your configuration.
 ")
         endif()
-        include_directories(${${other_project}_INCLUDE_DIRS})
+        # include directories of other projects must be appended to the current
+        # list to preserve the order of overriding
+        include_directories(AFTER ${${other_project}_INCLUDE_DIRS})
+        # but in the INCLUDE_PATHS property the order gets reversed afterwards
+        # so we need to prepend instead of append
+        get_property(_inc_dirs GLOBAL PROPERTY INCLUDE_PATHS)
+        set_property(GLOBAL PROPERTY INCLUDE_PATHS ${${other_project}_INCLUDE_DIRS} ${_inc_dirs})
         set(binary_paths ${${other_project}_BINARY_PATH} ${binary_paths})
         foreach(exported ${${other_project}_EXPORTED_SUBDIRS})
           list(FIND known_packages ${exported} is_needed)
@@ -2084,6 +2095,11 @@ function(elements_add_unit_test name)
              COMMAND ${env_cmd} ${extra_env} --xml ${env_xml}
              ${executable}${exec_suffix})
 
+    set_property(TEST ${package}.${name} PROPERTY LABELS UnitTest ${package})
+    if(NOT ${${name}_UNIT_TEST_TYPE} STREQUAL "None")
+      set_property(TEST ${package}.${name} PROPERTY LABELS ${${name}_UNIT_TEST_TYPE})
+    endif()
+
     if(${name}_UNIT_TEST_TIMEOUT)
       set_property(TEST ${package}.${name} PROPERTY TIMEOUT ${${name}_UNIT_TEST_TIMEOUT})
     endif()
@@ -2160,6 +2176,7 @@ function(elements_add_test name)
            COMMAND ${env_cmd} ${extra_env} --xml ${env_xml}
            ${cmdline})
 
+  set_property(TEST ${package}.${name} PROPERTY LABELS ${package})
 
 
   if(ARG_DEPENDS)
@@ -2196,7 +2213,12 @@ endfunction()
 function(elements_install_headers)
   set(has_local_headers FALSE)
   foreach(hdr_dir ${ARGN})
-    if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${hdr_dir})
+    if(NOT IS_ABSOLUTE ${hdr_dir})
+      set(full_hdr_dir ${CMAKE_CURRENT_SOURCE_DIR}/${hdr_dir})
+    else()
+      set(full_hdr_dir ${hdr_dir})
+    endif()
+    if(IS_DIRECTORY ${full_hdr_dir})
       install(DIRECTORY ${hdr_dir}
               DESTINATION include
               FILES_MATCHING
@@ -2258,16 +2280,21 @@ function(add_python_test_dir subdir)
 
   elements_expand_sources(pysrcs ${CMAKE_CURRENT_SOURCE_DIR}/${subdir}/${PYTEST_ARG_PATTERN})
 
+  elements_get_package_name(package)
+
   if(PYFRMK_TEST)
     elements_add_test(${pytest_name}
                       COMMAND ${PYFRMK_TEST} ${pysrcs})
+    set_property(TEST ${package}.${pytest_name} PROPERTY LABELS Python UnitTest ${PYFRMK_NAME})
   else()
     if(NOT PYTHON_VERSION_STRING VERSION_LESS "2.7")
       elements_add_test(${pytest_name}
                         COMMAND ${PYTHON_EXECUTABLE} -m unittest discover -s ${CMAKE_CURRENT_SOURCE_DIR}/${subdir} -p "${PYTEST_ARG_PATTERN}" )
-
+      set_property(TEST ${package}.${pytest_name} PROPERTY LABELS Python UnitTest)
     endif()
   endif()
+
+
 
 endfunction()
 

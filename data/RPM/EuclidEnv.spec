@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.9
+Version:        1.10
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -53,9 +53,19 @@ ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREF
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Euclid/Login.py
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_install_version %{version} $python_loc/Euclid/Login.py
+if [[ ! -f "${python_loc}/Euclid/__init__.py" ]]; then
+cat << EOF > ${python_loc}/Euclid/__init__.py
+from pkgutil import extend_path
+__path__ = extend_path(__path__, __name__)  # @ReservedAssignment
+EOF
+fi
 
 
 %changelog
+* Thu Feb 26 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.10-1
+- update the cmake library to the Elements 3.5 version.
+- fixes for the MacPort warnings.
+
 * Mon Feb 2 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.9-1
 - update the cmake library to the Elements 3.4 version.
 - various fixes for the Darwin platform.

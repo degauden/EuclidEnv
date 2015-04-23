@@ -170,6 +170,19 @@ The type is to be chosen among the following list:
                               help="prevent the setup of the Mac Port location")
 
 #-------------------------------------------------------------------------
+
+    def _check_env_var(self, envvar):
+
+        ev = self.Environment()
+        log = logging.getLogger()
+
+        if envvar in ev:
+            log.debug("%s is set to %s" % (envvar, ev[envvar]))
+            if not ev[envvar].endswith(os.pathsep):
+                log.warn(
+                    "The %s variable doesn't end with a \"%s\"" % (envvar, os.pathsep))
+
+#-------------------------------------------------------------------------
     def setOwnPath(self):
         ev = self.Environment()
         opts = self.options
@@ -262,14 +275,30 @@ The type is to be chosen among the following list:
             elif os.path.exists(the_loc):
                 ev["TEXINPUTS"] = the_loc
 
-        if "TEXINPUTS" in ev:
-            log.debug("%s is set to %s" % ("TEXINPUTS", ev["TEXINPUTS"]))
+#-------------------------------------------------------------------------
 
+    def fixPath(self):
+
+        ev = self.Environment()
+        log = logging.getLogger()
+
+        var_list = ["MANPATH", "TEXINPUTS"]
+
+        for v in var_list:
+            if v in ev:
+                if not ev[v].endswith(os.pathsep):
+                    log.debug("Adding \"%s\" to the %s variable" %
+                              (os.pathsep, v))
+                    ev[v] += os.pathsep
+
+        for v in var_list:
+            self._check_env_var(v)
 
 #-------------------------------------------------------------------------
 
     def setPath(self):
         ev = self.Environment()
+        al = self.Aliases()
         opts = self.options
         log = logging.getLogger()
         if not opts.strip_path:
@@ -290,15 +319,27 @@ The type is to be chosen among the following list:
                 log.debug("%s is set to %s" %
                           ("MACPORT_LOCATION", ev["MACPORT_LOCATION"]))
                 mac_bin = os.path.join(ev["MACPORT_LOCATION"], "bin")
-                ev["PATH"] = pathPrepend(ev["PATH"],
-                                         mac_bin,
-                                         exist_check=opts.strip_path,
-                                         unique=opts.strip_path)
+
+                if "PATH" in ev:
+                    ev["PATH"] = pathPrepend(ev["PATH"],
+                                             mac_bin,
+                                             exist_check=opts.strip_path,
+                                             unique=opts.strip_path)
+                elif os.path.exists(mac_bin):
+                    ev["PATH"] = mac_bin
+
+                al["make"] = "gmake"
+
                 mac_man = os.path.join(ev["MACPORT_LOCATION"], "man")
-                ev["MANPATH"] = pathPrepend(ev["MANPATH"],
-                                            mac_man,
-                                            exist_check=opts.strip_path,
-                                            unique=opts.strip_path)
+                if "MANPATH" in ev:
+                    ev["MANPATH"] = pathPrepend(ev["MANPATH"],
+                                                mac_man,
+                                                exist_check=opts.strip_path,
+                                                unique=opts.strip_path)
+                elif os.path.exists(mac_man):
+                    ev["MANPATH"] = mac_man
+
+        self.fixPath()
 
 #-------------------------------------------------------------------------
 
@@ -622,6 +663,12 @@ The type is to be chosen among the following list:
 
     def main(self):
         opts = self.options
+
+        log = logging.getLogger()
+
+        if has_prefix:
+            log.debug("The installation prefix is: %s" % my_own_prefix)
+
         # first part: the environment variables
         if not opts.shell_only:
             self.setEnv()
