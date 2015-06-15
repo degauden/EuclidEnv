@@ -1,3 +1,6 @@
+include_guard()
+
+
 include(SGSPlatform)
 
 if(SGS_COMP STREQUAL "clang")
@@ -17,7 +20,16 @@ if(NOT BUILD_PREFIX_NAME)
 endif()
 
 message(STATUS "The build prefix is set to ${BUILD_PREFIX_NAME}")
-set_property(GLOBAL APPEND PROPERTY CMAKE_EXTRA_FLAGS "-DBUILD_PREFIX_NAME:STRING=${BUILD_PREFIX_NAME}")
+# set_property(GLOBAL APPEND PROPERTY CMAKE_EXTRA_FLAGS "-DBUILD_PREFIX_NAME:STRING=${BUILD_PREFIX_NAME}")
+
+if(NOT BUILD_SUBDIR)
+  file(RELATIVE_PATH build_subdir_name ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
+  set(BUILD_SUBDIR ${build_subdir_name} CACHE STRING "Relative location for the build" FORCE)
+endif()
+
+message(STATUS "The path to the sources is set to ${CMAKE_SOURCE_DIR}")
+message(STATUS "The path to the build is set to ${CMAKE_BINARY_DIR}")
+message(STATUS "The relative location for the build is set to ${BUILD_SUBDIR}")
 
 
 # Special defaults
@@ -87,7 +99,7 @@ if(NOT ELEMENTS_FLAGS_SET)
       CACHE STRING "Flags used by the compiler during all build types."
       FORCE)
   set(CMAKE_C_FLAGS
-      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal"
+      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal -Wno-unused-parameter"
       CACHE STRING "Flags used by the compiler during all build types."
       FORCE)
 
@@ -246,8 +258,8 @@ if ( APPLE AND (SGS_COMP STREQUAL "clang") )
   if(EXISTS ${macport_inc})
     include_directories(SYSTEM ${macport_inc})
     if (SGS_COMPVERS MATCHES "3[5-9]")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --system-header-prefix ${macport_inc}")
-      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --system-header-prefix ${macport_inc}")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem ${macport_inc}")
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -isystem ${macport_inc}")
     else()
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -isystem-prefix -Xclang ${macport_inc}")
       set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Xclang -isystem-prefix -Xclang  ${macport_inc}")
