@@ -377,9 +377,6 @@ endfunction()
 
 function(get_rpm_dep_list project_use package_suffix output_var)
 
-  debug_print_var(project_use)
-  debug_print_var(package_suffix)
-
   set(output_str_list)
 
   set(ARGN_ ${project_use})
@@ -392,24 +389,12 @@ function(get_rpm_dep_list project_use package_suffix output_var)
     list(GET ARGN_ 0 other_project)
     list(GET ARGN_ 1 other_project_version)
 
-    debug_print_var(other_project)
-    debug_print_var(other_project_version)
 
-#    if(NOT output_str_list)
-#      if(package_suffix)
-#        set(output_str_list "${other_project}-${package_suffix} = ${other_project_version}")
-#      else()
-#        set(output_str_list "${other_project} = ${other_project_version}")
-#      endif()
-#    else()
-      if(package_suffix)
-        set(output_str_list "${output_str_list}, ${other_project}-${package_suffix} = ${other_project_version}")
-      else()
-        set(output_str_list "${output_str_list}, ${other_project} = ${other_project_version}")
-      endif()
-#    endif()
-
-    debug_print_var(output_str_list)
+    if(package_suffix)
+      set(output_str_list "${output_str_list}, ${other_project}-${package_suffix} = ${other_project_version}")
+    else()
+      set(output_str_list "${output_str_list}, ${other_project} = ${other_project_version}")
+    endif()
 
     list(REMOVE_AT ARGN_ 0 1)
   endwhile()
