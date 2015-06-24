@@ -1,3 +1,9 @@
+2015-06-15  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.11
+	  - update the cmake library to the Elements 3.6 version.
+      - contains the CMake Bootstrap Toolchain.
+
 2015-02-26  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.10
