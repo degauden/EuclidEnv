@@ -44,6 +44,8 @@ endif()
 
 include(ElementsUtils)
 
+debug_message("    <---- Elements Main config: ${CMAKE_CURRENT_LIST_FILE} ---->   ")
+
 #-------------------------------------------------------------------------------
 # Basic configuration
 #-------------------------------------------------------------------------------
@@ -220,7 +222,6 @@ macro(elements_project project version)
   # paths where to locate scripts and executables
   set(binary_paths)
   foreach(modp ${CMAKE_MODULE_PATH})
-    debug_print_var(modp)
     if(EXISTS ${modp}/scripts)
       set(binary_paths ${binary_paths} ${modp}/scripts)
     endif()
@@ -2029,7 +2030,7 @@ endfunction()
 function(elements_add_unit_test name)
   if(ELEMENTS_BUILD_TESTS)
 
-    CMAKE_PARSE_ARGUMENTS(${name}_UNIT_TEST "" "EXECUTABLE;TYPE;TIMEOUT;WORKING_DIRECTORY" "ENVIRONMENT" ${ARGN})
+    CMAKE_PARSE_ARGUMENTS(${name}_UNIT_TEST "" "EXECUTABLE;TYPE;TIMEOUT;WORKING_DIRECTORY" "ENVIRONMENT;LABELS" ${ARGN})
 
     elements_common_add_build(${${name}_UNIT_TEST_UNPARSED_ARGUMENTS})
 
@@ -2108,6 +2109,10 @@ function(elements_add_unit_test name)
       set_property(TEST ${package}.${name} APPEND PROPERTY LABELS ${${name}_UNIT_TEST_TYPE})
     endif()
 
+    foreach(t ${${name}_UNIT_TEST_LABELS})
+      set_property(TEST ${package}.${name} APPEND PROPERTY LABELS ${t})
+    endforeach()
+
     if(${name}_UNIT_TEST_TIMEOUT)
       set_property(TEST ${package}.${name} PROPERTY TIMEOUT ${${name}_UNIT_TEST_TIMEOUT})
     endif()
@@ -2143,7 +2148,7 @@ endfunction()
 #
 #-------------------------------------------------------------------------------
 function(elements_add_test name)
-  CMAKE_PARSE_ARGUMENTS(ARG "FAILS" "TIMEOUT;WORKING_DIRECTORY" "ENVIRONMENT;FRAMEWORK;COMMAND;DEPENDS;PASSREGEX;FAILREGEX" ${ARGN})
+  CMAKE_PARSE_ARGUMENTS(ARG "FAILS" "TIMEOUT;WORKING_DIRECTORY" "ENVIRONMENT;FRAMEWORK;COMMAND;DEPENDS;PASSREGEX;FAILREGEX;LABELS" ${ARGN})
   elements_get_package_name(package)
 
   if(ARG_FRAMEWORK)
@@ -2185,6 +2190,10 @@ function(elements_add_test name)
            ${cmdline})
 
   set_property(TEST ${package}.${name} APPEND PROPERTY LABELS ${package})
+
+  foreach(t ${ARG_LABELS})
+    set_property(TEST ${package}.${name} APPEND PROPERTY LABELS ${t})
+  endforeach()
 
 
   if(ARG_DEPENDS)
@@ -2829,11 +2838,38 @@ macro(elements_external_project_environment)
   #list(REMOVE_ITEM library_path /usr/lib /lib /usr/lib64 /lib64 /usr/lib32 /lib32)
   set(old_library_path ${library_path})
   set(library_path)
+  set(lib_match_str "^(/usr|/usr/local)?/lib(32|64)?")
+  if(APPLE)
+    if($ENV{MACPORT_LOCATION})
+      set(lib_match_str "^(/usr|/usr/local|$ENV{MACPORT_LOCATION})?/lib(32|64)?")
+    else()
+      set(lib_match_str "^(/usr|/usr/local|/opt/local)?/lib(32|64)?")
+    endif()
+  endif()
   foreach(d ${old_library_path})
-    if(NOT d MATCHES "^(/usr|/usr/local)?/lib(32/64)?")
+    if(NOT d MATCHES ${lib_match_str})
       set(library_path ${library_path} ${d})
     endif()
   endforeach()
+
+  # Remove system paths from the binary_path
+  #list(REMOVE_ITEM binary_path /usr/bin /bin)
+  set(old_binary_path ${binary_path})
+  set(binary_path)
+  set(bin_match_str "^(/usr|/usr/local)?/bin")
+  if(APPLE)
+    if($ENV{MACPORT_LOCATION})
+      set(bin_match_str "^(/usr|/usr/local|$ENV{MACPORT_LOCATION})?/bin")
+    else()
+      set(bin_match_str "^(/usr|/usr/local|/opt/local)?/bin")
+    endif()
+  endif()
+  foreach(d ${old_binary_path})
+    if(NOT d MATCHES ${bin_match_str})
+      set(binary_path ${binary_path} ${d})
+    endif()
+  endforeach()
+
 
   foreach(var library_path python_path binary_path conf_path aux_path)
     if(${var})
