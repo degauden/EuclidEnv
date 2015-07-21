@@ -40,9 +40,9 @@ if use_local_install:
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
 else:
-    etc_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
+    etc_files = [("../../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
                                      os.path.join("data", "profile", "euclid.csh")]),
-                 ("/etc/sysconfig",
+                 ("../../etc/sysconfig",
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
 
