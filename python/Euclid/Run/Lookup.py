@@ -38,7 +38,7 @@ class MissingProjectError(NotFoundError):
         return 'cannot find project {0} {1} for {2} in {3}'.format(*self.args)
 
 
-def findProject(name, version, platform, implicit_latest=False):
+def findProject(name, version, platform):
     '''
     Find a Elements-based project in the directories specified in the 'path'
     variable.
@@ -67,7 +67,7 @@ def findProject(name, version, platform, implicit_latest=False):
             log.debug('OK')
             return d
     else:
-        if version == "latest" and implicit_latest:
+        if version == "latest":
             for b in path:
                 all_versions = versionSort(
                     getVersionDirs(os.path.join(b, name), bindir))
@@ -104,12 +104,12 @@ def parseManifest(manifest):
     return (used_projects, data_packages)
 
 
-def getEnvXmlPath(project, version, platform, implicit_latest=False):
+def getEnvXmlPath(project, version, platform):
     '''
     Return the list of directories to be added to the Env XML search path for
     a given project.
     '''
-    pdir = findProject(project, version, platform, implicit_latest)
+    pdir = findProject(project, version, platform)
     search_path = [pdir]
     # manifests to parse
     manifests = [os.path.join(pdir, 'manifest.xml')]
