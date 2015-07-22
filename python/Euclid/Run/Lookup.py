@@ -76,6 +76,48 @@ def findProject(name, version, platform):
         raise MissingProjectError(name, version, platform, path)
 
 
+def cleverFindProject(name, version, platform):
+    log.debug('findProject(%r, %r, %r)', name, version, platform)
+    project_dir = None
+    # standard project suffixes
+    suffixes = [os.path.join(name, version),
+                '{0}_{1}'.format(name, version),
+                os.path.join(name.upper(), '{0}_{1}'.format(name.upper(), version))]
+    bindir = os.path.join('InstallArea', platform)
+    # special case: with the default 'latest' version we allow the plain name
+    if version != 'latest':
+        # an explicit version is requested. It will be found either with the matching version
+        # subdirectory or with the correspond manifest.xml. The search is done
+        # in each path.
+        for b in path:
+            for d in [os.path.join(b, s, bindir)
+                      for s in suffixes]:
+                log.debug('check %s', d)
+                if os.path.exists(d):
+                    log.debug('OK')
+                    project_dir = d
+                    break
+
+            if not project_dir:
+                # look for implicit version. The manifest.xml file has to be
+                # checked.
+                d = os.path.join(b, name, bindir)
+                if os.path.exists(d):
+                    # maniffest.xml to be checked for the version
+                    pass
+
+    else:
+        # The version is latest. The last project with the highest version subdir or
+        # The first project without a version subdir met
+        # in the path will be used.
+        pass
+
+    if not project_dir:
+        raise MissingProjectError(name, version, platform, path)
+
+    return project_dir
+
+
 def parseManifest(manifest):
     '''
     Extract the list of required projects from a manifest.xml
