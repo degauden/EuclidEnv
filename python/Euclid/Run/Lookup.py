@@ -173,12 +173,20 @@ def getProjectFromManifest(manifest):
     @return: tuple with the project name and version as (name, version) 
     """
     from xml.dom.minidom import parse
-
     m = parse(manifest)
-    pl = m.getElementsByTagName("manifest")
-    c = pl.getElementsByTagName("project")
 
-    return (c.attributes["name"].value, c.attributes["version"].value)
+    def _iter(parent, child):
+        '''
+        Iterate over the tags in <parent><child/><child/></parent>.
+        '''
+        for pl in m.getElementsByTagName(parent):
+            for c in pl.getElementsByTagName(child):
+                yield c
+    # extract the list of used (project, version) from the manifest
+    projects = [(p.attributes['name'].value, p.attributes['version'].value)
+                for p in _iter('manifest', 'project')]
+
+    return projects[0]
 
 
 def getEnvXmlPath(project, version, platform):
