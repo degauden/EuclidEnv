@@ -38,45 +38,45 @@ class MissingProjectError(NotFoundError):
         return 'cannot find project {0} {1} for {2} in {3}'.format(*self.args)
 
 
+# def findProject(name, version, platform):
+#     '''
+#     Find a Elements-based project in the directories specified in the 'path'
+#     variable.
+#
+#     @param name: name of the project (case sensitive for local projects)
+#     @param version: version of the project
+#     @param platform: binary platform id
+#
+#     @return path to the project binary directory
+#     '''
+#     log.debug('findProject(%r, %r, %r)', name, version, platform)
+#     # standard project suffixes
+#     suffixes = [os.path.join(name, version),
+#                 '{0}_{1}'.format(name, version),
+#                 os.path.join(name.upper(), '{0}_{1}'.format(name.upper(), version))]
+#     # special case: with the default 'latest' version we allow the plain name
+#     if version == 'latest':
+#         suffixes.insert(0, name)
+#
+#     bindir = os.path.join('InstallArea', platform)
+#     for d in [os.path.join(b, s, bindir)
+#               for b in path
+#               for s in suffixes]:
+#         log.debug('check %s', d)
+#         if os.path.exists(d):
+#             log.debug('OK')
+#             return d
+#     else:
+#         if version == "latest":
+#             for b in path:
+#                 all_versions = versionSort(
+#                     getVersionDirs(os.path.join(b, name), bindir))
+#                 if all_versions:
+#                     return os.path.join(b, name, all_versions[-1], bindir)
+#         raise MissingProjectError(name, version, platform, path)
+
+
 def findProject(name, version, platform):
-    '''
-    Find a Elements-based project in the directories specified in the 'path'
-    variable.
-
-    @param name: name of the project (case sensitive for local projects)
-    @param version: version of the project
-    @param platform: binary platform id
-
-    @return path to the project binary directory
-    '''
-    log.debug('findProject(%r, %r, %r)', name, version, platform)
-    # standard project suffixes
-    suffixes = [os.path.join(name, version),
-                '{0}_{1}'.format(name, version),
-                os.path.join(name.upper(), '{0}_{1}'.format(name.upper(), version))]
-    # special case: with the default 'latest' version we allow the plain name
-    if version == 'latest':
-        suffixes.insert(0, name)
-
-    bindir = os.path.join('InstallArea', platform)
-    for d in [os.path.join(b, s, bindir)
-              for b in path
-              for s in suffixes]:
-        log.debug('check %s', d)
-        if os.path.exists(d):
-            log.debug('OK')
-            return d
-    else:
-        if version == "latest":
-            for b in path:
-                all_versions = versionSort(
-                    getVersionDirs(os.path.join(b, name), bindir))
-                if all_versions:
-                    return os.path.join(b, name, all_versions[-1], bindir)
-        raise MissingProjectError(name, version, platform, path)
-
-
-def cleverFindProject(name, version, platform):
     log.debug('findProject(%r, %r, %r)', name, version, platform)
     project_dir = None
     # standard project suffixes
