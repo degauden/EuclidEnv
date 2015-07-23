@@ -107,7 +107,7 @@ def findProject(name, version, platform):
                     # manifest.xml to be checked for the version
                     manifest = os.path.join(d, "manifest.xml")
                     if os.path.exists(manifest):
-                        (_, p_version) = parseManifest(manifest)[0][0]
+                        (_, p_version) = getProjectFromManifest(manifest)
                         if p_version == version:
                             project_dir = d
                             break
@@ -162,6 +162,23 @@ def parseManifest(manifest):
 #                     for p in _iter('used_data_pkgs', 'package')]
     data_packages = []
     return (used_projects, data_packages)
+
+
+def getProjectFromManifest(manifest):
+    """
+    Extract the project name and version from a manifest.xml
+    file.
+
+    @param manifest: path to the manifest file
+    @return: tuple with the project name and version as (name, version) 
+    """
+    from xml.dom.minidom import parse
+
+    m = parse(manifest)
+    pl = m.getElementsByTagName("manifest")
+    c = pl.getElementsByTagName("project")
+
+    return (c.attributes["name"].value, c.attributes["version"].value)
 
 
 def getEnvXmlPath(project, version, platform):
