@@ -102,15 +102,33 @@ def cleverFindProject(name, version, platform):
                 # look for implicit version. The manifest.xml file has to be
                 # checked.
                 d = os.path.join(b, name, bindir)
+                log.debug('check %s', d)
                 if os.path.exists(d):
-                    # maniffest.xml to be checked for the version
-                    pass
+                    # manifest.xml to be checked for the version
+                    manifest = os.path.join(d, "manifest.xml")
+                    if os.path.exists(manifest):
+                        (_, p_version) = parseManifest(manifest)[0][0]
+                        if p_version == version:
+                            project_dir = d
+                            break
 
     else:
         # The version is latest. The last project with the highest version subdir or
         # The first project without a version subdir met
         # in the path will be used.
-        pass
+        for b in path:
+            all_versions = versionSort(
+                getVersionDirs(os.path.join(b, name), bindir))
+            if all_versions:
+                project_dir = os.path.join(b, name, all_versions[-1], bindir)
+                break
+
+            if not project_dir:
+                d = os.path.join(b, name, bindir)
+                log.debug('check %s', d)
+                if os.path.exists(d):
+                    project_dir = d
+                    break
 
     if not project_dir:
         raise MissingProjectError(name, version, platform, path)
