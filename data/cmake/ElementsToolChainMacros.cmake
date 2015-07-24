@@ -246,19 +246,34 @@ function(_internal_find_projects2 projects_var config_file)
   
           set(suffixes)
           get_installed_project_suffixes(${name} ${version} ${BINARY_TAG} ${SGS_SYSTEM} suffixes)
-          find_file(${name_upper}_CONFIG_FILE NAMES ${name}Config.cmake
-                    PATH_SUFFIXES ${suffixes}
-                    PATHS ${pth}
-                    NO_DEFAULT_PATH)
+          foreach(suf ${suffixes})
+            set(tmp_cfg_file "${pth}/${suf}/${name}Config.cmake")
+            if(EXISTS ${tmp_cfg_file})
+              set(${name_upper}_CONFIG_FILE ${tmp_cfg_file})
+              break()
+            endif()
+          endforeach()
+#          find_file(${name_upper}_CONFIG_FILE NAMES ${name}Config.cmake
+#                    PATH_SUFFIXES ${suffixes}
+#                    PATHS ${pth}
+#                    NO_DEFAULT_PATH)
                   
+              
           if(NOT ${name_upper}_CONFIG_FILE)
             # lookup a project without a version subdir
             set(suffixes)
             get_installed_versionless_project_suffixes(${name} ${BINARY_TAG} ${SGS_SYSTEM} suffixes)
-            find_file(${name_upper}_CONFIG_FILE NAMES ${name}Config.cmake
-                      PATH_SUFFIXES ${suffixes}
-                      PATHS ${pth}
-                      NO_DEFAULT_PATH)
+            foreach(suf ${suffixes})
+              set(tmp_cfg_file "${pth}/${suf}/${name}Config.cmake")
+              if(EXISTS ${tmp_cfg_file})
+                set(${name_upper}_CONFIG_FILE ${tmp_cfg_file})
+                break()
+              endif()
+            endforeach()
+#            find_file(${name_upper}_CONFIG_FILE NAMES ${name}Config.cmake
+#                      PATH_SUFFIXES ${suffixes}
+#                      PATHS ${pth}
+#                      NO_DEFAULT_PATH)
             # check the internal version
             set(match_found FALSE)
             if(${${name_upper}_CONFIG_FILE})           
@@ -268,7 +283,6 @@ function(_internal_find_projects2 projects_var config_file)
             if(NOT ${match_found})
               unset(${name_upper}_CONFIG_FILE)
             endif()
-
 
           endif()
           if(${name_upper}_CONFIG_FILE)
