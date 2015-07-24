@@ -259,8 +259,11 @@ function(_internal_find_projects2 projects_var config_file)
                       PATH_SUFFIXES ${suffixes}
                       PATHS ${pth}
                       NO_DEFAULT_PATH)
-            # check the internal version           
-            check_project_version_from_file(${${name_upper}_CONFIG_FILE} ${name} ${version} match_found)
+            # check the internal version
+            set(match_found FALSE)
+            if(${${name_upper}_CONFIG_FILE})           
+              check_project_version_from_file(${${name_upper}_CONFIG_FILE} ${name} ${version} match_found)
+            endif()
             
             if(NOT ${match_found})
               unset(${name_upper}_CONFIG_FILE)
