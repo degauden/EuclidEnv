@@ -134,18 +134,46 @@ function(get_full_binary_list binary_tag binary_base full_list)
 
 endfunction()
 
+#function(get_project_bases project version full_list)
+#
+#  set(the_list ${project})
+#  if(NOT ELEMENTS_USE_CASE_SENSITIVE_PROJECTS)
+#    string(TOUPPER ${project} project_upcase)
+#    list(APPEND the_list ${project_upcase}/${project_upcase}_${version})
+#  endif()
+#
+#  list(APPEND the_list ${project}/${version})
+#  list(APPEND the_list ${project}_${version})
+#
+#  if(NOT ELEMENTS_USE_CASE_SENSITIVE_PROJECTS)
+#    list(APPEND the_list ${project_upcase})
+#  endif()
+#
+#  list(REMOVE_DUPLICATES the_list)
+#
+#  set(${full_list} ${the_list} PARENT_SCOPE)
+#
+#endfunction()
+
+
 function(get_project_bases project version full_list)
 
-  set(the_list ${project})
+  set(the_list)
+  
+  if(version)
+    list(APPEND the_list ${project}/${version})
+    list(APPEND the_list ${project}_${version})
+  else()
+    list(APPEND the_list ${project})  
+  endif()
+  
   if(NOT ELEMENTS_USE_CASE_SENSITIVE_PROJECTS)
     string(TOUPPER ${project} project_upcase)
-    list(APPEND the_list ${project_upcase}/${project_upcase}_${version})
-  endif()
-
-  list(APPEND the_list ${project}/${version})
-
-  if(NOT ELEMENTS_USE_CASE_SENSITIVE_PROJECTS)
-    list(APPEND the_list ${project_upcase})
+    if(version)
+      list(APPEND the_list ${project_upcase}/${project_upcase}_${version})
+    else()
+      list(APPEND the_list ${project_upcase})    
+    endif()
   endif()
 
   list(REMOVE_DUPLICATES the_list)

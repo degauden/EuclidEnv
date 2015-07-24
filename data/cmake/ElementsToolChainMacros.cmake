@@ -237,24 +237,45 @@ function(_internal_find_projects2 projects_var config_file)
         # project_dep_list format is "<proj1> <vers1> <proj2> <vers2>..."
         # we extract two entries per iteration
         list(GET project_dep_list 0 name)
-           list(GET project_dep_list 1 version)
-           list(REMOVE_AT project_dep_list 0 1)
-           string(TOUPPER ${name} name_upper)
-           # look for the configuration file of the project
-           set(suffixes)
-           get_installed_project_suffixes(${name} ${version} ${BINARY_TAG} ${SGS_SYSTEM} suffixes)
-           find_file(${name_upper}_CONFIG_FILE NAMES ${name}Config.cmake
-                     PATH_SUFFIXES ${suffixes}
-                     PATHS ENV CMAKE_PROJECT_PATH
-                     NO_DEFAULT_PATH)
+        list(GET project_dep_list 1 version)
+        list(REMOVE_AT project_dep_list 0 1)
+        string(TOUPPER ${name} name_upper)
+        # look for the configuration file of the project
+        string(REPLACE ":" ";" path_list $ENV{PATH})
+        foreach(pth ${path_list})
+  
+          set(suffixes)
+          get_installed_project_suffixes(${name} ${version} ${BINARY_TAG} ${SGS_SYSTEM} suffixes)
+          find_file(${name_upper}_CONFIG_FILE NAMES ${name}Config.cmake
+                    PATH_SUFFIXES ${suffixes}
+                    PATHS ${pth}
+                    NO_DEFAULT_PATH)
+                  
+          if(NOT ${name_upper}_CONFIG_FILE)
+            # lookup a project without a version subdir
+            set(suffixes)
+            get_installed_project_suffixes(${name} "" ${BINARY_TAG} ${SGS_SYSTEM} suffixes)
+            find_file(${name_upper}_CONFIG_FILE NAMES ${name}Config.cmake
+                      PATH_SUFFIXES ${suffixes}
+                      PATHS ${pth}
+                      NO_DEFAULT_PATH)
+            # check the internal version           
+            check_project_version_from_file(${${name_upper}_CONFIG_FILE} ${name} ${version} match_found)
+            
+            if(NOT ${match_found})
+              unset(${name_upper}_CONFIG_FILE)
+            endif()
+
+
+          endif()
+          if(${name_upper}_CONFIG_FILE)
+            # file found, lets get out of the foreach
+            break()
+          endif()
+        endforeach()
 
         # recursion
         if(${name_upper}_CONFIG_FILE)
-            # protect against infinite recursion
-#            list(FIND collected_config2 ${${name_upper}_CONFIG_FILE} conf_pos)
-#            if(NOT conf_pos EQUAL -1)
-              # message(FATAL_ERROR "Infinite recursion detected at project ${name}")
-#            endif()
             list(FIND collected_config2 ${${name_upper}_CONFIG_FILE} conf_pos)
 
             if(conf_pos EQUAL -1)
