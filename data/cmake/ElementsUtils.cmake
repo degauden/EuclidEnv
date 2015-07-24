@@ -160,19 +160,31 @@ function(get_project_bases project version full_list)
 
   set(the_list)
   
-  if(version)
-    list(APPEND the_list ${project}/${version})
-    list(APPEND the_list ${project}_${version})
-  else()
-    list(APPEND the_list ${project})  
-  endif()
+  list(APPEND the_list ${project}/${version})
+  list(APPEND the_list ${project}_${version})
   
   if(NOT ELEMENTS_USE_CASE_SENSITIVE_PROJECTS)
     string(TOUPPER ${project} project_upcase)
-    if(version)
-      list(APPEND the_list ${project_upcase}/${project_upcase}_${version})
-    else()
-      list(APPEND the_list ${project_upcase})    
+    list(APPEND the_list ${project_upcase}/${project_upcase}_${version})
+    endif()
+  endif()
+
+  list(REMOVE_DUPLICATES the_list)
+
+  set(${full_list} ${the_list} PARENT_SCOPE)
+
+endfunction()
+
+
+function(get_versionless_project_bases project full_list)
+
+  set(the_list)
+  
+  list(APPEND the_list ${project})
+  
+  if(NOT ELEMENTS_USE_CASE_SENSITIVE_PROJECTS)
+    string(TOUPPER ${project} project_upcase)
+    list(APPEND the_list ${project_upcase})
     endif()
   endif()
 
@@ -247,6 +259,30 @@ function(get_installed_project_suffixes project version binary_tag binary_base s
 
 endfunction()
 
+
+
+function(get_installed_versionless_project_suffixes project binary_tag binary_base suffixes)
+
+  get_full_binary_list(${binary_tag} ${binary_base} full_binary_list)
+
+  get_versionless_project_bases(${project} full_bases_list)
+
+  set(install_base "InstallArea")
+
+  set(the_list)
+
+  foreach(_s1 ${full_bases_list})
+    foreach(_s3 ${full_binary_list})
+      list(APPEND the_list ${_s1}/${install_base}/${_s3})
+    endforeach()
+  endforeach()
+
+  list(REMOVE_DUPLICATES the_list)
+
+  set(${suffixes} ${the_list} PARENT_SCOPE)
+
+
+endfunction()
 
 
 function(find_local_project project version path_list proj_loc)

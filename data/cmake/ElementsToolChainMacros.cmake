@@ -254,7 +254,7 @@ function(_internal_find_projects2 projects_var config_file)
           if(NOT ${name_upper}_CONFIG_FILE)
             # lookup a project without a version subdir
             set(suffixes)
-            get_installed_project_suffixes(${name} "" ${BINARY_TAG} ${SGS_SYSTEM} suffixes)
+            get_installed_versionless_project_suffixes(${name} ${BINARY_TAG} ${SGS_SYSTEM} suffixes)
             find_file(${name_upper}_CONFIG_FILE NAMES ${name}Config.cmake
                       PATH_SUFFIXES ${suffixes}
                       PATHS ${pth}
