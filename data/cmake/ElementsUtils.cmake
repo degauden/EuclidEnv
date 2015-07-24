@@ -432,6 +432,7 @@ function(check_project_version_from_file config_file project version match_found
     set(has_found TRUE)
   endif()
 
+
   set(${match_found} ${has_found} PARENT_SCOPE)
 
 endfunction()
