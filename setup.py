@@ -5,7 +5,7 @@ import os
 import sys
 from subprocess import call
 
-__version__ = "1.11"
+__version__ = "1.12"
 
 
 def get_data_files(input_dir, output_dir):
@@ -40,9 +40,9 @@ if use_local_install:
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
 else:
-    etc_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
-                                     os.path.join("data", "profile", "euclid.csh")]),
-                 ("/etc/sysconfig",
+    etc_files = [("../../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
+                                          os.path.join("data", "profile", "euclid.csh")]),
+                 ("../../etc/sysconfig",
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
 

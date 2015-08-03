@@ -6,7 +6,7 @@ assert sys.version_info >= (2, 6), "Python >= 2.6 is required"
 def _defaultPath():
     '''
     Return the default search path, based on the variables CMAKE_PREFIX_PATH and
-    CMTPROJECTPATH.
+    CMAKE_PROJECT_PATH.
     '''
     import os
     env_vars = ['EUCLIDPROJECTPATH']
