@@ -1,3 +1,9 @@
+2015-08-05  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.12.1
+	- fix of the conversion of the CMAKE_PROJECT_PATH environment
+	  variable into a cmake list
+
 2015-08-03  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.12 

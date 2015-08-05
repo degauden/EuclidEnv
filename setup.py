@@ -5,7 +5,7 @@ import os
 import sys
 from subprocess import call
 
-__version__ = "1.12"
+__version__ = "1.12.1"
 
 
 def get_data_files(input_dir, output_dir):
