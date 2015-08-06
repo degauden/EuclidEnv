@@ -5,7 +5,7 @@ import os
 import sys
 from subprocess import call
 
-__version__ = "1.10"
+__version__ = "1.12.1"
 
 
 def get_data_files(input_dir, output_dir):
@@ -33,7 +33,6 @@ for a in sys.argv:
         if a.startswith(b):
             use_local_install = True
 
-
 if use_local_install:
     etc_files = [("../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
                                        os.path.join("data", "profile", "euclid.csh"),
@@ -43,20 +42,36 @@ if use_local_install:
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
 else:
-    etc_files = [("/etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
-                                     os.path.join("data", "profile", "euclid.csh")]),
-                 ("/etc/sysconfig",
+    etc_files = [("../../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
+                                          os.path.join("data", "profile", "euclid.csh")]),
+                 ("../../etc/sysconfig",
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
 
 
+use_custom_install_root = False
+for a in sys.argv:
+    if a.startswith("--root"):
+        # use custom install root. Possibly creating a
+        # RPM. This will prevent the post install treatment.
+        use_custom_install_root = True
+
+
 skip_install_fix = False
+
 
 # disable the postinstall script if needed. This is especially needed for the RPM
 # creation. In that case the postinstall is done by the RPM spec file.
+# This option is obsolete: rather use --skip-custom-postinstall
 for a in sys.argv:
     if a.startswith("--skip-install-fix"):
         skip_install_fix = True
+        sys.argv.remove(a)
+
+skip_custom_postinstall = skip_install_fix
+for a in sys.argv:
+    if a.startswith("--skip-custom-postinstall"):
+        skip_custom_postinstall = True
         sys.argv.remove(a)
 
 
@@ -110,10 +125,14 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
 """
             open(init_file, "w").write(init_content)
 
+    def custom_post_install(self):
+        self.fix_install_path()
+        self.create_extended_init()
+
     def run(self):
         _install.run(self)
         # postinstall
-        if not skip_install_fix:
+        if not skip_custom_postinstall:
             # print "This is the install base %s" % self.install_base
             # print "This is the install platbase %s" % self.install_platbase
             # print "This is the install root %s" % self.root
@@ -123,8 +142,7 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
             # print "This is the install headers %s" % self.install_headers
             # print "This is the install scripts %s" % self.install_scripts
             # print "This is the install data %s" % self.install_data
-            self.fix_install_path()
-            self.create_extended_init()
+            self.custom_post_install()
 
 setup(name="EuclidEnv",
       version=__version__,

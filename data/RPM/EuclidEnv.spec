@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.10
+Version:        1.12.1
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -62,6 +62,20 @@ fi
 
 
 %changelog
+* Wed Aug 5 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.1-1
+- update to the cmake library of the Elements 3.7.1 version
+- fix of the conversion of the CMAKE_PROJECT_PATH environment variable 
+  into a cmake list
+
+* Mon Aug 3 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12-1
+- update the cmake library to the Elements 3.7 version
+- fix the E-Run command to work with the User_area without version
+  directory.
+
+* Mon Jun 15 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.11-1
+- update the cmake library to the Elements 3.6 version.
+- contains the CMake Bootstrap Toolchain.
+
 * Thu Feb 26 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.10-1
 - update the cmake library to the Elements 3.5 version.
 - fixes for the MacPort warnings.

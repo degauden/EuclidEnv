@@ -1,3 +1,22 @@
+2015-08-05  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.12.1
+	- fix of the conversion of the CMAKE_PROJECT_PATH environment
+	  variable into a cmake list
+
+2015-08-03  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.12 
+	- update the cmake library to the Elements 3.7 version
+    - fix the E-Run command to work with the User_area without 
+      version directory.
+
+2015-06-15  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.11
+	  - update the cmake library to the Elements 3.6 version.
+      - contains the CMake Bootstrap Toolchain.
+
 2015-02-26  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.10
