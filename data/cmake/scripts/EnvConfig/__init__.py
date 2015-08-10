@@ -12,7 +12,7 @@ path = ['.']
 if 'ENVXMLPATH' in os.environ:
     path.extend(os.environ['ENVXMLPATH'].split(os.pathsep))
 
-import Control
+import Control  # @UnresolvedImport
 
 
 class EnvError(RuntimeError):
