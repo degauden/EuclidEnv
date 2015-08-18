@@ -552,8 +552,8 @@ The type is to be chosen among the following list:
             ev["EUCLIDPROJECTPATH"] = opts.sharedarea
 
         if "EUCLIDPROJECTPATH" not in ev:
-            if os.path.exists("/opt/euclid"):
-                ev["EUCLIDPROJECTPATH"] = "/opt/euclid"
+            if os.path.exists("%(this_euclid_base)s"):
+                ev["EUCLIDPROJECTPATH"] = "%(this_euclid_base)s"
 
         if "EUCLIDPROJECTPATH" in ev:
             prefix_path.append(ev["EUCLIDPROJECTPATH"])
