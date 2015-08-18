@@ -1,3 +1,9 @@
+2015-08-18  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.12.2 
+	- update to the cmake library of the Elements 3.7.2 version
+    - fix a bug in the toolchain crawling of projects
+    
 2015-08-05  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.12.1
