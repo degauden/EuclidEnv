@@ -115,6 +115,7 @@ class my_install(_install):
             call(["python", fixscript, self.install_base, p])
 
     def fix_version(self):
+        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
             print "Fixing %s with the %s version" % (file2fix, __version__)
