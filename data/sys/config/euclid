@@ -1,2 +1,2 @@
-EUCLID_BASE=/opt/euclid
+EUCLID_BASE=%(this_euclid_base)s
 EUCLID_USE_BASE=no

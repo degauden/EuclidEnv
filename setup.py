@@ -46,7 +46,6 @@ else:
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
 
-
 use_custom_install_root = False
 for a in sys.argv:
     if a.startswith("--root"):
@@ -70,6 +69,16 @@ skip_custom_postinstall = skip_install_fix
 for a in sys.argv:
     if a.startswith("--skip-custom-postinstall"):
         skip_custom_postinstall = True
+        sys.argv.remove(a)
+
+this_euclid_base = "/opt/euclid"
+for a in sys.argv:
+    if a.startswith("--euclid-base"):
+        # TODO implement the extratction of the value from
+        # the option
+        e_base = a.split("=")[1:]
+        if len(e_base) == 1:
+            this_euclid_base = e_base[0]
         sys.argv.remove(a)
 
 
@@ -101,15 +110,46 @@ class my_install(_install):
             proc_list.append(file2fix)
         if use_local_install:
             proc_list += self.get_profile_scripts()
-
         for p in proc_list:
             print "Fixing %s with the %s prefix path" % (p, self.install_base)
             call(["python", fixscript, self.install_base, p])
 
+    def fix_version(self):
+        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
             print "Fixing %s with the %s version" % (file2fix, __version__)
             call(
                 ["python", fixscript, "-n", "this_install_version", __version__, file2fix])
+
+    def get_sysconfig_files(self):
+        p_list = []
+        file2fix = os.path.join(
+            self.install_base, "etc", "sysconfig",  "euclid")
+        if os.path.exists(file2fix):
+            p_list.append(file2fix)
+        return p_list
+
+    def get_config_scripts(self):
+        p_list = []
+        for s in ["sh", "csh"]:
+            file2fix = os.path.join(
+                self.install_scripts, "%s.%s" % ("Euclid_config", s))
+            if os.path.exists(file2fix):
+                p_list.append(file2fix)
+        return p_list
+
+    def fix_euclid_base(self):
+        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        proc_list = self.get_sysconfig_files()
+        proc_list += self.get_config_scripts()
+        file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
+        if os.path.exists(file2fix):
+            proc_list.append(file2fix)
+        for p in proc_list:
+            print "Fixing %s with the %s euclid base" % (p, this_euclid_base)
+            call(
+                ["python", fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
     def create_extended_init(self):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
@@ -125,6 +165,8 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
 
     def custom_post_install(self):
         self.fix_install_path()
+        self.fix_version()
+        self.fix_euclid_base()
         self.create_extended_init()
 
     def run(self):

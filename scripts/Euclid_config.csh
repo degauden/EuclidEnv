@@ -9,7 +9,7 @@ set my_own_prefix0 = "%(this_install_prefix)s"
 
 
 # default values if no config file is found
-setenv EUCLID_BASE /opt/euclid
+setenv EUCLID_BASE %(this_euclid_base)s
 setenv EUCLID_USE_BASE no
 
 
