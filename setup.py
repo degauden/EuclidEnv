@@ -46,7 +46,6 @@ else:
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
 
-this_euclid_base = "/opt/euclid"
 use_custom_install_root = False
 for a in sys.argv:
     if a.startswith("--root"):
@@ -70,6 +69,16 @@ skip_custom_postinstall = skip_install_fix
 for a in sys.argv:
     if a.startswith("--skip-custom-postinstall"):
         skip_custom_postinstall = True
+        sys.argv.remove(a)
+
+this_euclid_base = "/opt/euclid"
+for a in sys.argv:
+    if a.startswith("--euclid-base"):
+        # TODO implement the extratction of the value from
+        # the option
+        e_base = a.spit("=")[1:]
+        if len(e_base) == 1:
+            this_euclid_base = e_base[0]
         sys.argv.remove(a)
 
 
