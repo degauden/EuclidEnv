@@ -76,7 +76,7 @@ for a in sys.argv:
     if a.startswith("--euclid-base"):
         # TODO implement the extratction of the value from
         # the option
-        e_base = a.spit("=")[1:]
+        e_base = a.split("=")[1:]
         if len(e_base) == 1:
             this_euclid_base = e_base[0]
         sys.argv.remove(a)
