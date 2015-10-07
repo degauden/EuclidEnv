@@ -13,7 +13,7 @@ BuildArch:      noarch
 BuildRequires:  python-devel
 Prefix:         /usr
 Prefix:         /etc
-Prefix:			/opt/euclid
+Prefix:         /opt/euclid
 
 %description
 This package include the scripts to for setting up the run-time and

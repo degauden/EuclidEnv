@@ -184,6 +184,7 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
             # print "This is the install data %s" % self.install_data
             self.custom_post_install()
 
+
 setup(name="EuclidEnv",
       version=__version__,
       description="Euclid Environment Scripts",
