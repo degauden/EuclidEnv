@@ -1,16 +1,23 @@
+2015-10-07  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.13
+	- update to the cmake library of Elements 3.8 
+        - introduction of the draft generation of the python
+          SWIG bindings
+
 2015-09-22  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.12.3
 	- update to the cmake library of the Elements 3.7.3 version
-    - critical bug fix to locate Elements in the release 
-      area (/opt/euclid)
-	
+        - critical bug fix to locate Elements in the release 
+          area (/opt/euclid)
+
 2015-08-18  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.12.2 
 	- update to the cmake library of the Elements 3.7.2 version
-    - fix a bug in the toolchain crawling of projects
-    
+        - fix a bug in the toolchain crawling of projects
+
 2015-08-05  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.12.1
