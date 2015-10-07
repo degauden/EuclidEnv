@@ -496,7 +496,7 @@ The type is to be chosen among the following list:
                 log.debug("Reusing %s BINARY_TAG to set it to %s mode" %
                           (theconf, self._target_binary_type))
                 theconf = getBinaryOfType(theconf, self._target_binary_type)
-                log.debug("BINARY_TAG set to" % theconf)
+                log.debug("BINARY_TAG set to %s" % theconf)
             else:
                 self._target_binary_type = getBinaryTypeName(theconf)
             self.binary = getArchitecture(theconf)
