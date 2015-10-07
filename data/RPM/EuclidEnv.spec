@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.12.2
+Version:        1.13
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -66,6 +66,10 @@ fi
 
 
 %changelog
+* Wed Oct 7 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.13-1
+- update to the cmake library of Elements 3.8 
+- introduction of the draft generation of the python SWIG bindings
+
 * Tue Aug 18 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.2-1
 - update to the cmake library of the Elements 3.7.2 version
 - fix a bug in the toolchain crawling of projects

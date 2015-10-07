@@ -1,3 +1,10 @@
+2015-10-07  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.13
+	- update to the cmake library of Elements 3.8 
+    - introduction of the draft generation of the python
+      SWIG bindings
+	 
 2015-08-18  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.12.2 
