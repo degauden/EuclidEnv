@@ -117,18 +117,20 @@ def findProject(name, version, platform):
         # The first project without a version subdir met
         # in the path will be used.
         for b in path:
-            all_versions = versionSort(
-                getVersionDirs(os.path.join(b, name), bindir))
-            if all_versions:
-                project_dir = os.path.join(b, name, all_versions[-1], bindir)
-                break
-
-            if not project_dir:
-                d = os.path.join(b, name, bindir)
-                log.debug('check %s', d)
-                if os.path.exists(d):
-                    project_dir = d
+            if os.path.exists(os.path.join(b, name)):
+                all_versions = versionSort(
+                    getVersionDirs(os.path.join(b, name), bindir))
+                if all_versions:
+                    project_dir = os.path.join(
+                        b, name, all_versions[-1], bindir)
                     break
+
+                if not project_dir:
+                    d = os.path.join(b, name, bindir)
+                    log.debug('check %s', d)
+                    if os.path.exists(d):
+                        project_dir = d
+                        break
 
     if not project_dir:
         raise MissingProjectError(name, version, platform, path)

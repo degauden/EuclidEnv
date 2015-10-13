@@ -1,3 +1,10 @@
+2015-10-13  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.13.1
+	* python/Euclid/Run/Lookup.py: Bugfix. The E-Run command was not 
+	checking the existence of the directory of a project before trying 
+	to list its version subdirectories.
+
 2015-10-07  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.13
