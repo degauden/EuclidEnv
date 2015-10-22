@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.10
+Version:        1.13.1
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -13,6 +13,7 @@ BuildArch:      noarch
 BuildRequires:  python-devel
 Prefix:         /usr
 Prefix:         /etc
+Prefix:         /opt/euclid
 
 %description
 This package include the scripts to for setting up the run-time and
@@ -53,6 +54,9 @@ ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREF
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $RPM_INSTALL_PREFIX0 $python_loc/Euclid/Login.py
 ${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_install_version %{version} $python_loc/Euclid/Login.py
+${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $RPM_INSTALL_PREFIX2 $RPM_INSTALL_PREFIX1/sysconfig/euclid
+${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $RPM_INSTALL_PREFIX2 $RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
+${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $RPM_INSTALL_PREFIX2 $python_loc/Euclid/Login.py
 if [[ ! -f "${python_loc}/Euclid/__init__.py" ]]; then
 cat << EOF > ${python_loc}/Euclid/__init__.py
 from pkgutil import extend_path
@@ -62,6 +66,32 @@ fi
 
 
 %changelog
+* Tue Oct 13 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.13.1-1
+- Bugfix. The E-Run command was not checking the existence of the
+  directory of a project before trying to list its version subdirectories.
+
+* Wed Oct 7 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.13-1
+- update to the cmake library of Elements 3.8 
+- introduction of the draft generation of the python SWIG bindings
+
+* Tue Aug 18 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.2-1
+- update to the cmake library of the Elements 3.7.2 version
+- fix a bug in the toolchain crawling of projects
+
+* Wed Aug 5 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.1-1
+- update to the cmake library of the Elements 3.7.1 version
+- fix of the conversion of the CMAKE_PROJECT_PATH environment variable 
+  into a cmake list
+
+* Mon Aug 3 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12-1
+- update the cmake library to the Elements 3.7 version
+- fix the E-Run command to work with the User_area without version
+  directory.
+
+* Mon Jun 15 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.11-1
+- update the cmake library to the Elements 3.6 version.
+- contains the CMake Bootstrap Toolchain.
+
 * Thu Feb 26 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.10-1
 - update the cmake library to the Elements 3.5 version.
 - fixes for the MacPort warnings.

@@ -479,28 +479,26 @@ The type is to be chosen among the following list:
         self.platform = None
         self.compdef = None
 
-        if self._target_binary_type:
-            # the type has been explicitly set on the command line as argument
-            if opts.binary_tag:
-                log.debug("Ignoring the provided BINARY_TAG %s" %
-                          opts.binary_tag)
-            theconf = self.getSupportedBinaryTag()
+        if opts.binary_tag:
+            # the binary has either beeen passed with the -b option or
+            # with the BINARY_TAG env variable
+            log.debug("Using the provided BINARY_TAG %s" % opts.binary_tag)
+            theconf = opts.binary_tag
         else:
-            if opts.binary_tag:
-                # the binary has either beeen passed with the -b option or
-                # with the BINARY_TAG env variable
-                log.debug("Using the provided BINARY_TAG %s" % opts.binary_tag)
-                theconf = opts.binary_tag
-            else:
-                # the type is completely guessed
-                theconf = self.getSupportedBinaryTag()
-                if not theconf:
-                    log.debug("Falling back on the native BINARY_TAG")
-                    theconf = self._nativemachine.nativeBinaryTag()
-            if theconf:
-                self._target_binary_type = getBinaryTypeName(theconf)
+            # the type is completely guessed
+            theconf = self.getSupportedBinaryTag()
+            if not theconf:
+                log.debug("Falling back on the native BINARY_TAG")
+                theconf = self._nativemachine.nativeBinaryTag()
 
         if theconf:
+            if self._target_binary_type:
+                log.debug("Reusing %s BINARY_TAG to set it to %s mode" %
+                          (theconf, self._target_binary_type))
+                theconf = getBinaryOfType(theconf, self._target_binary_type)
+                log.debug("BINARY_TAG set to %s" % theconf)
+            else:
+                self._target_binary_type = getBinaryTypeName(theconf)
             self.binary = getArchitecture(theconf)
             self.platform = getPlatformType(theconf)
             self.compdef = getCompiler(theconf)
@@ -552,8 +550,8 @@ The type is to be chosen among the following list:
             ev["EUCLIDPROJECTPATH"] = opts.sharedarea
 
         if "EUCLIDPROJECTPATH" not in ev:
-            if os.path.exists("/opt/euclid"):
-                ev["EUCLIDPROJECTPATH"] = "/opt/euclid"
+            if os.path.exists("%(this_euclid_base)s"):
+                ev["EUCLIDPROJECTPATH"] = "%(this_euclid_base)s"
 
         if "EUCLIDPROJECTPATH" in ev:
             prefix_path.append(ev["EUCLIDPROJECTPATH"])

@@ -8,7 +8,7 @@
 my_own_prefix0="%(this_install_prefix)s"
 
 # default values if no config file is found
-export EUCLID_BASE=/opt/euclid
+export EUCLID_BASE=%(this_euclid_base)s
 export EUCLID_USE_BASE=no
 
 
