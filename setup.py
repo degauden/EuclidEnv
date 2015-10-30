@@ -1,9 +1,12 @@
 from distutils.core import setup
 from distutils.command.install import install as _install
+from distutils.command.sdist import sdist as _sdist
 
 import os
 import sys
 from subprocess import call
+
+from string import Template
 
 __version__ = "1.13.1"
 
@@ -80,6 +83,37 @@ for a in sys.argv:
         if len(e_base) == 1:
             this_euclid_base = e_base[0]
         sys.argv.remove(a)
+
+
+class my_sdist(_sdist):
+
+    def _get_template_target(self, filename):
+        fname, fext = os.path.splitext(os.path.basename(filename))
+        if fext == ".in":
+            return os.path.join("dist", fname)
+        else:
+            print "Error: the %s file has not the '.in' extension" % filename
+            sys.exit(1)
+
+    def expand_template_file(self, filename):
+        out_fname = self._get_template_target(filename)
+        print "Generating %s from the %s template" % (out_fname, filename)
+        with open(filename) as in_f:
+            src = Template(in_f.read()).substitute(version=__version__)
+        with open(out_fname, "w") as out_f:
+            out_f.write(src)
+
+    def expand_templates(self):
+        flist = []
+        flist.append(os.path.join("data", "RPM", "EuclidEnv.spec.in"))
+        flist.append(os.path.join("data", "Ports", "Portfile.in"))
+        for f in flist:
+            if os.path.exists(f):
+                self.expand_template_file(f)
+
+    def run(self):
+        _sdist.run(self)
+        self.expand_templates()
 
 
 class my_install(_install):
@@ -210,5 +244,7 @@ setup(name="EuclidEnv",
                os.path.join("scripts", "FixInstallPath"),
                ],
       data_files=etc_files + these_files,
-      cmdclass={"install": my_install},
+      cmdclass={"install": my_install,
+                "sdist": my_sdist
+                },
       )
