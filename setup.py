@@ -1,11 +1,17 @@
 from distutils.core import setup
 from distutils.command.install import install as _install
+from distutils.command.sdist import sdist as _sdist
+from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
+
 
 import os
 import sys
-from subprocess import call
+from subprocess import call, check_output
+
+from string import Template
 
 __version__ = "1.13.1"
+__project__ = "EuclidEnv"
 
 def get_data_files(input_dir, output_dir):
     result = []
@@ -22,8 +28,8 @@ def get_data_files(input_dir, output_dir):
             (os.sep.join([output_dir] + root.split(os.sep)[1:]), da_files))
     return result
 
-these_files = get_data_files("data/cmake", "EuclidEnv")
-these_files += get_data_files("data/texmf", "EuclidEnv")
+these_files = get_data_files("data/cmake", __project__)
+these_files += get_data_files("data/texmf", __project__)
 
 
 use_local_install = False
@@ -79,6 +85,59 @@ for a in sys.argv:
         if len(e_base) == 1:
             this_euclid_base = e_base[0]
         sys.argv.remove(a)
+
+
+def getRMD160Digest(filepath):
+    return check_output(["openssl", "dgst", "-rmd160", filepath]).split()[-1]
+
+
+def getSHA256Digest(filepath):
+    return check_output(["openssl", "dgst", "-sha256", filepath]).split()[-1]
+
+
+class my_sdist(_sdist):
+
+    def _get_template_target(self, filename):
+        fname, fext = os.path.splitext(os.path.basename(filename))
+        if fext == ".in":
+            return os.path.join("dist", fname)
+        else:
+            print "Error: the %s file has not the '.in' extension" % filename
+            sys.exit(1)
+
+    def _get_sdist_filepath(self):
+        return os.path.join("dist", "%s-%s.tar.gz" % (__project__, __version__))
+
+    def expand_template_file(self, filename):
+        out_fname = self._get_template_target(filename)
+        print "Generating %s from the %s template" % (out_fname, filename)
+        rmd160_digest = getRMD160Digest(self._get_sdist_filepath())
+        sha256_digest = getSHA256Digest(self._get_sdist_filepath())
+        with open(filename) as in_f:
+            src = Template(in_f.read()).substitute(
+                version=__version__, project=__project__, rmd160=rmd160_digest, sha256=sha256_digest)
+        with open(out_fname, "w") as out_f:
+            out_f.write(src)
+
+    def expand_templates(self):
+        flist = []
+        flist.append(os.path.join("data", "RPM", "%s.spec.in" % __project__))
+        flist.append(os.path.join("data", "Ports", "Portfile.in"))
+        for f in flist:
+            if os.path.exists(f):
+                self.expand_template_file(f)
+
+    def run(self):
+        _sdist.run(self)
+        self.expand_templates()
+
+
+class my_bdist_rpm(_bdist_rpm):
+
+    def run(self):
+        print "Cannot run directly the bdist_rpm targert. Please rather use the genereded " \
+            "spec file (with the sdist target) in the dist sub-directory"
+        sys.exit(1)
 
 
 class my_install(_install):
@@ -184,7 +243,7 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
             self.custom_post_install()
 
 
-setup(name="EuclidEnv",
+setup(name=__project__,
       version=__version__,
       description="Euclid Environment Scripts",
       author="Hubert Degaudenzi",
@@ -209,5 +268,8 @@ setup(name="EuclidEnv",
                os.path.join("scripts", "FixInstallPath"),
                ],
       data_files=etc_files + these_files,
-      cmdclass={"install": my_install},
+      cmdclass={"install": my_install,
+                "sdist": my_sdist,
+                "bdist_rpm": my_bdist_rpm
+                },
       )
