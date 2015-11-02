@@ -1,6 +1,8 @@
 from distutils.core import setup
 from distutils.command.install import install as _install
 from distutils.command.sdist import sdist as _sdist
+from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
+
 
 import os
 import sys
@@ -114,6 +116,14 @@ class my_sdist(_sdist):
     def run(self):
         _sdist.run(self)
         self.expand_templates()
+
+
+class my_bdist_rpm(_bdist_rpm):
+
+    def run(self):
+        print "Cannot run directly the bdist_rpm targert. Please rather use the genereded " \
+            "spec file (with the sdist target) in the dist sub-directory"
+        sys.exit(1)
 
 
 class my_install(_install):
@@ -245,6 +255,7 @@ setup(name="EuclidEnv",
                ],
       data_files=etc_files + these_files,
       cmdclass={"install": my_install,
-                "sdist": my_sdist
+                "sdist": my_sdist,
+                "bdist_rpm": my_bdist_rpm
                 },
       )
