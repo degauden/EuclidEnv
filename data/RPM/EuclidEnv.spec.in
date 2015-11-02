@@ -1,7 +1,7 @@
 # sitelib for noarch packages, sitearch for others (remove the unneeded one)
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
-Name:           EuclidEnv
+Name:           ${project}
 Version:        ${version}
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
@@ -42,8 +42,8 @@ rm -rf $$RPM_BUILD_ROOT
 %{_sysconfdir}/profile.d/euclid.csh
 %{_sysconfdir}/profile.d/euclid.sh
 %{_sysconfdir}/sysconfig/euclid
-%{_datadir}/EuclidEnv/cmake/*
-%{_datadir}/EuclidEnv/texmf/*
+%{_datadir}/%{name}/cmake/*
+%{_datadir}/%{name}/texmf/*
 
 
 %post
