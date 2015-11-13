@@ -61,7 +61,7 @@ function(sgs_find_host_os)
           set(os ubuntu)
           string(REGEX REPLACE ".*Ubuntu ([0-9]+)[.]([0-9]+).*" "\\1.\\2" osvers "${issue}")
           break()
-        elseif(issue MATCHES "Scientific Linux|SLC|Fedora|CentOS Linux") # RedHat-like distributions
+        elseif(issue MATCHES "Scientific Linux|SLC|Fedora|CentOS Linux|CentOS") # RedHat-like distributions
           string(TOLOWER "${CMAKE_MATCH_0}" os)
           if(os STREQUAL fedora)
             set(os fc) # we use an abbreviation for Fedora
@@ -69,7 +69,7 @@ function(sgs_find_host_os)
           if(os STREQUAL "scientific linux")
             set(os sl) # we use an abbreviation for Scientific Linux
           endif()
-          if(os STREQUAL "centos linux")
+          if((os STREQUAL "centos linux") OR (os STREQUAL "centos"))
             set(os co) # we use an abbreviation for Scientific Linux
           endif()
           string(REGEX REPLACE ".*release ([0-9]+)[. ].*" "\\1" osvers "${issue}")
@@ -290,7 +290,7 @@ sgs_detect_host_platform()
 sgs_get_target_platform()
 
 ## Debug messages.
-#foreach(p SGS_HOST_ SGS_)
+# foreach(p SGS_HOST_ SGS_)
 #  foreach(v ARCH OS OSVERS COMP COMPVERS)
 #    message(STATUS "toolchain: ${p}${v} -> ${${p}${v}}")
 #  endforeach()
@@ -301,5 +301,16 @@ sgs_get_target_platform()
 #message(STATUS "toolchain: CMAKE_HOST_SYSTEM_NAME      -> ${CMAKE_HOST_SYSTEM_NAME}")
 #message(STATUS "toolchain: CMAKE_HOST_SYSTEM_VERSION   -> ${CMAKE_HOST_SYSTEM_VERSION}")
 
+if(${SGS_COMP} STREQUAL icc)
+    find_program(CMAKE_C_COMPILER
+                 NAMES icc
+                 DOC "C compiler")
+    find_program(CMAKE_CXX_COMPILER
+                 NAMES icpc
+                 DOC "C++ compiler")
+    find_program(CMAKE_Fortran_COMPILER
+                 NAMES ifort
+                 DOC "Fortran compiler")
 
+endif()
 
