@@ -21,7 +21,8 @@ class LocationTestCase(unittest.TestCase):
         tests_dir = os.path.dirname(__file__)
         main_dir = os.path.dirname(tests_dir)
         target_dir = os.path.join(main_dir, "python", "Euclid")
-        self.assertEqual(imported_dir, target_dir)
+        self.assertEqual(imported_dir, target_dir,
+                         "Please setup the right python runtime environment")
 
 if __name__ == '__main__':
     unittest.main()
