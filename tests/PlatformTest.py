@@ -13,7 +13,6 @@ class PlatformTestCase(unittest.TestCase):
 
     def testFlavour(self):
         machine = NativeMachine()
-        self.assertEqual(machine.OSFlavour(), "Fedora")
         print machine.OSVersion()
         print machine.CMTSystem()
         print machine.binaryOSFlavour()
