@@ -1,5 +1,9 @@
 2015-11-27  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
+	* setup.py: release of version 1.14
+
+2015-11-27  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
 	* data/profile/euclid.csh: fix the cleanup of the banner
 	* data/profile/euclid.sh: 
 	- fix the cleanup of the banner
