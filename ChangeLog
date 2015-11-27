@@ -1,3 +1,21 @@
+2015-11-27  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* data/profile/euclid.csh: fix the cleanup of the banner
+	* data/profile/euclid.sh: 
+	- fix the cleanup of the banner
+	- fix the shell setup for bash
+	
+2015-11-26  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* runtests.py: New file. This file can be generated with
+	the command:
+	  py.test --genscript=runtests.py
+	* tests/LocationTest.py: New file.
+	* .gitignore: ignore __pycache__ entries
+	* MANIFEST.in: new runtests.py file.
+	* setup.py: Add the new test command that allows to run 
+	automatically py.test on all the tests of the tests subdirectory.
+	
 2015-10-13  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.13.1
