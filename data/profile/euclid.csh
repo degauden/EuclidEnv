@@ -41,7 +41,7 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
   if ( $?E_BANNER ) then
     rm -f ${E_BANNER}
     unsetenv E_BANNER
-  else
+  endif
   
   
   unset my_own_prefix4
