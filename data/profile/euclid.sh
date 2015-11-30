@@ -42,7 +42,7 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
   if [[ -n "$E_BANNER" ]]; then
     rm -f ${E_BANNER}
     unset E_BANNER
-  else
+  fi
 
   unset my_own_prefix4
 
