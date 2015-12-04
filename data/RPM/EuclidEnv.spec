@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.14
+Version:        1.14.1
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -66,6 +66,11 @@ fi
 
 
 %changelog
+* Fri Dec 4 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14.1-1
+- Emergency fir for the usage of EUCLID_BASE env variable in ELogin
+- add a generic lx type in the BINARY_TAG. This corresponds
+  to an unkown linux box.
+
 * Fri Nov 27 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14-1
 - update to the cmake library of Elements 3.9
 - fix the cleaning of the ELogin banner
