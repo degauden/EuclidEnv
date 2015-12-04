@@ -550,10 +550,16 @@ The type is to be chosen among the following list:
             ev["EUCLIDPROJECTPATH"] = opts.sharedarea
 
         if "EUCLIDPROJECTPATH" not in ev:
+            if "EUCLID_BASE" in ev:
+                ev["EUCLIDPROJECTPATH"] = ev["EUCLID_BASE"]
+
+
+        if "EUCLIDPROJECTPATH" not in ev:
             if os.path.exists("%(this_euclid_base)s"):
                 ev["EUCLIDPROJECTPATH"] = "%(this_euclid_base)s"
 
         if "EUCLIDPROJECTPATH" in ev:
+            log.debug("The value of EUCLIDPROJECTPATH is %s" % ev["EUCLIDPROJECTPATH"])
             prefix_path.append(ev["EUCLIDPROJECTPATH"])
 
         if not opts.remove_userarea and ev.has_key("User_area"):
@@ -563,10 +569,15 @@ The type is to be chosen among the following list:
             ev["CMAKE_PROJECT_PATH"] = ""
 
         for p in prefix_path:
+            if not os.path.exists(p):
+                log.warn("The %s directory doesn't exist." % p)
             ev["CMAKE_PROJECT_PATH"] = pathPrepend(ev["CMAKE_PROJECT_PATH"],
                                                    p,
-                                                   exist_check=opts.strip_path,
+                                                   exist_check=False,
                                                    unique=opts.strip_path)
+
+        log.debug("The value of CMAKE_PROJECT_PATH is %s" % ev["CMAKE_PROJECT_PATH"])
+
 
         log.debug("CMAKE_PROJECT_PATH is set to %s" % ev["CMAKE_PROJECT_PATH"])
 
