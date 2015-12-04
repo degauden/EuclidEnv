@@ -13,7 +13,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "1.14"
+__version__ = "1.14.1"
 __project__ = "EuclidEnv"
 
 def get_data_files(input_dir, output_dir):

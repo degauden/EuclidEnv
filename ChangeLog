@@ -1,3 +1,10 @@
+2015-12-04  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.14.1
+	- fix for the reuse of EUCLID_BASE in ELogin
+	- add a generic lx type in the BINARY_TAG. This corresponds
+	  to an unkown linux box.
+
 2015-11-27  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.14
