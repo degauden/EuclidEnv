@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.14.1
+Version:        1.15
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -66,6 +66,11 @@ fi
 
 
 %changelog
+* Mon Jan 25 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.15-1
+- update to the latest cmake library of Elements (3.10)
+- add ERun_autocompletion.sh script (Tristan Grégoire). Please note 
+  that this script has to be called by hand from the .bashrc for the moment.
+
 * Fri Dec 4 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14.1-1
 - Emergency fir for the usage of EUCLID_BASE env variable in ELogin
 - add a generic lx type in the BINARY_TAG. This corresponds
