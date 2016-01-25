@@ -1,3 +1,13 @@
+2016-01-25  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.15
+	- update to the latest cmake library of Elements (3.10)
+	- add ERun_autocompletion.sh script (Tristan Grégoire). 
+	  Please note that this script has to be called by hand
+	  from the .bashrc for the moment:
+	  
+	      . $(/usr/bin/which ERun_autocompletion.sh)
+	
 2015-12-04  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.14.1
