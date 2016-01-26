@@ -13,7 +13,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "1.15"
+__version__ = "1.15.1"
 __project__ = "EuclidEnv"
 
 
