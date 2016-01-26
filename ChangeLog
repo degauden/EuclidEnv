@@ -1,3 +1,42 @@
+2016-01-25  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.15
+	- update to the latest cmake library of Elements (3.10)
+	- add ERun_autocompletion.sh script (Tristan Grégoire). 
+	  Please note that this script has to be called by hand
+	  from the .bashrc for the moment:
+	  
+	      . $(/usr/bin/which ERun_autocompletion.sh)
+	
+2015-12-04  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.14.1
+	- fix for the reuse of EUCLID_BASE in ELogin
+	- add a generic lx type in the BINARY_TAG. This corresponds
+	  to an unkown linux box.
+
+2015-11-27  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: release of version 1.14
+
+2015-11-27  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* data/profile/euclid.csh: fix the cleanup of the banner
+	* data/profile/euclid.sh: 
+	- fix the cleanup of the banner
+	- fix the shell setup for bash
+	
+2015-11-26  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+
+	* runtests.py: New file. This file can be generated with
+	the command:
+	  py.test --genscript=runtests.py
+	* tests/LocationTest.py: New file.
+	* .gitignore: ignore __pycache__ entries
+	* MANIFEST.in: new runtests.py file.
+	* setup.py: Add the new test command that allows to run 
+	automatically py.test on all the tests of the tests subdirectory.
+	
 2015-10-13  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.13.1

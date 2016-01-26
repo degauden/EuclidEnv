@@ -1,16 +1,19 @@
-from distutils.core import setup
+from distutils.core import setup, Command
 from distutils.command.install import install as _install
 from distutils.command.sdist import sdist as _sdist
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
+from distutils.command.build import build as _build
 
 
 import os
 import sys
 from subprocess import call, check_output
+from glob import glob
+
 
 from string import Template
 
-__version__ = "1.13.1"
+__version__ = "1.15"
 __project__ = "EuclidEnv"
 
 
@@ -98,6 +101,11 @@ def getSHA256Digest(filepath):
     return check_output(["openssl", "dgst", "-sha256", filepath]).split()[-1]
 
 
+class my_build(_build):
+    def run(self):
+        _build.run(self)
+
+
 class my_sdist(_sdist):
 
     def _get_template_target(self, filename):
@@ -158,7 +166,7 @@ class my_install(_install):
         p_list = []
         for s in ["sh", "csh"]:
             file2fix = os.path.join(
-                self.install_base, "etc", "profile.d",  "%s.%s" % ("euclid", s))
+                self.install_base, "etc", "profile.d", "%s.%s" % ("euclid", s))
             if os.path.exists(file2fix):
                 p_list.append(file2fix)
         return p_list
@@ -186,7 +194,7 @@ class my_install(_install):
     def get_sysconfig_files(self):
         p_list = []
         file2fix = os.path.join(
-            self.install_base, "etc", "sysconfig",  "euclid")
+            self.install_base, "etc", "sysconfig", "euclid")
         if os.path.exists(file2fix):
             p_list.append(file2fix)
         return p_list
@@ -245,6 +253,42 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
             # print "This is the install data %s" % self.install_data
             self.custom_post_install()
 
+class PyTest(Command):
+    user_options = []
+    runtests_filename = "runtests.py"
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def _get_python_path(self):
+        parent_dir = os.path.dirname(__file__)
+        return os.path.join(parent_dir, "python")
+
+    def _get_tests_files(self):
+        parent_dir = os.path.dirname(__file__)
+        return glob(os.path.join(parent_dir, "tests", "*Test.py"))
+
+    def _generate_runtests_file(self):
+        import subprocess
+        errno = subprocess.call(["py.test", "--genscript=%s" % self.runtests_filename])
+        print "%s generated. Please consider to add it to your sources" % self.runtests_filename
+        if errno != 0:
+            raise SystemExit(errno)
+
+
+    def run(self):
+        import subprocess
+        import sys
+        if not os.path.exists(os.path.join(os.getcwd(), self.runtests_filename)) :
+            self._generate_runtests_file()
+
+        sys.path.insert(0, self._get_python_path())
+        os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
+        errno = subprocess.call([sys.executable, 'runtests.py'] + self._get_tests_files())
+        raise SystemExit(errno)
 
 setup(name=__project__,
       version=__version__,
@@ -272,7 +316,9 @@ setup(name=__project__,
                ],
       data_files=etc_files + these_files,
       cmdclass={"install": my_install,
+                "build": my_build,
                 "sdist": my_sdist,
-                "bdist_rpm": my_bdist_rpm
+                "bdist_rpm": my_bdist_rpm,
+                "test": PyTest
                 },
       )

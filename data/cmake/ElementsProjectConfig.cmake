@@ -18,6 +18,16 @@ if(NOT CMAKE_VERSION VERSION_LESS 3.0) # i.e CMAKE_VERSION >= 3.0
   endif()
 endif()
 
+# this policy is related to the symbol visibility
+# please run "cmake --help-policy CMP0063" for more details
+if(NOT CMAKE_VERSION VERSION_LESS 3.3) # i.e CMAKE_VERSION >= 3.3
+  cmake_policy(SET CMP0063 NEW)
+else()
+  if(CMAKE_VERSION VERSION_GREATER 2.8.11)
+    cmake_policy(SET CMP0063 OLD)
+  endif()
+endif()
+
 if (NOT HAS_ELEMENTS_TOOLCHAIN)
   # this is the call to the preload_local_module_path is the toolchain has not been called
   # Preset the CMAKE_MODULE_PATH from the environment, if not already defined.
@@ -41,7 +51,6 @@ if (NOT HAS_ELEMENTS_TOOLCHAIN)
 
 endif()
 
-
 include(ElementsUtils)
 
 debug_message("    <---- Elements Main config: ${CMAKE_CURRENT_LIST_FILE} ---->   ")
@@ -53,7 +62,6 @@ set(CMAKE_VERBOSE_MAKEFILES OFF)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Ensure that the include directories added are always taken first.
 set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
-#set(CMAKE_SKIP_BUILD_RPATH TRUE)
 
 if (ELEMENTS_BUILD_PREFIX_CMD)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${ELEMENTS_BUILD_PREFIX_CMD}")
@@ -166,6 +174,7 @@ macro(elements_project project version)
   set(ELEMENTS_DATA_SUFFIXES DBASE;PARAM;EXTRAPACKAGES CACHE STRING
       "List of (suffix) directories where to look for data packages.")
 
+  # Install Area business
   if(USE_LOCAL_INSTALLAREA)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
       set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/InstallArea/${BINARY_TAG} CACHE PATH
@@ -176,6 +185,13 @@ macro(elements_project project version)
       set(CMAKE_INSTALL_PREFIX ${EUCLID_BASE_DIR}/${CMAKE_PROJECT_NAME}/${CMAKE_PROJECT_VERSION}/InstallArea/${BINARY_TAG} CACHE PATH
           "Install path prefix, prepended onto install directories." FORCE )
     endif()
+  endif()
+
+  if(APPLE)
+      set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib CACHE PATH
+          "Install RPath." FORCE )
+      set(CMAKE_INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/lib CACHE PATH
+          "Install Name Dir." FORCE )
   endif()
 
   if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
@@ -577,7 +593,8 @@ macro(elements_project project version)
       PREPEND PATH ${CMAKE_BINARY_DIR}/scripts
       PREPEND LD_LIBRARY_PATH ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
       PREPEND PYTHONPATH ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}
-      PREPEND PYTHONPATH ${CMAKE_BINARY_DIR}/python)
+      PREPEND PYTHONPATH ${CMAKE_BINARY_DIR}/python
+      PREPEND ELEMENTS_AUX_PATH ${CMAKE_BINARY_DIR}/${AUX_DIR_NAME})
 
   # - produce environment XML description
   #   release version
@@ -2003,41 +2020,41 @@ endfunction()
 #
 # Create a SWIG binary python module from the specified sources (glob patterns are allowed), linking
 # it with the libraries specified and adding the include directories to the search path. The sources
-# can be either *.i or *.cpp files. Their location is relative to the base of the Elements package 
+# can be either *.i or *.cpp files. Their location is relative to the base of the Elements package
 # (module).
 #---------------------------------------------------------------------------------------------------
 function(elements_add_swig_binding binding)
 
   find_package(SWIG QUIET REQUIRED)
   find_package(PythonLibs QUIET REQUIRED)
-  
+
   # this function uses an extra option: 'PUBLIC_HEADERS'
   CMAKE_PARSE_ARGUMENTS(ARG "NO_PUBLIC_HEADERS" "" "LIBRARIES;LINK_LIBRARIES;INCLUDE_DIRS;PUBLIC_HEADERS" ${ARGN})
-  
+
   set(MODULE_ARG_LINK_LIBRARIES ${ARG_LINK_LIBRARIES})
   set(MODULE_ARG_INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
-  
-  
-  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS} 
-                            LIBRARIES ${ARG_LIBRARIES} 
-                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES} 
+
+
+  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS}
+                            LIBRARIES ${ARG_LIBRARIES}
+                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
                             INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
- 
+
   get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
   list(REMOVE_DUPLICATES dirs)
   set(SWIG_MOD_INCLUDE_DIRS)
   foreach(dir ${dirs})
     set(SWIG_MOD_INCLUDE_DIRS ${SWIG_MOD_INCLUDE_DIRS} -I${dir})
   endforeach()
-   
+
   if(NOT ARG_NO_PUBLIC_HEADERS AND NOT ARG_PUBLIC_HEADERS)
     elements_get_package_name(package)
     message(WARNING "Binding ${binding} (in ${package}) does not declare PUBLIC_HEADERS. Use the option NO_PUBLIC_HEADERS if it is intended.")
   endif()
-    
+
   # find the sources
   elements_expand_sources(srcs ${ARG_UNPARSED_ARGUMENTS})
-  
+
   set(cpp_srcs)
   set(i_srcs)
   foreach(s ${srcs})
@@ -2047,12 +2064,12 @@ function(elements_add_swig_binding binding)
       list(APPEND cpp_srcs ${s})
     endif()
   endforeach()
- 
+
   set(PY_MODULE_DIR ${CMAKE_BINARY_DIR}/python)
   set(PY_MODULE ${binding})
   set(PY_MODULE_SWIG_SRC ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PY_MODULE}PYTHON_wrap.cxx)
- 
- 
+
+
   #SWIG command
   add_custom_command(
 	OUTPUT
@@ -2068,11 +2085,11 @@ function(elements_add_swig_binding binding)
 		${SWIG_MOD_INCLUDE_DIRS}
 		-o ${PY_MODULE_SWIG_SRC}
 		${i_srcs}
-	DEPENDS 
+	DEPENDS
 		${i_srcs}
 	COMMENT "Generating SWIG binding"
   )
- 
+
   elements_add_python_module(${binding}
                              ${PY_MODULE_SWIG_SRC} ${cpp_srcs}
                              LINK_LIBRARIES ${MODULE_ARG_LINK_LIBRARIES}
@@ -2504,7 +2521,7 @@ endfunction()
 #---------------------------------------------------------------------------------------------------
 function(elements_install_aux_files)
   # early check at configure time for the existence of the directory
-  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/aux OR IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${AUX_DIR_NAME})
+  if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/aux OR IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${AUX_DIR_NAME} OR IS_DIRECTORY ${CMAKE_BINARY_DIR}/${AUX_DIR_NAME})
     if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/aux)
       message(WARNING "The aux directory name in the ${CMAKE_CURRENT_SOURCE_DIR} location is dangerous. Please rename it to ${AUX_DIR_NAME}")
       install(DIRECTORY aux/
@@ -2515,6 +2532,13 @@ function(elements_install_aux_files)
     endif()
     if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${AUX_DIR_NAME})
       install(DIRECTORY ${AUX_DIR_NAME}/
+              DESTINATION ${AUX_DIR_NAME}
+              PATTERN "CVS" EXCLUDE
+              PATTERN ".svn" EXCLUDE
+              PATTERN "*~" EXCLUDE)
+    endif()
+    if(IS_DIRECTORY ${CMAKE_BINARY_DIR}/${AUX_DIR_NAME})
+      install(DIRECTORY ${CMAKE_BINARY_DIR}/${AUX_DIR_NAME}/
               DESTINATION ${AUX_DIR_NAME}
               PATTERN "CVS" EXCLUDE
               PATTERN ".svn" EXCLUDE

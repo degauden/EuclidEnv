@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.13.1
+Version:        1.15
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -66,6 +66,24 @@ fi
 
 
 %changelog
+* Mon Jan 25 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.15-1
+- update to the latest cmake library of Elements (3.10)
+- add ERun_autocompletion.sh script (Tristan Grégoire). Please note 
+  that this script has to be called by hand from the .bashrc for the moment.
+
+* Fri Dec 4 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14.1-1
+- Emergency fir for the usage of EUCLID_BASE env variable in ELogin
+- add a generic lx type in the BINARY_TAG. This corresponds
+  to an unkown linux box.
+
+* Fri Nov 27 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14-1
+- update to the cmake library of Elements 3.9
+- fix the cleaning of the ELogin banner
+- fix the setup of the environment for bash. Now it is not repeated for 
+  every subshell.
+- add the new "python setup.py test" command. It is based on a generated
+  py.test script.
+
 * Tue Oct 13 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.13.1-1
 - Bugfix. The E-Run command was not checking the existence of the
   directory of a project before trying to list its version subdirectories.
