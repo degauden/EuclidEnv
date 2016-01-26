@@ -13,7 +13,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "1.15"
+__version__ = "1.15.1"
 __project__ = "EuclidEnv"
 
 def get_data_files(input_dir, output_dir):
@@ -43,7 +43,9 @@ for a in sys.argv:
 
 if use_local_install:
     etc_files = [("../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
-                                       os.path.join("data", "profile", "euclid.csh")]),
+                                       os.path.join("data", "profile", "euclid.csh"),
+                                       os.path.join("data", "profile", "tmpdir.sh"),
+                                       os.path.join("data", "profile", "tmpdir.csh")]),
                  ("../etc/sysconfig",
                   [os.path.join("data", "sys", "config", "euclid")])
                  ]
@@ -303,6 +305,7 @@ setup(name=__project__,
                os.path.join("scripts", "Euclid_group_login.csh"),
                os.path.join("scripts", "Euclid_group_setup.sh"),
                os.path.join("scripts", "Euclid_group_setup.csh"),
+               os.path.join("scripts", "ERun_autocompletion.sh"),
                os.path.join("scripts", "runpy"),
                os.path.join("scripts", "StripPath.csh"),
                os.path.join("scripts", "StripPath.sh"),
