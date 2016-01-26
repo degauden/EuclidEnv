@@ -4,5 +4,7 @@ MANIFEST
 build
 dist
 .settings
+__pycache__
 /.texlipse
 /.externalToolBuilders/
+/.coverage

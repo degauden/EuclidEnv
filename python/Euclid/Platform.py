@@ -112,7 +112,7 @@ def getBinaryTag(architecture, platformtype, compiler, binary_type=default_build
 # officially supported binaries
 binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
                    "x86_64-slc5-gcc46-opt", "i686-slc5-gcc46-opt",
-                   "win32_vc71", "i686-winxp-vc9-opt",
+                   "win32_vc71", "i686-winxp-vc90-opt",
                    "x86_64-slc5-icc11-opt", "i686-slc5-icc11-opt",
                    "x86_64-slc6-gcc46-opt", "i686-slc6-gcc46-opt",
                    "x86_64-slc7-gcc48-opt", "i686-slc7-gcc48-opt",
@@ -425,6 +425,66 @@ class NativeMachine:
 
         return osver
 
+    def _findCompiler(self, compiler_exe):
+
+        return [c for c in
+                [os.path.join(d, compiler_exe)
+                 for d in os.environ["PATH"].split(os.pathsep)
+                 if d.startswith('/usr')]
+                if os.path.exists(c)][0]
+
+    def nativeCompilerName(self):
+        c_name = "gcc"
+        if self._ostype == "Windows":
+            c_name = "vc"
+        else:
+            if self._ostype == "Darwin":
+                if tuple([int(v) for v in self.OSVersion().split(".")]) >= (10, 9):
+                    c_name = "clang"
+                    cpp_name = "clang++"
+                    gpp = self._findCompiler(cpp_name)
+                    compstr = " ".join(
+                        os.popen3(gpp + " --version")[1].readlines())[:-1]
+                    m = re.search(r"\([^)]*LLVM *(\d+\.?\d*)", compstr)
+                    if not m:
+                        # if the related genuine clang compiler cannot be found
+                        # assume this is an unrelated Apple LLVM compiler
+                        c_name = "llvm"
+        return c_name
+
+    def nativeCompilerVersionFromName(self, compiler_name, position=None):
+        version = "0.0.0"
+        ncv = version
+
+        compiler_root = {"gcc": "g++", "clang": "clang++", "llvm": "clang++"}
+
+        compiler_re = dict()
+        compiler_re["gcc"] = re.compile(r"\ +(\d+(?:\.\d+)*)")
+        compiler_re["clang"] = re.compile(r"\([^)]*LLVM *(\d+\.?\d*)")
+        compiler_re["llvm"] = re.compile(r"\ +(\d+(?:\.\d+)*)")
+
+        if compiler_name == "vc":
+            ncv = "9.0.0"
+        else:
+            try:
+                gpp = self._findCompiler(compiler_root[compiler_name])
+                compstr = " ".join(
+                    os.popen3(gpp + " --version")[1].readlines())[:-1]
+                m = compiler_re[compiler_name].search(compstr)
+                if m:
+                    ncv = m.group(1)
+                else:
+                    ncv = None
+            except:
+                ncv = None
+
+        if position:
+            try:
+                ncv = ".".join(version.split(".")[:position])
+            except AttributeError:
+                ncv = None
+        return ncv
+
     def nativeCompilerVersion(self, position=None):
         """
         return the native compiler version
@@ -432,33 +492,12 @@ class NativeMachine:
         position=2, it returns 3.4
         """
         if not self._compversion:
-            if self._ostype == "Windows":
-                self._compversion = "vc9"
-            else:
-                root_name = "g++"
 
-                if self._ostype == "Darwin":
-                    if tuple([int(v) for v in self.OSVersion().split(".")]) >= (10, 9):
-                        root_name = "clang++"
+            nc_name = self.nativeCompilerName()
 
-                try:
-                    gpp = (c for c in
-                           [os.path.join(d, root_name)
-                            for d in os.environ["PATH"].split(os.pathsep)
-                            if d.startswith('/usr')]
-                           if os.path.exists(c)).next()
-                    compstr = " ".join(
-                        os.popen3(gpp + " --version")[1].readlines())[:-1]
-                    if root_name == "clang++":
-                        m = re.search(r"\([^)]*LLVM *(\d+\.?\d*)", compstr)
-                    else:
-                        m = re.search(r"\ +(\d+(?:\.\d+)*)", compstr)
-                    if m:
-                        self._compversion = m.group(1)
-                    else:
-                        self._compversion = None
-                except StopIteration:
-                    self._compversion = None
+            self._compversion = self.nativeCompilerVersionFromName(
+                nc_name)
+
         ncv = self._compversion
 
         if position:
@@ -469,26 +508,17 @@ class NativeMachine:
         return ncv
 
     def nativeCompiler(self):
+
         if not self._compiler:
-            if self._ostype == "Windows":
-                self._compiler = self.nativeCompilerVersion()
-            else:
-                root_name = "gcc"
-                if self._ostype == "Darwin":
-                    if tuple([int(v) for v in self.OSVersion().split(".")]) >= (10, 9):
-                        root_name = "clang"
-                try:
-                    cvers = [
-                        int(c) for c in self.nativeCompilerVersion(position=2).split(".")]
-                    self._compiler = "%s%d%d" % (root_name, cvers[0], cvers[1])
-                    if cvers[0] == 3 and cvers[1] < 4:
-                        self._compiler = "%s%s" % (root_name, self.nativeCompilerVersion(
-                            position=3).replace(".", ""))
-                    if self._ostype == "Darwin" and self.OSVersion(position=2) == "10.5":
-                        self._compiler = "%s%s" % (root_name, self.nativeCompilerVersion(
-                            position=3).replace(".", ""))
-                except:
-                    self._compiler = None
+
+            root_name = self.nativeCompilerName()
+            try:
+                cvers = [
+                    int(c) for c in self.nativeCompilerVersion(position=2).split(".")]
+                self._compiler = "%s%d%d" % (root_name, cvers[0], cvers[1])
+            except:
+                self._compiler = None
+
         return self._compiler
     # CMT derived informations
 
@@ -539,6 +569,8 @@ class NativeMachine:
                         cmtflavour = f + self.OSVersion(position=2)
                     if self.OSFlavour() == "SuSE" and int(self.OSVersion(position=1)) > 10:
                         cmtflavour = f + self.OSVersion(position=1)
+                if not cmtflavour:
+                    cmtflavour = "lx"
         return cmtflavour
 
     def OSEquivalentFlavour(self):
