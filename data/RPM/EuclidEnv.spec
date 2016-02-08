@@ -15,6 +15,8 @@ Prefix:         /usr
 Prefix:         /etc
 Prefix:         /opt/euclid
 
+Requires: python, cmake
+
 %description
 This package include the scripts to for setting up the run-time and
 development environment. This involves the main ELogin script.
