@@ -12,6 +12,7 @@ function _list_folder() {
 
 ## Usage: _find_project_version project_name
 function _find_project_version() {
+    local version=""
     _project_versions=""
     for root in "${ECL_COMP_PROJECT_PLACE[@]}"
     do
@@ -19,8 +20,22 @@ function _find_project_version() {
         do
             if [ $d == $1 ]
             then
+		# List all folder in $root/$d
                 _list_folder $root/$d
-                _project_versions=$_lst_folder_
+
+		# Select only folder that match a version number: X.Y where X and Y are number in [0, 9]
+		pattern="[0-9]+\.[0-9]+"
+		for folder in $_lst_folder_
+		do
+		    [[ $folder =~ $pattern ]]
+		    if [[ ${BASH_REMATCH[0]} ]]
+		    then
+		        version="${version} ${BASH_REMATCH[0]}"
+		    fi
+		done
+
+		# Add the version to the _project_versions variable
+                _project_versions=$version
             fi
         done
     done
@@ -104,11 +119,11 @@ _ERun()
         COMPREPLY=( $(compgen -W "${_project_versions}" -- ${cur}))
     elif [[ $prev =~ [0-9.] ]]
     then
-    BIN_PLACES=$ECL_COMP_PROJECT_PLACE
-    if [ "${COMP_WORDS[COMP_CWORD-2]}" == "Elements" ]
-    then
-        BIN_PLACES=$ECL_COMP_PROJECT_ELEMENTS_BIN_PLACE
-    fi
+        BIN_PLACES="${ECL_COMP_PROJECT_BIN_PLACE[@]}"
+        if [ "${COMP_WORDS[COMP_CWORD-2]}" == "Elements" ]
+        then
+            BIN_PLACES="${ECL_COMP_PROJECT_ELEMENTS_BIN_PLACE[@]}"
+        fi
         _find_project_bin "${COMP_WORDS[COMP_CWORD-2]}" $prev "${BIN_PLACES[@]}"
         local cmd=$_project_bins
         COMPREPLY=( $(compgen -W "${cmd}" -- ${cur}))
@@ -132,3 +147,4 @@ _ERun()
 
 ## Make completion works for ERun command line
 complete -F _ERun ERun
+
