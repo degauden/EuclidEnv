@@ -1,3 +1,9 @@
+2016-03-22 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch>
+
+	* setup.py: 
+    - update to the latest cmake library of Elements (4.0)
+    - fix bug in ERun autocompletion (Tristan Grégoire)
+	
 2016-01-25  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 
 	* setup.py: release of version 1.15

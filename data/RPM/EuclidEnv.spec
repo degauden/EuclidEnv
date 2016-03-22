@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.15
+Version:        2.0
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -68,6 +68,10 @@ fi
 
 
 %changelog
+* Tue Mar 22 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 2.0-1
+- update to the latest cmake library of Elements (4.0)
+- fix bug in ERun autocompletion (Tristan Grégoire)
+
 * Mon Jan 25 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.15-1
 - update to the latest cmake library of Elements (3.10)
 - add ERun_autocompletion.sh script (Tristan Grégoire). Please note 

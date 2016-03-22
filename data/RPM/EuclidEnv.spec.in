@@ -68,6 +68,10 @@ fi
 
 
 %changelog
+* Tue Mar 22 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 2.0-1
+- update to the latest cmake library of Elements (4.0)
+- fix bug in ERun autocompletion (Tristan Grégoire)
+
 * Mon Jan 25 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.15-1
 - update to the latest cmake library of Elements (3.10)
 - add ERun_autocompletion.sh script (Tristan Grégoire). Please note 
