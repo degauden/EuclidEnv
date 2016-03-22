@@ -18,7 +18,7 @@ Prefix:         /opt/euclid
 Requires: python, cmake
 
 %description
-This package include the scripts to for setting up the run-time and
+This package includes the scripts for setting up the run-time and
 development environment. This involves the main ELogin script.
 
 
