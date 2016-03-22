@@ -2,7 +2,7 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 
 Name:           EuclidEnv
-Version:        1.15.1
+Version:        2.0
 Release:        1%{?dist}
 Summary:        Euclid Environment Login and Utilities
 
@@ -68,12 +68,13 @@ fi
 
 
 %changelog
-* mar. janv. 26 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.15.1-1
-- Add forgotten ERun_autocompletion.sh to the setup.py script.
+* Tue Mar 22 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 2.0-1
+- update to the latest cmake library of Elements (4.0)
+- fix bug in ERun autocompletion (Tristan Grégoire)
 
 * Mon Jan 25 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.15-1
 - update to the latest cmake library of Elements (3.10)
-- add ERun_autocompletion.sh script (Tristan Grégoire). Please note
+- add ERun_autocompletion.sh script (Tristan Grégoire). Please note 
   that this script has to be called by hand from the .bashrc for the moment.
 
 * Fri Dec 4 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14.1-1
@@ -84,7 +85,7 @@ fi
 * Fri Nov 27 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14-1
 - update to the cmake library of Elements 3.9
 - fix the cleaning of the ELogin banner
-- fix the setup of the environment for bash. Now it is not repeated for
+- fix the setup of the environment for bash. Now it is not repeated for 
   every subshell.
 - add the new "python setup.py test" command. It is based on a generated
   py.test script.
@@ -94,12 +95,8 @@ fi
   directory of a project before trying to list its version subdirectories.
 
 * Wed Oct 7 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.13-1
-- update to the cmake library of Elements 3.8
+- update to the cmake library of Elements 3.8 
 - introduction of the draft generation of the python SWIG bindings
-
-* Tue Sep 22 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.3-1
-- update to the cmake library of the Elements 3.7.3 version
-- critical bug fix to locate Elements in the release area (/opt/euclid)
 
 * Tue Aug 18 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.2-1
 - update to the cmake library of the Elements 3.7.2 version
@@ -107,7 +104,7 @@ fi
 
 * Wed Aug 5 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.1-1
 - update to the cmake library of the Elements 3.7.1 version
-- fix of the conversion of the CMAKE_PROJECT_PATH environment variable
+- fix of the conversion of the CMAKE_PROJECT_PATH environment variable 
   into a cmake list
 
 * Mon Aug 3 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12-1
