@@ -117,14 +117,20 @@ class my_sdist(_sdist):
     def _get_sdist_filepath(self):
         return os.path.join("dist", "%s-%s.tar.gz" % (__project__, __version__))
 
+    def _get_changelog_filepath(self):
+        return "ChangeLog"
+
     def expand_template_file(self, filename):
         out_fname = self._get_template_target(filename)
         print "Generating %s from the %s template" % (out_fname, filename)
         rmd160_digest = getRMD160Digest(self._get_sdist_filepath())
         sha256_digest = getSHA256Digest(self._get_sdist_filepath())
+        changelog_content = open(self._get_changelog_filepath()).read()
         with open(filename) as in_f:
             src = Template(in_f.read()).substitute(
-                version=__version__, project=__project__, rmd160=rmd160_digest, sha256=sha256_digest)
+                version=__version__, project=__project__,
+                rmd160=rmd160_digest, sha256=sha256_digest,
+                changelog=changelog_content)
         with open(out_fname, "w") as out_f:
             out_f.write(src)
 
@@ -144,7 +150,7 @@ class my_sdist(_sdist):
 class my_bdist_rpm(_bdist_rpm):
 
     def run(self):
-        print "Cannot run directly the bdist_rpm targert. Please rather use the genereded " \
+        print "Cannot run directly the bdist_rpm target. Please rather use the generated " \
             "spec file (with the sdist target) in the dist sub-directory"
         sys.exit(1)
 
