@@ -33,8 +33,8 @@ message(STATUS "The relative location for the build is set to ${BUILD_SUBDIR}")
 
 
 # Special defaults
-if ( (SGS_COMP STREQUAL gcc AND ( SGS_COMPVERS MATCHES "4[7-9]" OR SGS_COMPVERS MATCHES "5[0-1]"))
-    OR (SGS_COMP STREQUAL clang AND SGS_COMPVERS MATCHES "3[0-9]") 
+if ( (SGS_COMP STREQUAL gcc AND ( SGS_COMPVERS MATCHES "4[7-9]|5[0-9]|max" ))
+    OR (SGS_COMP STREQUAL clang AND SGS_COMPVERS MATCHES "3[0-9]")
     OR (SGS_COMP STREQUAL llvm))
 
   # C++11 is enable by default on gcc47 and gcc48
@@ -83,13 +83,21 @@ option(ELEMENTS_LINKOPT
        "Enable Link Time Optimisation"
        OFF)
 
-option(ELEMENTS_DEPENDENCY_CHECK
-       "Enable dependency version mismatch checking"
-       ON)
-
 option(USE_PYTHON_NOSE
        "Use nose as python test runner"
        OFF)
+
+option(USE_SPHINX
+       "Use sphinx documentation generation"
+       ON)
+
+option(USE_DOXYGEN
+       "Use doxygen documentation generation"
+       ON)
+
+option(USE_SPHINX_APIDOC
+       "Use sphinx API documentation generation"
+       ON)
 
 
 #--- Compilation Flags ---------------------------------------------------------
@@ -99,11 +107,11 @@ if(NOT ELEMENTS_FLAGS_SET)
 
     # Common compilation flags
   set(CMAKE_CXX_FLAGS
-      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal"
+      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal -fPIC"
       CACHE STRING "Flags used by the compiler during all build types."
       FORCE)
   set(CMAKE_C_FLAGS
-      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal -Wno-unused-parameter"
+      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal -Wno-unused-parameter -fPIC"
       CACHE STRING "Flags used by the compiler during all build types."
       FORCE)
 
@@ -196,7 +204,7 @@ if(NOT ELEMENTS_FLAGS_SET)
     set(CMAKE_MODULE_LINKER_FLAGS "-Wl,--enable-new-dtags -Wl,--as-needed -Wl,--no-undefined  -Wl,-z,max-page-size=0x1000"
         CACHE STRING "Flags used by the linker during the creation of modules."
         FORCE)
-    set(CMAKE_EXE_LINKER_FLAGS "-Wl,--enable-new-dtags -Wl,--as-needed ${CMAKE_EXE_LINKER_FLAGS}"
+    set(CMAKE_EXE_LINKER_FLAGS "-Wl,--enable-new-dtags -Wl,--as-needed -pie ${CMAKE_EXE_LINKER_FLAGS}"
         CACHE STRING "Flags used by the linker during the creation of exe's."
         FORCE)
   endif()
@@ -229,7 +237,7 @@ if(APPLE)
 endif()
 
 #--- Special build flags -------------------------------------------------------
-if ((ELEMENTS_HIDE_SYMBOLS) AND (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[0-9]"))
+if ((ELEMENTS_HIDE_SYMBOLS) AND (SGS_COMP STREQUAL gcc AND (SGS_COMPVERS MATCHES "4[0-9]|5[0-9]|max")))
   set(CMAKE_CXX_VISIBILITY_PRESET hidden)
   set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
   add_definitions(-DELEMENTS_HIDE_SYMBOLS)
@@ -277,12 +285,12 @@ if ( APPLE AND ( (SGS_COMP STREQUAL "clang") OR (SGS_COMP STREQUAL "llvm")))
   endif()
 endif()
 
-if ( ELEMENTS_PARALLEL AND (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[2-9]") )
+if ( ELEMENTS_PARALLEL AND (SGS_COMP STREQUAL gcc AND (SGS_COMPVERS MATCHES "4[2-9]|5[0-9]|max")) )
   add_definitions(-D_GLIBCXX_PARALLEL)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 endif()
 
-if ( ELEMENTS_FORTIFY AND (SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[1-9]") )
+if ( ELEMENTS_FORTIFY AND (SGS_COMP STREQUAL gcc AND (SGS_COMPVERS MATCHES "4[1-9]|5[0-9]|max")) )
   if (CMAKE_BUILD_TYPE STREQUAL "Debug" AND SGS_COMPVERS VERSION_GREATER "47" AND OPT_DEBUG)
     add_definitions(-D_FORTIFY_SOURCE=2)
   endif()
@@ -312,7 +320,7 @@ endif()
 if(ELEMENTS_HIDE_WARNINGS)
   if( (SGS_COMP MATCHES clang) OR (SGS_COMP MATCHES llvm) )
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -Wno-overloaded-virtual -Wno-char-subscripts -Wno-unused-parameter")
-  elseif(SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[3-9]|max")
+  elseif(SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "4[3-9]|5[0-9]|max")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -Wno-empty-body")
   endif()
 endif()
@@ -325,7 +333,7 @@ endif()
 #--- Special flags -------------------------------------------------------------
 add_definitions(-DBOOST_FILESYSTEM_VERSION=3)
 
-if((SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "47|48|49|max") OR ELEMENTS_CPP11)
+if((SGS_COMP STREQUAL gcc AND SGS_COMPVERS MATCHES "47|48|49|5[0-9]|max") OR ELEMENTS_CPP11)
   set(GCCXML_CXX_FLAGS "${GCCXML_CXX_FLAGS} -D__STRICT_ANSI__")
 endif()
 

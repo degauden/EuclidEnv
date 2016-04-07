@@ -18,6 +18,16 @@ if(NOT CMAKE_VERSION VERSION_LESS 3.0) # i.e CMAKE_VERSION >= 3.0
   endif()
 endif()
 
+# this policy is related to the symbol visibility
+# please run "cmake --help-policy CMP0063" for more details
+if(NOT CMAKE_VERSION VERSION_LESS 3.3) # i.e CMAKE_VERSION >= 3.3
+  cmake_policy(SET CMP0063 NEW)
+else()
+  if(CMAKE_VERSION VERSION_GREATER 3.0.2)
+    cmake_policy(SET CMP0063 OLD)
+  endif()
+endif()
+
 if (NOT HAS_ELEMENTS_TOOLCHAIN)
   # this is the call to the preload_local_module_path is the toolchain has not been called
   # Preset the CMAKE_MODULE_PATH from the environment, if not already defined.
@@ -41,7 +51,6 @@ if (NOT HAS_ELEMENTS_TOOLCHAIN)
 
 endif()
 
-
 include(ElementsUtils)
 
 debug_message("    <---- Elements Main config: ${CMAKE_CURRENT_LIST_FILE} ---->   ")
@@ -58,30 +67,32 @@ if (ELEMENTS_BUILD_PREFIX_CMD)
   set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${ELEMENTS_BUILD_PREFIX_CMD}")
   message(STATUS "Prefix build commands with '${ELEMENTS_BUILD_PREFIX_CMD}'")
 else()
-  find_program(ccache_cmd NAMES ccache ccache-swig)
-  find_program(distcc_cmd distcc)
-  mark_as_advanced(ccache_cmd distcc_cmd)
 
-  if(ccache_cmd)
+  find_package(CCache)
+
+  if(CCACHE_FOUND)
     option(CMAKE_USE_CCACHE "Use ccache to speed up compilation." OFF)
     if(CMAKE_USE_CCACHE)
-      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${ccache_cmd})
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_EXECUTABLE})
       message(STATUS "Using ccache for building")
     endif()
   endif()
 
-  if(distcc_cmd)
+  find_package(DistCC)
+
+  if(DISTCC_FOUND)
     option(CMAKE_USE_DISTCC "Use distcc to speed up compilation." OFF)
     if(CMAKE_USE_DISTCC)
-      if(CMAKE_USE_CCACHE)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "CCACHE_PREFIX=${distcc_cmd} ${ccache_cmd}")
+      if(CMAKE_USE_CCACHE AND CCACHE_FOUND)
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "CCACHE_PREFIX=${DISTCC_EXECUTABLE} ${CCACHE_EXECUTABLE}")
         message(STATUS "Enabling distcc builds in ccache")
       else()
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${distcc_cmd})
+        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${DISTCC_EXECUTABLE})
         message(STATUS "Using distcc for building")
       endif()
     endif()
   endif()
+
 endif()
 
 # This option make sense only if we have 'objcopy'
@@ -120,8 +131,7 @@ find_package(PythonInterp QUIET)
 #
 # Main macro for a Elements-based project.
 # Each project must call this macro once in the top-level CMakeLists.txt,
-# stating the project name and the version in the LHCb format (vXrY[pZ]). or in the
-# regular format (X.Y[.Z]).
+# stating the project name and the version in the regular format (X.Y[.Z]).
 #
 # The USE list can be used to declare which Elements-based projects are required by
 # the broject being compiled.
@@ -180,9 +190,9 @@ macro(elements_project project version)
 
   if(APPLE)
       set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib CACHE PATH
-          "Install RPath." FORCE )  
+          "Install RPath." FORCE )
       set(CMAKE_INSTALL_NAME_DIR ${CMAKE_INSTALL_PREFIX}/lib CACHE PATH
-          "Install Name Dir." FORCE )  
+          "Install Name Dir." FORCE )
   endif()
 
   if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
@@ -208,8 +218,11 @@ macro(elements_project project version)
 
 
   if(ELEMENTS_BUILD_TESTS)
-    find_program(MEMORYCHECK_COMMAND valgrind)
-    set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --show-leak-kinds=all" )
+    find_package(Valgrind)
+    if(VALGRIND_FOUND)
+      set(MEMORYCHECK_COMMAND ${VALGRIND_EXECUTABLE})
+      set(MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full --show-leak-kinds=all" )
+    endif()
     enable_testing()
     include(CTest)
   endif()
@@ -496,7 +509,7 @@ macro(elements_project project version)
   # - collect environment from externals
   elements_external_project_environment()
 
-  # (so far, the build and the release envirnoments are identical)
+  # (so far, the build and the release environments are identical)
   set(project_build_environment ${project_environment})
 
   # - collect internal environment
@@ -668,7 +681,6 @@ macro(elements_project project version)
       set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
 %{_bindir}/${_do}")
     endforeach()
-    #message(STATUS "The regular objects: ${CPACK_RPM_DEBINFO_FILES}")
   endif()
 
 #------------------------------------------------------------------------------
@@ -678,7 +690,6 @@ macro(elements_project project version)
     foreach(_do ${cmake_extra_flags})
       set(CPACK_EXTRA_CMAKEFLAGS "${CPACK_EXTRA_CMAKEFLAGS} ${_do}")
     endforeach()
-    #message(STATUS "The extra CMake flags: ${CPACK_EXTRA_CMAKEFLAGS}")
   endif()
 
 
@@ -693,7 +704,6 @@ macro(elements_project project version)
       set(CPACK_RPM_REGULAR_FILES "${CPACK_RPM_REGULAR_FILES}
 %{libdir}/${CMAKE_SHARED_LIBRARY_PREFIX}${_do}${CMAKE_SHARED_LIBRARY_SUFFIX}")
     endforeach()
-    #message(STATUS "The regular objects: ${CPACK_RPM_DEBINFO_FILES}")
   endif()
 
 
@@ -834,22 +844,28 @@ macro(elements_project project version)
 
       get_rpm_dep_list("${PROJECT_USE}" "" RPM_DEP_LIST)
 
-
-      find_file(spec_file_template
-                NAMES Elements.spec.in
-                PATHS ${CMAKE_MODULE_PATH}
+      find_file(main_project_changelog_file
+                NAMES ChangeLog
+                PATHS ${CMAKE_SOURCE_DIR}
+                PATH_SUFFIXES doc
                 NO_DEFAULT_PATH)
 
-
-
-      set(PROJECT_RPM_BUILD_ROOT "${PROJECT_RPM_TOPDIR}/BUILDROOT/${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}%{?dist}.${CPACK_RPM_PACKAGE_ARCHITECTURE}")
-
-      if(spec_file_template)
-        file(MAKE_DIRECTORY ${PROJECT_RPM_TOPDIR}/SPECS)
-        configure_file("${spec_file_template}" "${PROJECT_RPM_TOPDIR}/SPECS/${project}.spec" @ONLY IMMEDIATE)
-        message(STATUS "Generated RPM Spec file: ${PROJECT_RPM_TOPDIR}/SPECS/${project}.spec")
-        message(STATUS "From the SPEC template file: ${spec_file_template}")
+      unset(CPACK_RPM_CHANGELOG)
+      if(main_project_changelog_file)
+        file(READ ${main_project_changelog_file} MAIN_PROJECT_CHANGELOG)
+        set(CPACK_RPM_CHANGELOG "%changelog
+${MAIN_PROJECT_CHANGELOG}
+")
+        message(STATUS "Using ${main_project_changelog_file} for the ChangeLog of the project")
       endif()
+
+
+
+     find_file_to_configure(Elements.spec.in
+                            FILETYPE "RPM SPEC"
+                            OUTPUTDIR "${PROJECT_RPM_TOPDIR}/SPECS"
+                            OUTPUTNAME "${project}.spec"
+                            PATHS ${CMAKE_MODULE_PATH})
 
 
       add_custom_target(rpmbuilddir
@@ -857,7 +873,6 @@ macro(elements_project project version)
                         COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_TOPDIR}/BUILDROOT
                         COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_TOPDIR}/RPMS
                         COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_TOPDIR}/SRPMS
-                        COMMAND  ${CMAKE_COMMAND} -E make_directory ${PROJECT_RPM_BUILD_ROOT}
                         COMMENT "Generating ${PROJECT_RPM_TOPDIR} as rpmbuild directory" VERBATIM
       )
 
@@ -875,33 +890,7 @@ macro(elements_project project version)
 
   endif()
 
-  # Add Doxygen generation
-  find_package(Doxygen QUIET)
-  if(DOXYGEN_FOUND)
-    find_file(doxygen_file_template
-              NAMES Doxyfile.in
-              PATHS ${CMAKE_MODULE_PATH}
-              PATH_SUFFIXES doc
-              NO_DEFAULT_PATH)
-
-
-    if(doxygen_file_template)
-      configure_file(
-        "${doxygen_file_template}"
-        "${PROJECT_BINARY_DIR}/doc/Doxyfile"
-        @ONLY
-      )
-      message(STATUS "Generated Doxygen configuration file: ${PROJECT_BINARY_DIR}/doc/Doxyfile")
-      message(STATUS "From the Doxygen.in template file: ${doxygen_file_template}")
-
-    endif()
-
-    add_custom_target(doc
-                      ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/doc/Doxyfile
-                      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/doc
-                      COMMENT "Generating API documentation with Doxygen" VERBATIM
-    )
-  endif()
+  include(ElementsDocumentation)
 
 endmacro()
 
@@ -975,11 +964,7 @@ macro(_elements_use_other_projects)
         set(ver_mis_message "${ver_mis_message} -> ${other_project} ${other_project_cmake_version}")
         set(ver_mis_message "${ver_mis_message} , ${dep_name} ${dep_version}")
         set(ver_mis_message "${ver_mis_message} -> ${other_project} ${${other_project}_VERSION}")
-        if(ELEMENTS_DEPENDENCY_CHECK)
-          message(FATAL_ERROR ${ver_mis_message})
-        else()
-          message(WARNING ${ver_mis_message})
-        endif()
+        message(FATAL_ERROR ${ver_mis_message})
       endif()
     else()
       # If the dependency is not handled yet populate the dependency lists
@@ -2011,41 +1996,41 @@ endfunction()
 #
 # Create a SWIG binary python module from the specified sources (glob patterns are allowed), linking
 # it with the libraries specified and adding the include directories to the search path. The sources
-# can be either *.i or *.cpp files. Their location is relative to the base of the Elements package 
+# can be either *.i or *.cpp files. Their location is relative to the base of the Elements package
 # (module).
 #---------------------------------------------------------------------------------------------------
 function(elements_add_swig_binding binding)
 
   find_package(SWIG QUIET REQUIRED)
   find_package(PythonLibs QUIET REQUIRED)
-  
+
   # this function uses an extra option: 'PUBLIC_HEADERS'
   CMAKE_PARSE_ARGUMENTS(ARG "NO_PUBLIC_HEADERS" "" "LIBRARIES;LINK_LIBRARIES;INCLUDE_DIRS;PUBLIC_HEADERS" ${ARGN})
-  
+
   set(MODULE_ARG_LINK_LIBRARIES ${ARG_LINK_LIBRARIES})
   set(MODULE_ARG_INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
-  
-  
-  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS} 
-                            LIBRARIES ${ARG_LIBRARIES} 
-                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES} 
+
+
+  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS}
+                            LIBRARIES ${ARG_LIBRARIES}
+                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
                             INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
- 
+
   get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
   list(REMOVE_DUPLICATES dirs)
   set(SWIG_MOD_INCLUDE_DIRS)
   foreach(dir ${dirs})
     set(SWIG_MOD_INCLUDE_DIRS ${SWIG_MOD_INCLUDE_DIRS} -I${dir})
   endforeach()
-   
+
   if(NOT ARG_NO_PUBLIC_HEADERS AND NOT ARG_PUBLIC_HEADERS)
     elements_get_package_name(package)
     message(WARNING "Binding ${binding} (in ${package}) does not declare PUBLIC_HEADERS. Use the option NO_PUBLIC_HEADERS if it is intended.")
   endif()
-    
+
   # find the sources
   elements_expand_sources(srcs ${ARG_UNPARSED_ARGUMENTS})
-  
+
   set(cpp_srcs)
   set(i_srcs)
   foreach(s ${srcs})
@@ -2055,12 +2040,12 @@ function(elements_add_swig_binding binding)
       list(APPEND cpp_srcs ${s})
     endif()
   endforeach()
- 
+
   set(PY_MODULE_DIR ${CMAKE_BINARY_DIR}/python)
   set(PY_MODULE ${binding})
   set(PY_MODULE_SWIG_SRC ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PY_MODULE}PYTHON_wrap.cxx)
- 
- 
+
+
   #SWIG command
   add_custom_command(
 	OUTPUT
@@ -2076,11 +2061,11 @@ function(elements_add_swig_binding binding)
 		${SWIG_MOD_INCLUDE_DIRS}
 		-o ${PY_MODULE_SWIG_SRC}
 		${i_srcs}
-	DEPENDS 
+	DEPENDS
 		${i_srcs}
 	COMMENT "Generating SWIG binding"
   )
- 
+
   elements_add_python_module(${binding}
                              ${PY_MODULE_SWIG_SRC} ${cpp_srcs}
                              LINK_LIBRARIES ${MODULE_ARG_LINK_LIBRARIES}
@@ -2379,6 +2364,7 @@ endfunction()
 #                     PREFIX ""
 #                     NAME ""
 #                     PATTERN *.py
+#                     TIMEOUT ""
 #                     )
 #
 # Add the python files in the directory as test. It collects the python test files
@@ -2386,7 +2372,7 @@ endfunction()
 #---------------------------------------------------------------------------------------------------
 function(add_python_test_dir subdir)
 
-  CMAKE_PARSE_ARGUMENTS(PYTEST_ARG "" "PREFIX;PATTERN;NAME" "" ${ARGN})
+  CMAKE_PARSE_ARGUMENTS(PYTEST_ARG "" "PREFIX;PATTERN;NAME;TIMEOUT" "" ${ARGN})
 
   if(NOT PYTEST_ARG_PATTERN)
     set(PYTEST_ARG_PATTERN "*.py")
@@ -2424,6 +2410,9 @@ function(add_python_test_dir subdir)
     endif()
   endif()
 
+  if(PYTEST_ARG_TIMEOUT)
+    set_property(TEST ${package}.${pytest_name} PROPERTY TIMEOUT ${PYTEST_ARG_TIMEOUT})
+  endif()
 
 
 endfunction()
@@ -2449,6 +2438,9 @@ endfunction()
 # FIXME: it should be cleaner
 #-------------------------------------------------------------------------------
 function(elements_install_python_modules)
+
+  CMAKE_PARSE_ARGUMENTS(INSTALL_PY_MOD "" "TEST_TIMEOUT" "" ${ARGN})
+
   if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python)
     install(DIRECTORY python/
             DESTINATION python
@@ -2464,7 +2456,7 @@ function(elements_install_python_modules)
          AND NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/__init__.py)
         set(pyfile ${CMAKE_CURRENT_SOURCE_DIR}/${dir}/__init__.py)
         file(RELATIVE_PATH pyfile ${CMAKE_BINARY_DIR} ${pyfile})
-        message(WARNING "The file  ${pyfile} is missing. I shall install an empty one.")
+        message(WARNING "The file ${pyfile} is missing. I shall install an empty one.")
         if(NOT EXISTS ${CMAKE_CURRENT_BINARY_DIR}/__init__.py)
           file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/__init__.py "# Empty file generated automatically\n")
         endif()
@@ -2474,10 +2466,17 @@ function(elements_install_python_modules)
       # Add the Python module name to the list of provided ones.
       get_filename_component(modname ${dir} NAME)
       set_property(DIRECTORY APPEND PROPERTY has_python_modules ${modname})
+      if(NOT dir STREQUAL python/.svn)
+        set_property(GLOBAL APPEND PROPERTY PROJ_PYTHON_PACKAGE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/${dir})
+      endif()
     endforeach()
     set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
     if(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests/python)
-      add_python_test_dir(tests/python)
+      if(INSTALL_PY_MOD_TEST_TIMEOUT)
+        add_python_test_dir(tests/python TIMEOUT ${INSTALL_PY_MOD_TEST_TIMEOUT})
+      else()
+        add_python_test_dir(tests/python)
+      endif()
     endif()
   else()
     message(FATAL_ERROR "No python directory in the ${CMAKE_CURRENT_SOURCE_DIR} location")

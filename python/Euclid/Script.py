@@ -14,7 +14,7 @@ import os
 
 
 class PlainScript:
-    _version = "$Id: Script.py 133854 2012-01-18 12:53:49Z bcouturi $".replace(
+    _version = "$Id$".replace(
         "$", "").replace("Id:", "").strip()
     _description = ""
 
@@ -143,7 +143,7 @@ class PlainScript:
 
 
 class ConfigScript(PlainScript):
-    _version = "$Id: Script.py 133854 2012-01-18 12:53:49Z bcouturi $".replace(
+    _version = "$Id$".replace(
         "$", "").replace("Id:", "").strip()
     _description = ""
 
@@ -257,7 +257,7 @@ def _check_output_options_cb(option, opt_str, value, parser):
 
 
 class SourceScript(Script):
-    _version = "$Id: Script.py 133854 2012-01-18 12:53:49Z bcouturi $".replace(
+    _version = "$Id$".replace(
         "$", "").replace("Id:", "").strip()
     _description = ""
 

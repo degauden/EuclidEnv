@@ -1,67 +1,79 @@
-2015-11-26  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Tue Mar 22 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 2.0-1
+- update to the latest cmake library of Elements (4.0)
+- fix bug in ERun autocompletion (Tristan Grégoire)
 
-	* runtests.py: New file. This file can be generated with
-	the command:
-	  py.test --genscript=runtests.py
-	* tests/LocationTest.py: New file.
-	* .gitignore: ignore __pycache__ entries
-	* MANIFEST.in: new runtests.py file.
-	* setup.py: Add the new test command that allows to run 
-	automatically py.test on all the tests of the tests subdirectory.
-	
-2015-10-13  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Mon Jan 25 2016 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.15-1
+- update to the latest cmake library of Elements (3.10)
+- add ERun_autocompletion.sh script (Tristan Grégoire). Please note 
+  that this script has to be called by hand from the .bashrc for the moment.
 
-	* setup.py: release of version 1.13.1
-	* python/Euclid/Run/Lookup.py: Bugfix. The E-Run command was not 
-	checking the existence of the directory of a project before trying 
-	to list its version subdirectories.
+* Fri Dec 4 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14.1-1
+- Emergency fir for the usage of EUCLID_BASE env variable in ELogin
+- add a generic lx type in the BINARY_TAG. This corresponds
+  to an unkown linux box.
 
-2015-10-07  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Fri Nov 27 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.14-1
+- update to the cmake library of Elements 3.9
+- fix the cleaning of the ELogin banner
+- fix the setup of the environment for bash. Now it is not repeated for 
+  every subshell.
+- add the new "python setup.py test" command. It is based on a generated
+  py.test script.
 
-	* setup.py: release of version 1.13
-	- update to the cmake library of Elements 3.8 
-    - introduction of the draft generation of the python
-      SWIG bindings
-	 
-2015-08-18  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Tue Oct 13 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.13.1-1
+- Bugfix. The E-Run command was not checking the existence of the
+  directory of a project before trying to list its version subdirectories.
 
-	* setup.py: release of version 1.12.2 
-	- update to the cmake library of the Elements 3.7.2 version
-    - fix a bug in the toolchain crawling of projects
-    
-2015-08-05  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Wed Oct 7 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.13-1
+- update to the cmake library of Elements 3.8 
+- introduction of the draft generation of the python SWIG bindings
 
-	* setup.py: release of version 1.12.1
-	- fix of the conversion of the CMAKE_PROJECT_PATH environment
-	  variable into a cmake list
+* Tue Aug 18 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.2-1
+- update to the cmake library of the Elements 3.7.2 version
+- fix a bug in the toolchain crawling of projects
 
-2015-08-03  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Wed Aug 5 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12.1-1
+- update to the cmake library of the Elements 3.7.1 version
+- fix of the conversion of the CMAKE_PROJECT_PATH environment variable 
+  into a cmake list
 
-	* setup.py: release of version 1.12 
-	- update the cmake library to the Elements 3.7 version
-    - fix the E-Run command to work with the User_area without 
-      version directory.
+* Mon Aug 3 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.12-1
+- update the cmake library to the Elements 3.7 version
+- fix the E-Run command to work with the User_area without version
+  directory.
 
-2015-06-15  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Mon Jun 15 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.11-1
+- update the cmake library to the Elements 3.6 version.
+- contains the CMake Bootstrap Toolchain.
 
-	* setup.py: release of version 1.11
-	  - update the cmake library to the Elements 3.6 version.
-      - contains the CMake Bootstrap Toolchain.
+* Thu Feb 26 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.10-1
+- update the cmake library to the Elements 3.5 version.
+- fixes for the MacPort warnings.
 
-2015-02-26  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Mon Feb 2 2015 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.9-1
+- update the cmake library to the Elements 3.4 version.
+- various fixes for the Darwin platform.
+- new version of the latex class with the new Euclid logo.
 
-	* setup.py: release of version 1.10
-	  - update the cmake library to the Elements 3.5 version.
-      - fixes for the MacPort warnings.
+* Fri Nov 7 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.8-1
+- updated the cmake library to the Elements 3.3 version.
 
-2015-02-02  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Mon Oct 13 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.7-1
+- updated to the Elements 3.2 cmake library.
+- fixed the version extraction from the SVN tags.
 
-	* setup.py: release of version 1.9
-	  - update the cmake library to the Elements 3.4 version.
-	  - various fixes for the Darwin platform.
-	  - new version of the latex class with the new Euclid logo.
+* Mon Oct 6 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.6-1
+- imported the cmake library from Elements 3.1
+- fixed the User_area location default from ~/Work to ~/Work/Projects.
 
-2014-11-07  Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
+* Thu Aug 28 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.5-1
+- Release of version 1.5
+- adapted from Elements 3.0
+- mostly a removal of the win32 part
 
-	* setup.py: release of version 1.8
-	  - moved to the Elements 3.3 version of the cmake library.
+* Mon Jul 14 2014 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 1.4-1
+- Release of version 1.4
+- Fix the default BINARY_TAG and set it to the RelWithDebugInfo type.
+- Cure the logic for the full setup of the ELogin wrapper. It is done if
+  the shell is either a login one or non-interactive.
+- Add the "--implicit-latest" option to E-Run.
