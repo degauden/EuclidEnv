@@ -211,7 +211,7 @@ linux_flavour_aliases = {
     "suse": ["SuSE"],
     "co": ["CentOS"],
     "deb": ["Debian"],
-    "ubuntu": ["Ubuntu"],
+    "ub": ["Ubuntu"],
     "ml": ["Mandriva Linux"],
     "bb": ["Big Box Linux"]
 }
@@ -565,7 +565,7 @@ class NativeMachine:
             for f in linux_flavour_aliases:
                 if self.OSFlavour() == linux_flavour_aliases[f][0]:
                     cmtflavour = f + self.OSVersion(position=1)
-                    if self.OSFlavour() in ("SuSE", "Redhat", "Ubuntu"):
+                    if self.OSFlavour() in ("SuSE", "Redhat"):
                         cmtflavour = f + self.OSVersion(position=2)
                     if self.OSFlavour() == "SuSE" and int(self.OSVersion(position=1)) > 10:
                         cmtflavour = f + self.OSVersion(position=1)
