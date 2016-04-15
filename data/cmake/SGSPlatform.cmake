@@ -12,7 +12,7 @@
 #  - SGS_SYSTEM: by default it is derived from BINARY_TAG, but it can be set
 #                explicitly to a compatible supported platform if the default
 #                one is not supported.
-#                E.g.: if BINARY_TAG is x86_64-ubuntu12.04-gcc46-opt, SGS_SYSTEM
+#                E.g.: if BINARY_TAG is x86_64-ub12-gcc46-opt, SGS_SYSTEM
 #                      should be set to x86_64-slc6-gcc46.
 ################################################################################
 
@@ -56,27 +56,29 @@ function(sgs_find_host_os)
     else()
       set(issue_file_list /etc/redhat-release /etc/system-release /etc/SuSE-release /etc/issue /etc/issue.net)
       foreach(issue_file ${issue_file_list})
-        execute_process(COMMAND cat ${issue_file} OUTPUT_VARIABLE issue OUTPUT_STRIP_TRAILING_WHITESPACE)
-        if(issue MATCHES Ubuntu)
-          set(os ubuntu)
-          string(REGEX REPLACE ".*Ubuntu ([0-9]+)[.]([0-9]+).*" "\\1.\\2" osvers "${issue}")
-          break()
-        elseif(issue MATCHES "Scientific Linux|SLC|Fedora|CentOS Linux|CentOS") # RedHat-like distributions
-          string(TOLOWER "${CMAKE_MATCH_0}" os)
-          if(os STREQUAL fedora)
-            set(os fc) # we use an abbreviation for Fedora
+        if(EXISTS ${issue_file})
+          execute_process(COMMAND cat ${issue_file} OUTPUT_VARIABLE issue OUTPUT_STRIP_TRAILING_WHITESPACE)
+          if(issue MATCHES Ubuntu)
+            set(os ub)
+            string(REGEX REPLACE ".*Ubuntu ([0-9]+)[.]([0-9]+).*" "\\1" osvers "${issue}")
+            break()
+          elseif(issue MATCHES "Scientific Linux|SLC|Fedora|CentOS Linux|CentOS") # RedHat-like distributions
+            string(TOLOWER "${CMAKE_MATCH_0}" os)
+            if(os STREQUAL fedora)
+              set(os fc) # we use an abbreviation for Fedora
+            endif()
+            if(os STREQUAL "scientific linux")
+              set(os sl) # we use an abbreviation for Scientific Linux
+            endif()
+            if((os STREQUAL "centos linux") OR (os STREQUAL "centos"))
+              set(os co) # we use an abbreviation for Scientific Linux
+            endif()
+            string(REGEX REPLACE ".*release ([0-9]+)[. ].*" "\\1" osvers "${issue}")
+            break()
+          else()
+            set(os linux)
+            set(osvers)
           endif()
-          if(os STREQUAL "scientific linux")
-            set(os sl) # we use an abbreviation for Scientific Linux
-          endif()
-          if((os STREQUAL "centos linux") OR (os STREQUAL "centos"))
-            set(os co) # we use an abbreviation for Scientific Linux
-          endif()
-          string(REGEX REPLACE ".*release ([0-9]+)[. ].*" "\\1" osvers "${issue}")
-          break()
-        else()
-          set(os linux)
-          set(osvers)
         endif()
       endforeach()
       if(os STREQUAL "linux")
@@ -256,7 +258,7 @@ function(sgs_get_target_platform)
     set(CMAKE_SYSTEM_NAME Windows PARENT_SCOPE)
   elseif(SGS_OS STREQUAL "mac" OR SGS_OS STREQUAL "osx")
     set(CMAKE_SYSTEM_NAME Darwin PARENT_SCOPE)
-  elseif(SGS_OS STREQUAL "slc" OR SGS_OS STREQUAL "sl" OR SGS_OS STREQUAL "ubuntu" OR SGS_OS STREQUAL "fc" OR SGS_OS STREQUAL "co" OR SGS_OS STREQUAL "linux")
+  elseif(SGS_OS STREQUAL "slc" OR SGS_OS STREQUAL "sl" OR SGS_OS STREQUAL "ub" OR SGS_OS STREQUAL "fc" OR SGS_OS STREQUAL "co" OR SGS_OS STREQUAL "linux")
     set(CMAKE_SYSTEM_NAME Linux PARENT_SCOPE)
   else()
     set(CMAKE_SYSTEM_NAME ${CMAKE_HOST_SYSTEM_NAME})

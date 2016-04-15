@@ -1,5 +1,7 @@
 include_guard()
 
+include(CheckCXXCompilerFlag)
+include(CheckCCompilerFlag)
 
 include(SGSPlatform)
 
@@ -143,12 +145,18 @@ if(NOT ELEMENTS_FLAGS_SET)
         CACHE STRING "Flags used by the compiler during Debug builds."
         FORCE)
     if(OPT_DEBUG)
-      set(CMAKE_CXX_FLAGS_DEBUG "-Og ${CMAKE_CXX_FLAGS_DEBUG}"
-          CACHE STRING "Flags used by the compiler during Debug builds."
-          FORCE)
-      set(CMAKE_C_FLAGS_DEBUG "-Og ${CMAKE_C_FLAGS_DEBUG}"
-          CACHE STRING "Flags used by the compiler during Debug builds."
-          FORCE)
+      check_cxx_compiler_flag(-Og CXX_HAS_MINUS_OG)
+      if(CXX_HAS_MINUS_OG)
+        set(CMAKE_CXX_FLAGS_DEBUG "-Og ${CMAKE_CXX_FLAGS_DEBUG}"
+            CACHE STRING "Flags used by the compiler during Debug builds."
+            FORCE)
+      endif()
+      check_c_compiler_flag(-Og C_HAS_MINUS_OG)
+      if(C_HAS_MINUS_OG)
+        set(CMAKE_C_FLAGS_DEBUG "-Og ${CMAKE_C_FLAGS_DEBUG}"
+            CACHE STRING "Flags used by the compiler during Debug builds."
+            FORCE)
+      endif()
     endif()
   endif()
 
@@ -253,8 +261,10 @@ if ( ELEMENTS_CPP11 )
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11")
   if ( APPLE AND ((SGS_COMP STREQUAL "clang") OR (SGS_COMP STREQUAL "llvm") ) )
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -stdlib=libc")
+    check_cxx_compiler_flag(-stdlib=libc++ CXX_HAS_MINUS_STDLIB)
+    if(CXX_HAS_MINUS_STDLIB)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    endif()
   endif()
   if(USE_ODB)
     set(ODB_CXX_EXTRA_FLAGS --std c++11)
