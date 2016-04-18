@@ -33,7 +33,7 @@ def isBinaryType(binary_tag, btype):
 
 
 def getBinaryOfType(binary_tag, btype):
-    "convert the BINARY_TAG to another type"
+    """ convert the BINARY_TAG to another type """
     btother = binary_tag
     if not isBinaryType(binary_tag, btype):
         blist = binary_tag.split("-")[:-1]
@@ -416,11 +416,13 @@ class NativeMachine:
                 m = vmatch.search(cont)
                 if m:
                     self._osversion = m.group(1)
+                else:
+                    self._osversion = ""
 
         osver = self._osversion
 
         # returns at most the number of position specified.
-        if position:
+        if position and self._osversion:
             osver = ".".join(self._osversion.split(".")[:position])
 
         return osver
