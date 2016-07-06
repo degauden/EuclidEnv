@@ -226,6 +226,7 @@ lsb_flavour_aliases = {
 flavor_runtime_compatibility = {
     "slc7": ["slc7", "co7"],
     "co7": ["co7", "slc7"],
+    "fc24": ["fc24", "fc23", "fc22", "fc21", "fc20", "fc19", "slc7"],
     "fc23": ["fc23", "fc22", "fc21", "fc20", "fc19", "slc7"],
     "fc22": ["fc22", "fc21", "fc20", "fc19", "slc7"],
     "fc21": ["fc21", "fc20", "fc19", "slc7"],
@@ -251,6 +252,7 @@ arch_runtime_compatiblity = {
 }
 
 flavor_runtime_equivalence = {
+    "fc24": ["fc24"],
     "fc23": ["fc23"],
     "fc22": ["fc22"],
     "fc21": ["fc21"],
@@ -267,6 +269,7 @@ flavor_runtime_equivalence = {
 }
 
 supported_compilers = {
+    "fc24": ["gcc61"],
     "fc23": ["gcc53"],
     "fc22": ["gcc51"],
     "fc21": ["gcc49"],
