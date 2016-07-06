@@ -120,6 +120,9 @@ binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
                    "x86_64-fc19-gcc48-opt", "i686-fc19-gcc48-opt",
                    "x86_64-fc20-gcc48-opt", "i686-fc20-gcc48-opt",
                    "x86_64-fc21-gcc49-opt", "i686-fc21-gcc49-opt",
+                   "x86_64-fc22-gcc51-opt", "i686-fc22-gcc51-opt",
+                   "x86_64-fc23-gcc53-opt", "i686-fc23-gcc53-opt",
+                   "x86_64-fc24-gcc61-opt", "i686-fc24-gcc61-opt",
                    "x86_64-osx109-clang34-opt"
                    ]
 # future possible supported binaries
