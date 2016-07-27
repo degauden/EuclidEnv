@@ -33,7 +33,7 @@ def isBinaryType(binary_tag, btype):
 
 
 def getBinaryOfType(binary_tag, btype):
-    "convert the BINARY_TAG to another type"
+    """ convert the BINARY_TAG to another type """
     btother = binary_tag
     if not isBinaryType(binary_tag, btype):
         blist = binary_tag.split("-")[:-1]
@@ -120,6 +120,9 @@ binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
                    "x86_64-fc19-gcc48-opt", "i686-fc19-gcc48-opt",
                    "x86_64-fc20-gcc48-opt", "i686-fc20-gcc48-opt",
                    "x86_64-fc21-gcc49-opt", "i686-fc21-gcc49-opt",
+                   "x86_64-fc22-gcc51-opt", "i686-fc22-gcc51-opt",
+                   "x86_64-fc23-gcc53-opt", "i686-fc23-gcc53-opt",
+                   "x86_64-fc24-gcc61-opt", "i686-fc24-gcc61-opt",
                    "x86_64-osx109-clang34-opt"
                    ]
 # future possible supported binaries
@@ -211,7 +214,7 @@ linux_flavour_aliases = {
     "suse": ["SuSE"],
     "co": ["CentOS"],
     "deb": ["Debian"],
-    "ubuntu": ["Ubuntu"],
+    "ub": ["Ubuntu"],
     "ml": ["Mandriva Linux"],
     "bb": ["Big Box Linux"]
 }
@@ -226,6 +229,9 @@ lsb_flavour_aliases = {
 flavor_runtime_compatibility = {
     "slc7": ["slc7", "co7"],
     "co7": ["co7", "slc7"],
+    "fc24": ["fc24", "fc23", "fc22", "fc21", "fc20", "fc19", "slc7"],
+    "fc23": ["fc23", "fc22", "fc21", "fc20", "fc19", "slc7"],
+    "fc22": ["fc22", "fc21", "fc20", "fc19", "slc7"],
     "fc21": ["fc21", "fc20", "fc19", "slc7"],
     "fc20": ["fc20", "fc19", "slc7"],
     "fc19": ["fc19", "slc7"],
@@ -249,6 +255,9 @@ arch_runtime_compatiblity = {
 }
 
 flavor_runtime_equivalence = {
+    "fc24": ["fc24"],
+    "fc23": ["fc23"],
+    "fc22": ["fc22"],
     "fc21": ["fc21"],
     "fc20": ["fc20"],
     "fc19": ["fc19"],
@@ -263,6 +272,9 @@ flavor_runtime_equivalence = {
 }
 
 supported_compilers = {
+    "fc24": ["gcc61"],
+    "fc23": ["gcc53"],
+    "fc22": ["gcc51"],
     "fc21": ["gcc49"],
     "fc20": ["gcc48"],
     "fc19": ["gcc48"],
@@ -416,11 +428,13 @@ class NativeMachine:
                 m = vmatch.search(cont)
                 if m:
                     self._osversion = m.group(1)
+                else:
+                    self._osversion = ""
 
         osver = self._osversion
 
         # returns at most the number of position specified.
-        if position:
+        if position and self._osversion:
             osver = ".".join(self._osversion.split(".")[:position])
 
         return osver
@@ -565,7 +579,7 @@ class NativeMachine:
             for f in linux_flavour_aliases:
                 if self.OSFlavour() == linux_flavour_aliases[f][0]:
                     cmtflavour = f + self.OSVersion(position=1)
-                    if self.OSFlavour() in ("SuSE", "Redhat", "Ubuntu"):
+                    if self.OSFlavour() in ("SuSE", "Redhat"):
                         cmtflavour = f + self.OSVersion(position=2)
                     if self.OSFlavour() == "SuSE" and int(self.OSVersion(position=1)) > 10:
                         cmtflavour = f + self.OSVersion(position=1)
