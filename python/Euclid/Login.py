@@ -442,7 +442,7 @@ The type is to be chosen among the following list:
                     os.makedirs(opts.userarea)
                     self.addEcho(
                         " --- a new User_area directory has been created in your HOME directory")
-                except IOError:
+                except (IOError, OSError):
                     log.warning("Can't create %s" % opts.userarea)
         elif ev.has_key("User_area"):
             del ev["User_area"]
