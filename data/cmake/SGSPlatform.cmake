@@ -46,6 +46,9 @@ endfunction()
 ################################################################################
 # Detect the OS name and version
 function(sgs_find_host_os)
+
+  set(osvers "")
+
   if(NOT SGS_HOST_OS OR NOT SGS_HOST_OSVERS)
     if(APPLE)
       set(os osx)
@@ -60,7 +63,9 @@ function(sgs_find_host_os)
           execute_process(COMMAND cat ${issue_file} OUTPUT_VARIABLE issue OUTPUT_STRIP_TRAILING_WHITESPACE)
           if(issue MATCHES Ubuntu)
             set(os ub)
-            string(REGEX REPLACE ".*Ubuntu ([0-9]+)[.]([0-9]+).*" "\\1" osvers "${issue}")
+            if(issue MATCHES ".*Ubuntu ([0-9]+)[.]([0-9]+).*")
+              string(REGEX REPLACE ".*Ubuntu ([0-9]+)[.]([0-9]+).*" "\\1" osvers "${issue}")
+            endif()
             break()
           elseif(issue MATCHES "Scientific Linux|SLC|Fedora|CentOS Linux|CentOS") # RedHat-like distributions
             string(TOLOWER "${CMAKE_MATCH_0}" os)
@@ -73,7 +78,9 @@ function(sgs_find_host_os)
             if((os STREQUAL "centos linux") OR (os STREQUAL "centos"))
               set(os co) # we use an abbreviation for Scientific Linux
             endif()
-            string(REGEX REPLACE ".*release ([0-9]+)[. ].*" "\\1" osvers "${issue}")
+            if(issue MATCHES ".*release ([0-9]+)[. ].*")
+              string(REGEX REPLACE ".*release ([0-9]+)[. ].*" "\\1" osvers "${issue}")
+            endif()
             break()
           else()
             set(os linux)
@@ -96,14 +103,14 @@ endfunction()
 function(sgs_find_host_compiler)
   if(NOT SGS_HOST_COMP OR NOT SGS_HOST_COMPVERS)
     if(APPLE)
-      find_program(SGS_HOST_C_COMPILER   NAMES clang gcc cc cl clang icc bcc xlc
+      find_program(SGS_HOST_C_COMPILER   NAMES clang gcc cc clang icc bcc xlc
                    DOC "Host C compiler")
-      find_program(SGS_HOST_CXX_COMPILER NAMES clang++ c++ g++ cl clang++ icpc CC aCC bcc xlC
+      find_program(SGS_HOST_CXX_COMPILER NAMES clang++ c++ g++ clang++ icpc CC aCC bcc xlC
                    DOC "Host C++ compiler")
     else()
-      find_program(SGS_HOST_C_COMPILER   NAMES gcc cc cl clang icc bcc xlc
+      find_program(SGS_HOST_C_COMPILER   NAMES gcc cc clang icc bcc xlc
                    DOC "Host C compiler")
-      find_program(SGS_HOST_CXX_COMPILER NAMES c++ g++ cl clang++ icpc CC aCC bcc xlC
+      find_program(SGS_HOST_CXX_COMPILER NAMES c++ g++ clang++ icpc CC aCC bcc xlC
                    DOC "Host C++ compiler")
     endif()
     mark_as_advanced(SGS_HOST_C_COMPILER SGS_HOST_CXX_COMPILER)
