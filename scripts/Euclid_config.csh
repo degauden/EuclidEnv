@@ -28,9 +28,9 @@ if ( $?XDG_CONFIG_DIRS ) then
   end
   unset d
 endif
+set cfgfiles="$cfgfiles $my_own_prefix0/etc/sysconfig/euclid"
 set cfgfiles="$cfgfiles /etc/default/Euclid"
 set cfgfiles="$cfgfiles /etc/sysconfig/euclid"
-set cfgfiles="$cfgfiles $my_own_prefix0/etc/sysconfig/euclid"
 
 foreach c ( $cfgfiles )
   if ( -r $c ) then
