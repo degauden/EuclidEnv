@@ -5,7 +5,7 @@
 # 4) /etc/default/Euclid
 # 5) /etc/sysconfig/euclid
 
-set my_own_prefix0 = "%(this_install_prefix)s"
+set my_own_prefix0 = "%(this_etc_install_prefix)s"
 
 
 # default values if no config file is found
@@ -29,7 +29,7 @@ if ( $?XDG_CONFIG_DIRS ) then
   end
   unset d
 endif
-set cfgfiles="$cfgfiles $my_own_prefix0/etc/sysconfig/euclid"
+set cfgfiles="$cfgfiles $my_own_prefix0/sysconfig/euclid"
 set cfgfiles="$cfgfiles /etc/default/Euclid"
 set cfgfiles="$cfgfiles /etc/sysconfig/euclid"
 

@@ -42,18 +42,32 @@ for a in sys.argv:
         if a.startswith(b):
             use_local_install = True
 
-if use_local_install:
-    etc_files = [("../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
-                                       os.path.join("data", "profile", "euclid.csh")]),
-                 ("../etc/sysconfig",
-                  [os.path.join("data", "sys", "config", "euclid")])
-                 ]
+
+etc_install_root = None
+for a in sys.argv:
+    if a.startswith("--etc-root"):
+        # TODO implement the extratction of the value from
+        # the option
+        e_base = a.split("=")[1:]
+        if len(e_base) == 1:
+            etc_install_root = e_base[0]
+        sys.argv.remove(a)
+
+if not etc_install_root:
+    if use_local_install:
+        etc_install_prefix = "../etc"
+    else:
+        etc_install_prefix = "../../etc"
 else:
-    etc_files = [("../../etc/profile.d", [os.path.join("data", "profile", "euclid.sh"),
-                                          os.path.join("data", "profile", "euclid.csh")]),
-                 ("../../etc/sysconfig",
+    etc_install_prefix = os.path.join(etc_install_root, "etc")
+
+
+etc_files = [(os.path.join(etc_install_prefix, "profile.d"), [os.path.join("data", "profile", "euclid.sh"),
+                                       os.path.join("data", "profile", "euclid.csh")]),
+             (os.path.join(etc_install_prefix, "sysconfig"),
                   [os.path.join("data", "sys", "config", "euclid")])
-                 ]
+            ]
+
 
 use_custom_install_root = False
 for a in sys.argv:
@@ -159,7 +173,7 @@ class my_install(_install):
 
     def get_login_scripts(self):
         p_list = []
-        for c in ["ELogin", "Euclid_group_login", "Euclid_group_setup", "Euclid_config"]:
+        for c in ["ELogin", "Euclid_group_login", "Euclid_group_setup"]:
             for s in ["sh", "csh"]:
                 file2fix = os.path.join(self.install_scripts, "%s.%s" % (c, s))
                 if os.path.exists(file2fix):
@@ -168,24 +182,46 @@ class my_install(_install):
 
     def get_profile_scripts(self):
         p_list = []
+        this_install = self.get_etc_install_root()
         for s in ["sh", "csh"]:
             file2fix = os.path.join(
-                self.install_base, "etc", "profile.d", "%s.%s" % ("euclid", s))
+                this_install, "etc", "profile.d", "%s.%s" % ("euclid", s))
             if os.path.exists(file2fix):
                 p_list.append(file2fix)
         return p_list
 
+    def get_etc_install_root(self):
+        if etc_install_root:
+            this_install = etc_install_root
+        else:
+            if use_local_install:
+                this_install = os.path.dirname(self.install_scripts)
+            else:
+                this_install = os.path.dirname(os.path.dirname(self.install_scripts))
+
+        return this_install
+
+
+    def fix_etc_install_path(self):
+        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        proc_list = self.get_config_scripts()
+        this_install = os.path.join(self.get_etc_install_root(), "etc")
+        for p in proc_list:
+            print "Fixing %s with the %s prefix path" % (p, this_install)
+            call(["python", fixscript, "-n", "this_etc_install_prefix", this_install, p])
+
+
     def fix_install_path(self):
         fixscript = os.path.join(self.install_scripts, "FixInstallPath")
-        proc_list = self.get_login_scripts()
+        proc_list = self.get_login_scripts() + self.get_config_scripts()
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
             proc_list.append(file2fix)
-        if use_local_install:
-            proc_list += self.get_profile_scripts()
+        proc_list += self.get_profile_scripts()
         for p in proc_list:
-            print "Fixing %s with the %s prefix path" % (p, self.install_base)
-            call(["python", fixscript, self.install_base, p])
+            print "Fixing %s with the %s prefix path" % (p, os.path.dirname(self.install_scripts))
+            call(["python", fixscript, os.path.dirname(self.install_scripts), p])
+        self.fix_etc_install_path()
 
     def fix_version(self):
         fixscript = os.path.join(self.install_scripts, "FixInstallPath")
@@ -197,8 +233,10 @@ class my_install(_install):
 
     def get_sysconfig_files(self):
         p_list = []
-        file2fix = os.path.join(
-            self.install_base, "etc", "sysconfig", "euclid")
+
+        this_install = self.get_etc_install_root()
+
+        file2fix = os.path.join(this_install, "etc", "sysconfig", "euclid")
         if os.path.exists(file2fix):
             p_list.append(file2fix)
         return p_list
@@ -246,15 +284,16 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
         _install.run(self)
         # postinstall
         if not skip_custom_postinstall:
-            # print "This is the install base %s" % self.install_base
-            # print "This is the install platbase %s" % self.install_platbase
-            # print "This is the install root %s" % self.root
-            # print "This is the install purelib %s" % self.install_purelib
-            # print "This is the install platlib %s" % self.install_platlib
-            # print "This is the install lib %s" % self.install_lib
-            # print "This is the install headers %s" % self.install_headers
-            # print "This is the install scripts %s" % self.install_scripts
-            # print "This is the install data %s" % self.install_data
+#             print "This is the prefix %s" % self.prefix
+#             print "This is the install base %s" % self.install_base
+#             print "This is the install platbase %s" % self.install_platbase
+#             print "This is the install root %s" % self.root
+#             print "This is the install purelib %s" % self.install_purelib
+#             print "This is the install platlib %s" % self.install_platlib
+#             print "This is the install lib %s" % self.install_lib
+#             print "This is the install headers %s" % self.install_headers
+#             print "This is the install scripts %s" % self.install_scripts
+#             print "This is the install data %s" % self.install_data
             self.custom_post_install()
 
 class PyTest(Command):
