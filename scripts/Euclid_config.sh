@@ -11,6 +11,7 @@ my_own_prefix0="%(this_install_prefix)s"
 export SOFTWARE_BASE_VAR=EUCLID_BASE
 export EUCLID_BASE=%(this_euclid_base)s
 export EUCLID_USE_BASE=no
+export EUCLID_USE_PREFIX=no
 
 
 cfgfiles=""
@@ -45,7 +46,7 @@ done
 unset c
 unset cfgfiles
 
-# prepend path entries to the environment
+# prepend path entries from the base to the environment
 if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
   if [[ -d ${EUCLID_BASE} ]]; then
     if [[ -d ${EUCLID_BASE}/bin ]]; then
@@ -90,6 +91,14 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
     fi
   fi
 fi
+
+# prepend path entries from the prefix to the environment
+if [[ "${EUCLID_USE_PREFIX}" == "yes" ]]; then
+ if [[ -d ${my_own_prefix0} ]]; then
+
+ fi
+fi
+
 
 unset my_own_prefix0
 
