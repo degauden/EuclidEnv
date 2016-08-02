@@ -6,6 +6,7 @@
 # 5) /etc/sysconfig/euclid
 
 set my_own_prefix0 = "%(this_etc_install_prefix)s"
+set my_own_exe_prefix0 = "%(this_install_prefix)s"
 
 
 # default values if no config file is found
@@ -93,11 +94,12 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
 endif
 
 # prepend path entries from the prefix to the environment 
-if ( "${EUCLID_USE_BASE}" == "yes" ) then
- if ( -d ${my_own_prefix0} ) then
+if ( "${EUCLID_USE_PREFIX}" == "yes" ) then
+ if ( -d ${my_own_exe_prefix0} ) then
 
  endif
 endif
 
 unset my_own_prefix0
+unset my_own_exe_prefix0
 
