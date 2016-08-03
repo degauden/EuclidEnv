@@ -79,6 +79,10 @@ class PathTestCase(unittest.TestCase):
         l1 = []
         l1.append(os.path.join(t.getName(), "usr", "local", "bin"))
         l1.append(os.path.join(t.getName(), "usr", "bin"))
+        if os.path.exists(os.path.join(t.getName(), "bin")):
+            l1.append(os.path.join(t.getName(), "bin"))
+        if os.path.exists(os.path.join("/tmp", "bin")):
+            l1.append(os.path.join("/tmp", "bin"))
         l1.append(os.path.join(os.sep + "bin"))
 
         ttop = os.path.join(t.getName(), "usr", "local", "bin", "toto")
