@@ -121,6 +121,67 @@ fi
 if [[ "${EUCLID_USE_PREFIX}" == "yes" ]]; then
  if [[ -d ${my_own_exe_prefix0} ]]; then
 
+    if [[ -d ${my_own_exe_prefix0}/bin ]]; then
+      export PATH=${my_own_exe_prefix0}/bin:${PATH}
+    fi
+    if [[ -d ${my_own_exe_prefix0}/scripts ]]; then
+      export PATH=${my_own_exe_prefix0}/scripts:${PATH}
+    fi
+    
+    if [[ "${arch_type}" == "x86_64" ]]; then
+      if [[ -d ${my_own_exe_prefix0}/lib32 ]]; then
+        if [[ -n "$LD_LIBRARY_PATH" ]]; then
+          export LD_LIBRARY_PATH=${my_own_exe_prefix0}/lib32:${LD_LIBRARY_PATH}
+        else
+          export LD_LIBRARY_PATH=${my_own_exe_prefix0}/lib32
+        fi
+      fi
+    fi
+    if [[ -d ${my_own_exe_prefix0}/lib ]]; then
+      if [[ -n "$LD_LIBRARY_PATH" ]]; then
+        export LD_LIBRARY_PATH=${my_own_exe_prefix0}/lib:${LD_LIBRARY_PATH}
+      else
+        export LD_LIBRARY_PATH=${my_own_exe_prefix0}/lib
+      fi
+    fi
+    if [[ "${arch_type}" == "x86_64" ]]; then
+      if [[ -d ${my_own_exe_prefix0}/lib64 ]]; then
+        if [[ -n "$LD_LIBRARY_PATH" ]]; then
+          export LD_LIBRARY_PATH=${my_own_exe_prefix0}/lib64:${LD_LIBRARY_PATH}
+        else
+          export LD_LIBRARY_PATH=${my_own_exe_prefix0}/lib64
+        fi
+      fi
+    fi
+
+    
+    if [[ -d ${my_own_exe_prefix0}/python ]]; then
+      my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))")
+      if [[ -d ${my_python_base} ]]; then
+        if [[ -n "$PYTHONPATH" ]]; then
+          export PYTHONPATH=${my_python_base}:${PYTHONPATH}
+        else
+          export PYTHONPATH=${my_python_base}
+        fi
+      else
+        if [[ -n "$PYTHONPATH" ]]; then
+          export PYTHONPATH=${my_own_exe_prefix0}/python:${PYTHONPATH}
+        else
+          export PYTHONPATH=${my_own_exe_prefix0}/python
+        fi
+      fi
+      unset my_python_base
+    fi
+    
+    if [[ -n "$CMAKE_PREFIX_PATH" ]]; then
+      export CMAKE_PREFIX_PATH=${my_own_exe_prefix0}:${CMAKE_PREFIX_PATH}
+    else
+      export CMAKE_PREFIX_PATH=${my_own_exe_prefix0}
+    fi
+    if [[ -d ${EUCLID_BASE}/cmake ]]; then
+      export CMAKE_PREFIX_PATH=${my_own_exe_prefix0}/cmake:${CMAKE_PREFIX_PATH}
+    fi
+
  fi
 fi
 

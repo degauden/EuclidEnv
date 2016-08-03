@@ -119,6 +119,67 @@ endif
 if ( "${EUCLID_USE_PREFIX}" == "yes" ) then
  if ( -d ${my_own_exe_prefix0} ) then
 
+    if ( -d ${my_own_exe_prefix0}/bin ) then
+      setenv PATH ${my_own_exe_prefix0}/bin:${PATH}
+    endif
+    if ( -d ${my_own_exe_prefix0}/scripts ) then
+      setenv PATH ${my_own_exe_prefix0}/scripts:${PATH}
+    endif
+    
+    if ( "${arch_type}" == "x86_64" ) then
+      if ( -d ${my_own_exe_prefix0}/lib32 ) then
+        if ( $?LD_LIBRARY_PATH ) then 
+          setenv LD_LIBRARY_PATH ${my_own_exe_prefix0}/lib32:${LD_LIBRARY_PATH}
+        else
+          setenv LD_LIBRARY_PATH ${my_own_exe_prefix0}/lib32        
+        endif
+      endif
+    endif
+    if ( -d ${my_own_exe_prefix0}/lib ) then
+      if ( $?LD_LIBRARY_PATH ) then 
+        setenv LD_LIBRARY_PATH ${my_own_exe_prefix0}/lib:${LD_LIBRARY_PATH}
+      else
+        setenv LD_LIBRARY_PATH ${my_own_exe_prefix0}/lib        
+      endif
+    endif
+    if ( "${arch_type}" == "x86_64" ) then
+      if ( -d ${my_own_exe_prefix0}/lib64 ) then
+        if ( $?LD_LIBRARY_PATH ) then 
+          setenv LD_LIBRARY_PATH ${my_own_exe_prefix0}/lib64:${LD_LIBRARY_PATH}
+        else
+          setenv LD_LIBRARY_PATH ${my_own_exe_prefix0}/lib64        
+        endif
+      endif
+    endif
+    
+    if ( -d ${my_own_exe_prefix0}/python ) then
+      set my_python_base = `python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))"`
+
+      if ( -d ${my_python_base} ) then
+        if ( $?PYTHONPATH ) then 
+          setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
+        else
+          setenv PYTHONPATH ${my_python_base}        
+        endif       
+      else
+        if ( $?PYTHONPATH ) then 
+          setenv PYTHONPATH ${my_own_exe_prefix0}/python:${PYTHONPATH}
+        else
+          setenv PYTHONPATH ${my_own_exe_prefix0}/python        
+        endif
+      endif  
+      unset my_python_base
+    endif
+    
+    if ( $?CMAKE_PREFIX_PATH ) then 
+      setenv CMAKE_PREFIX_PATH ${my_own_exe_prefix0}:${CMAKE_PREFIX_PATH}
+    else
+      setenv CMAKE_PREFIX_PATH ${my_own_exe_prefix0}        
+    endif
+    if ( -d ${my_own_exe_prefix0}/cmake ) then
+      setenv CMAKE_PREFIX_PATH ${my_own_exe_prefix0}/cmake:${CMAKE_PREFIX_PATH}
+    endif                
+
  endif
 endif
 
