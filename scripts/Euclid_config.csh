@@ -45,14 +45,27 @@ end
 unset c
 unset cfgfiles
 
+set arch_type=`uname -m`
+
 # prepend path entries from the base to the environment 
 if ( "${EUCLID_USE_BASE}" == "yes" ) then
   if ( -d ${EUCLID_BASE} ) then
+
     if ( -d ${EUCLID_BASE}/bin ) then
       setenv PATH ${EUCLID_BASE}/bin:${PATH}
     endif
     if ( -d ${EUCLID_BASE}/scripts ) then
       setenv PATH ${EUCLID_BASE}/scripts:${PATH}
+    endif
+    
+    if ( "${arch_type}" == "x86_64" ) then
+      if ( -d ${EUCLID_BASE}/lib32 ) then
+        if ( $?LD_LIBRARY_PATH ) then 
+          setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib32:${LD_LIBRARY_PATH}
+        else
+          setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib32        
+        endif
+      endif
     endif
     if ( -d ${EUCLID_BASE}/lib ) then
       if ( $?LD_LIBRARY_PATH ) then 
@@ -61,6 +74,16 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
         setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib        
       endif
     endif
+    if ( "${arch_type}" == "x86_64" ) then
+      if ( -d ${EUCLID_BASE}/lib64 ) then
+        if ( $?LD_LIBRARY_PATH ) then 
+          setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib64:${LD_LIBRARY_PATH}
+        else
+          setenv LD_LIBRARY_PATH ${EUCLID_BASE}/lib64        
+        endif
+      endif
+    endif
+    
     if ( -d ${EUCLID_BASE}/python ) then
       set my_python_base = `python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))"`
 
@@ -76,20 +99,19 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
         else
           setenv PYTHONPATH ${EUCLID_BASE}/python        
         endif
-      endif
-      
+      endif  
       unset my_python_base
     endif
-    if ( -d ${EUCLID_BASE} ) then
-      if ( $?CMAKE_PREFIX_PATH ) then 
-        setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
-      else
-        setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}        
-      endif
-      if ( -d ${EUCLID_BASE}/cmake ) then
-        setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
-      endif                
-    endif        
+    
+    if ( $?CMAKE_PREFIX_PATH ) then 
+      setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
+    else
+      setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}        
+    endif
+    if ( -d ${EUCLID_BASE}/cmake ) then
+      setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
+    endif                
+            
   endif
 endif
 
@@ -100,6 +122,7 @@ if ( "${EUCLID_USE_PREFIX}" == "yes" ) then
  endif
 endif
 
+unset arch_type
 unset my_own_prefix0
 unset my_own_exe_prefix0
 

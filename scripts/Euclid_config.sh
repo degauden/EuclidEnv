@@ -47,14 +47,27 @@ done
 unset c
 unset cfgfiles
 
+arch_type=`uname -m`
+
 # prepend path entries from the base to the environment
 if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
   if [[ -d ${EUCLID_BASE} ]]; then
+    
     if [[ -d ${EUCLID_BASE}/bin ]]; then
       export PATH=${EUCLID_BASE}/bin:${PATH}
     fi
     if [[ -d ${EUCLID_BASE}/scripts ]]; then
       export PATH=${EUCLID_BASE}/scripts:${PATH}
+    fi
+    
+    if [[ "${arch_type}" == "x86_64" ]]; then
+      if [[ -d ${EUCLID_BASE}/lib32 ]]; then
+        if [[ -n "$LD_LIBRARY_PATH" ]]; then
+          export LD_LIBRARY_PATH=${EUCLID_BASE}/lib32:${LD_LIBRARY_PATH}
+        else
+          export LD_LIBRARY_PATH=${EUCLID_BASE}/lib32
+        fi
+      fi
     fi
     if [[ -d ${EUCLID_BASE}/lib ]]; then
       if [[ -n "$LD_LIBRARY_PATH" ]]; then
@@ -63,6 +76,17 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
         export LD_LIBRARY_PATH=${EUCLID_BASE}/lib
       fi
     fi
+    if [[ "${arch_type}" == "x86_64" ]]; then
+      if [[ -d ${EUCLID_BASE}/lib64 ]]; then
+        if [[ -n "$LD_LIBRARY_PATH" ]]; then
+          export LD_LIBRARY_PATH=${EUCLID_BASE}/lib64:${LD_LIBRARY_PATH}
+        else
+          export LD_LIBRARY_PATH=${EUCLID_BASE}/lib64
+        fi
+      fi
+    fi
+
+    
     if [[ -d ${EUCLID_BASE}/python ]]; then
       my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))")
       if [[ -d ${my_python_base} ]]; then
@@ -80,16 +104,16 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
       fi
       unset my_python_base
     fi
-    if [[ -d ${EUCLID_BASE} ]]; then
-      if [[ -n "$CMAKE_PREFIX_PATH" ]]; then
-        export CMAKE_PREFIX_PATH=${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
-      else
-        export CMAKE_PREFIX_PATH=${EUCLID_BASE}
-      fi
-      if [[ -d ${EUCLID_BASE}/cmake ]]; then
-        export CMAKE_PREFIX_PATH=${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
-      fi
+    
+    if [[ -n "$CMAKE_PREFIX_PATH" ]]; then
+      export CMAKE_PREFIX_PATH=${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
+    else
+      export CMAKE_PREFIX_PATH=${EUCLID_BASE}
     fi
+    if [[ -d ${EUCLID_BASE}/cmake ]]; then
+      export CMAKE_PREFIX_PATH=${EUCLID_BASE}/cmake:${CMAKE_PREFIX_PATH}
+    fi
+    
   fi
 fi
 
@@ -100,7 +124,7 @@ if [[ "${EUCLID_USE_PREFIX}" == "yes" ]]; then
  fi
 fi
 
-
+unset arch_type
 unset my_own_prefix0
 unset my_own_exe_prefix0
 
