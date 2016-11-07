@@ -626,7 +626,6 @@ The type is to be chosen among the following list:
         return self.copyEnv()[1]
 
     def setExtra(self):
-        #        ex = self.extra()
         return self.copyEnv()[2]
 
     def manifest(self, binary_type=default_build_type):
@@ -665,9 +664,7 @@ The type is to be chosen among the following list:
         SourceScript.parseOpts(self, args)
         for a in self.args:
             for b in build_types:
-                if a.lower() == b.lower():
-                    self._target_binary_type = b
-                elif a.lower() == build_types[b].lower():
+                if (a.lower() == b.lower()) or (a.lower() == build_types[b].lower()):
                     self._target_binary_type = b
 
     def main(self):
