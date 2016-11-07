@@ -13,7 +13,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "2.0"
+__version__ = "2.1"
 __project__ = "EuclidEnv"
 
 
@@ -165,7 +165,7 @@ class my_bdist_rpm(_bdist_rpm):
 
     def run(self):
         print "Cannot run directly the bdist_rpm target. Please rather use the generated " \
-            "spec file (with the sdist target) in the dist sub-directory"
+            "spec file (together with the sdist target) in the dist sub-directory"
         sys.exit(1)
 
 
