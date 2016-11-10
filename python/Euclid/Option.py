@@ -117,6 +117,11 @@ class Parser(OptionParser):
         self._create_command_list()
         Log.addDefaultLogger(self)
         Env.addEnvironment(self)
+        self.set_defaults(clean_env=False)
+        self.add_option("--clean-env",
+                        dest="clean_env",
+                        action="store_true",
+                        help="prevent the inheriting of the environment variables [default: %default]")
 
     def _add_help_option(self):
         OptionParser._add_help_option(self)
@@ -135,6 +140,7 @@ class Parser(OptionParser):
 
     def check_values(self, values, args):
         log = logging.getLogger()
+        cl_env = getattr(values, "clean_env")
         for opt in self._get_all_options():
             fb_env = getattr(opt, "fallback_env")
             fb_conf = getattr(opt, "fallback_conf")
@@ -146,7 +152,7 @@ class Parser(OptionParser):
                         setattr(opt, "dest", os.environ[fb_env])
                         setattr(values, dest, os.environ[fb_env])
                         log.warning(
-                            "using environment variable %s for %s" % (fb_env, dest))
+                                "using environment variable %s for %s" % (fb_env, dest))
                         log.info("%s is set to %s" %
                                  (dest, os.environ[fb_env]))
                     elif fb_conf:
@@ -165,7 +171,7 @@ class Parser(OptionParser):
         self._create_command_mappings()
 
     def _create_command_mappings(self):
-        self._cmd = {}             # long option -> Option instance
+        self._cmd = {}  # long option -> Option instance
 
     def add_command(self, *args, **kwargs):
         if type(args[0]) is types.StringType:
