@@ -123,6 +123,7 @@ binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
                    "x86_64-fc22-gcc51-opt", "i686-fc22-gcc51-opt",
                    "x86_64-fc23-gcc53-opt", "i686-fc23-gcc53-opt",
                    "x86_64-fc24-gcc61-opt", "i686-fc24-gcc61-opt",
+                   "x86_64-fc24-gcc62-opt", "i686-fc24-gcc62-opt",
                    "x86_64-osx109-clang34-opt"
                    ]
 # future possible supported binaries
@@ -272,7 +273,7 @@ flavor_runtime_equivalence = {
 }
 
 supported_compilers = {
-    "fc24": ["gcc61"],
+    "fc24": ["gcc61", "gcc62"],
     "fc23": ["gcc53"],
     "fc22": ["gcc51"],
     "fc21": ["gcc49"],
