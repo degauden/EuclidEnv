@@ -272,8 +272,9 @@ flavor_runtime_equivalence = {
     "osx106": ["osx106"]
 }
 
+# the first ones in the list have higher precedence
 supported_compilers = {
-    "fc24": ["gcc61", "gcc62"],
+    "fc24": ["gcc62", "gcc61"],
     "fc23": ["gcc53"],
     "fc22": ["gcc51"],
     "fc21": ["gcc49"],
