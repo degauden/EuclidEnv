@@ -117,17 +117,31 @@ class Parser(OptionParser):
         self._create_command_list()
         Log.addDefaultLogger(self)
         Env.addEnvironment(self)
-        self.set_defaults(clean_env=False)
-        self.add_option("--clean-env",
-                        dest="clean_env",
-                        action="store_true",
-                        help="prevent the inheriting of the environment variables [default: %default]")
 
     def _add_help_option(self):
         OptionParser._add_help_option(self)
         self.add_option("--long-help",
                         action="longhelp",
                         help=gettext("show the complete help message and exit"))
+
+    def _add_clean_env_option(self):
+        self.set_defaults(clean_env=False)
+        self.add_option("--clean-env",
+                        dest="clean_env",
+                        action="store_true",
+                        help="prevent the inheriting of the environment variables [default: %default]")
+
+    def _add_clean_conf_option(self):
+        self.set_defaults(clean_conf=False)
+        self.add_option("--clean-conf",
+                        dest="clean_conf",
+                        action="store_true",
+                        help="prevent the inheriting of the configuration file variables [default: %default]")  
+        
+    def _populate_option_list(self, option_list, add_help=True):
+        OptionParser._populate_option_list(self, option_list, add_help)
+        self._add_clean_env_option()
+        self._add_clean_conf_option()
 
     def add_option(self, *args, **kwargs):
         if kwargs.has_key("fallback_env"):
@@ -141,6 +155,7 @@ class Parser(OptionParser):
     def check_values(self, values, args):
         log = logging.getLogger()
         cl_env = getattr(values, "clean_env")
+        cl_conf = getattr(values, "clean_conf")
         for opt in self._get_all_options():
             fb_env = getattr(opt, "fallback_env")
             fb_conf = getattr(opt, "fallback_conf")
@@ -149,17 +164,25 @@ class Parser(OptionParser):
                 dest = getattr(opt, "dest")
                 if not getattr(values, dest):
                     if fb_env and os.environ.has_key(fb_env):
-                        setattr(opt, "dest", os.environ[fb_env])
-                        setattr(values, dest, os.environ[fb_env])
-                        log.warning(
+                        if not cl_env:
+                            setattr(opt, "dest", os.environ[fb_env])
+                            setattr(values, dest, os.environ[fb_env])
+                            log.warning(
                                 "using environment variable %s for %s" % (fb_env, dest))
+                        else:
+                            log.warning(
+                                    "ignoring environment variable %s for %s" % (fb_env, dest))                            
                         log.info("%s is set to %s" %
                                  (dest, os.environ[fb_env]))
                     elif fb_conf:
-                        setattr(opt, "dest", fb_conf)
-                        setattr(values, dest, fb_conf)
-                        log.warning(
-                            "using configuration fallback for %s: %s" % (dest, fb_conf))
+                        if not cl_conf:
+                            setattr(opt, "dest", fb_conf)
+                            setattr(values, dest, fb_conf)
+                            log.warning(
+                                "using configuration fallback for %s: %s" % (dest, fb_conf))
+                        else:
+                            log.warning(
+                                "ignoring configuration fallback for %s: %s" % (dest, fb_conf))                            
                         log.info("%s is set to %s" % (dest, fb_conf))
                     else:
                         if fb_mand:
