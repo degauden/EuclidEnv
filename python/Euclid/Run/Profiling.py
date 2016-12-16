@@ -16,7 +16,7 @@ def run(cmd):
         except ImportError:
             logging.warning(
                 'Cannot import cProfile or profile: ignoring --profile')
-            exec cmd
+            exec(cmd)
     try:
         # if we managed to get the profiler instance, collect profiling stats,
         # and print them on stderr

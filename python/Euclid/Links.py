@@ -122,7 +122,7 @@ def printVisitor(data, dirnm, filesindir):
     for f in filesindir:
         filename = join(dirnm, f)
         if islink(filename):
-            print getLinkInfo(data["treebase"], filename)
+            print(getLinkInfo(data["treebase"], filename))
 
 
 def fixLink(data, linkname):

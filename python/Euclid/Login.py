@@ -305,7 +305,7 @@ The type is to be chosen among the following list:
             log.debug("Disabling the path stripping")
             ev["E_NO_STRIP_PATH"] = "1"
         else:
-            if ev.has_key("E_NO_STRIP_PATH"):
+            if "E_NO_STRIP_PATH" in ev:
                 log.debug("Reenabling the path stripping")
                 del ev["E_NO_STRIP_PATH"]
 
@@ -346,7 +346,7 @@ The type is to be chosen among the following list:
     def setHomeDir(self):
         ev = self.Environment()
         log = logging.getLogger()
-        if sys.platform == "win32" and not ev.has_key("HOME"):
+        if sys.platform == "win32" and not "HOME" in ev:
             ev["HOME"] = os.path.join(ev["HOMEDRIVE"], ev["HOMEPATH"])
             log.debug("Setting HOME to %s" % ev["HOME"])
         if sys.platform != "win32":
@@ -355,7 +355,7 @@ The type is to be chosen among the following list:
             username = ev["USERNAME"]
         log.debug("User name is %s" % username)
 
-        if sys.platform != "win32" and self.targetShell() == "sh" and ev.has_key("HOME"):
+        if sys.platform != "win32" and self.targetShell() == "sh" and "HOME" in ev:
             hprof = os.path.join(ev["HOME"], ".bash_profile")
             sprof = os.path.join("/etc", "skel", ".bash_profile")
             hlist = []
@@ -378,11 +378,11 @@ The type is to be chosen among the following list:
                         log.warning("Copying %s to %s" % (sbrc, hbrc))
                     except IOError:
                         log.warning("Failed to copy %s to %s" % (sbrc, hbrc))
-        if not ev.has_key("LD_LIBRARY_PATH"):
+        if "LD_LIBRARY_PATH" not in ev:
             ev["LD_LIBRARY_PATH"] = ""
             log.debug("Setting a default LD_LIBRARY_PATH")
 
-        if not ev.has_key("ROOTSYS"):
+        if "ROOTSYS" not in ev:
             ev["ROOTSYS"] = ""
             log.debug("Setting a default ROOTSYS")
 
@@ -444,7 +444,7 @@ The type is to be chosen among the following list:
                         " --- a new User_area directory has been created in your HOME directory")
                 except (IOError, OSError):
                     log.warning("Can't create %s" % opts.userarea)
-        elif ev.has_key("User_area"):
+        elif "User_area" in ev:
             del ev["User_area"]
             log.debug("Removed User_area from the environment")
 
@@ -543,7 +543,7 @@ The type is to be chosen among the following list:
 
         prefix_path = []
 
-        if not opts.remove_userarea and ev.has_key("User_area"):
+        if not opts.remove_userarea and "User_area" in ev:
             prefix_path.append(ev["User_area"])
 
         if opts.sharedarea:
@@ -562,7 +562,7 @@ The type is to be chosen among the following list:
             log.debug("The value of EUCLIDPROJECTPATH is %s" % ev["EUCLIDPROJECTPATH"])
             prefix_path.append(ev["EUCLIDPROJECTPATH"])
 
-        if not opts.remove_userarea and ev.has_key("User_area"):
+        if not opts.remove_userarea and "User_area" in ev:
             prefix_path.append(ev["User_area"])
 
         if "CMAKE_PROJECT_PATH" not in ev:
@@ -647,15 +647,15 @@ The type is to be chosen among the following list:
                 self.addEcho("*" + ("Building with %s on %s system (%s)" %
                                     (self.compdef, self.platform, ev["BINARY_TAG"])).center(78) + "*")
             self.addEcho("*" * 80)
-            if ev.has_key("User_area"):
+            if "User_area" in ev:
                 self.addEcho(" --- User_area is set to %s" % ev["User_area"])
-            if ev.has_key("EUCLIDPROJECTPATH"):
+            if "EUCLIDPROJECTPATH" in ev:
                 self.addEcho(" --- EUCLIDPROJECTPATH is set to:")
                 for p in ev["EUCLIDPROJECTPATH"].split(os.pathsep):
                     if p:
                         self.addEcho("    %s" % p)
             if self._nativemachine.OSType() == "Darwin" and opts.use_macport:
-                if ev.has_key("MACPORT_LOCATION"):
+                if "MACPORT_LOCATION" in ev:
                     self.addEcho(" --- Using MacPort location from %s" %
                                  ev["MACPORT_LOCATION"])
             self.addEcho("-" * 80)

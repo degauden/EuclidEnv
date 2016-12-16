@@ -285,7 +285,7 @@ class SourceScript(Script):
             fd, outname = mkstemp()
             self.output_name = outname
             self.output_file = os.fdopen(fd, "w")
-            print outname
+            print(outname)
             # reset the option value to avoid to reuse it
             self.options.mktemp = None
             close_output = True

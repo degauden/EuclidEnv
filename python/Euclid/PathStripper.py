@@ -23,7 +23,7 @@ def stripPath(path):
 
 
 def cleanVariable(varname, shell, out):
-    if environ.has_key(varname):
+    if varname in environ:
         pth = stripPath(environ[varname])
         if shell == "csh" or shell.find("csh") != -1:
             out.write("setenv %s %s\n" % (varname, pth))
@@ -42,7 +42,7 @@ def _check_output_options_cb(option, opt_str, value, parser):
             parser.values.mktemp = True
             fd, outname = mkstemp()
             parser.values.output = fdopen(fd, "w")
-            print outname
+            print(outname)
     elif opt_str == "--output" or opt_str == "-o":
         if parser.values.mktemp:
             raise OptionValueError(
@@ -75,7 +75,7 @@ if __name__ == '__main__':
 
     options, args = script_parser.parse_args()
 
-    if not options.shell and environ.has_key("SHELL"):
+    if not options.shell and "SHELL" in environ:
         options.shell = environ["SHELL"]
 
     if options.envlist:
@@ -83,4 +83,4 @@ if __name__ == '__main__':
             cleanVariable(v, options.shell, options.output)
 
     for a in args:
-        print stripPath(a)
+        print(stripPath(a))

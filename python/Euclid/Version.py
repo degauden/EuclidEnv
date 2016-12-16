@@ -71,11 +71,11 @@ class CoreVersion(GenericVersion):
         try:
             m = self.version_style.match(self._vname)
         except TypeError:
-            raise NotAVersion, vname
+            raise NotAVersion(vname)
         if m:
             a, b, c, d = m.groups()
             if a is None or b is None:
-                raise NotAVersion, vname
+                raise NotAVersion(vname)
             a = int(a)
             b = int(b)
             if c is not None:
@@ -86,7 +86,7 @@ class CoreVersion(GenericVersion):
                 d = int(d)
             self._version = (a, b, c, d)
         else:
-            raise NotAVersion, vname
+            raise NotAVersion(vname)
 
 
 class LCGVersion(GenericVersion):
@@ -98,15 +98,15 @@ class LCGVersion(GenericVersion):
         try:
             m = self.version_style.match(self._vname)
         except TypeError:
-            raise NotAVersion, vname
+            raise NotAVersion(vname)
         if m:
             a, b = m.groups()
             if a is None:
-                raise NotAVersion, vname
+                raise NotAVersion(vname)
             a = int(a)
             self._version = (a, b)
         else:
-            raise NotAVersion, vname
+            raise NotAVersion(vname)
 
 
 def sortVersions(versionlist, versiontype=CoreVersion, safe=False, reverse=False):

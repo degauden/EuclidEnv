@@ -221,7 +221,7 @@ def test_profiling():
         Profiling.run('sys.exit()')
         assert False, 'exception expected'
     except SystemExit:
-        print sys.stderr.getvalue()
+        print(sys.stderr.getvalue())
     finally:
         sys.stderr = sys.__stderr__
 
@@ -237,7 +237,7 @@ def test_profiling():
         Profiling.run('sys.exit()')
         assert False, 'exception expected'
     except SystemExit:
-        print sys.stderr.getvalue()
+        print(sys.stderr.getvalue())
     finally:
         sys.stderr = sys.__stderr__
 
@@ -249,7 +249,7 @@ def test_profiling():
         Profiling.run('sys.exit()')
         assert False, 'exception expected'
     except SystemExit:
-        print sys.stderr.getvalue()
+        print(sys.stderr.getvalue())
     finally:
         sys.stderr = sys.__stderr__
 
