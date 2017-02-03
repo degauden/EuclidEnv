@@ -1,5 +1,9 @@
 # $Id$
-from ConfigParser import SafeConfigParser
+try:
+    from configparser import SafeConfigParser
+except:
+    from configparser import SafeConfigParser
+
 
 import os
 

@@ -65,7 +65,7 @@ def main():
     try:
         projectDir = findProject(project, version, opts.platform)
         logging.info('using %s %s from %s', project, version, projectDir)
-    except MissingProjectError, x:
+    except MissingProjectError as x:
         parser.error(str(x))
 
     use_cmake = os.path.exists(os.path.join(projectDir, 'manifest.xml'))
@@ -156,4 +156,4 @@ You can customize the configuration by editing the file 'CMakeLists.txt'.
 '''
 
     msg = use_cmake and finalMessageCMake or finalMessageCMT
-    print msg.format(opts.name, opts.user_area, devProjectDir)
+    print(msg.format(opts.name, opts.user_area, devProjectDir))

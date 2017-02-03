@@ -89,7 +89,7 @@ class Command:
 
     def _set_attrs(self, attrs):
         for attr in self.ATTRS:
-            if attrs.has_key(attr):
+            if attr in attrs:
                 setattr(self, attr, attrs[attr])
                 del attrs[attr]
             else:
@@ -109,7 +109,7 @@ class Parser(OptionParser):
 
     def __init__(self, *args, **kwargs):
         self.help_output = sys.stdout
-        if kwargs.has_key("help_output"):
+        if "help_output" in kwargs:
             self.help_output = kwargs["help_output"]
             del kwargs["help_output"]
         kwargs["option_class"] = FallBackOption
@@ -144,10 +144,10 @@ class Parser(OptionParser):
         self._add_clean_conf_option()
 
     def add_option(self, *args, **kwargs):
-        if kwargs.has_key("fallback_env"):
+        if "fallback_env" in kwargs:
             kwargs[
                 "help"] += "\nThe fallback environment variable is set to %s." % kwargs["fallback_env"]
-        if kwargs.has_key("fallback_conf"):
+        if "fallback_conf" in kwargs:
             kwargs[
                 "help"] += "\nThe fallback configuration is set to %s." % kwargs["fallback_conf"]
         OptionParser.add_option(self, *args, **kwargs)  # IGNORE:W0142
@@ -163,7 +163,7 @@ class Parser(OptionParser):
             if fb_env or fb_conf:
                 dest = getattr(opt, "dest")
                 if not getattr(values, dest):
-                    if fb_env and os.environ.has_key(fb_env):
+                    if fb_env and fb_env in os.environ:
                         if not cl_env:
                             setattr(opt, "dest", os.environ[fb_env])
                             setattr(values, dest, os.environ[fb_env])
@@ -202,9 +202,9 @@ class Parser(OptionParser):
         elif len(args) == 1 and not kwargs:
             command = args[0]
             if not isinstance(command, Command):
-                raise TypeError, "not an Command instance: %r" % command
+                raise TypeError("not an Command instance: %r" % command)
         else:
-            raise TypeError, "invalid arguments"
+            raise TypeError("invalid arguments")
         self.command_list.append(command)
         command.container = self
         for cmd in command._cmds:
@@ -219,7 +219,7 @@ class Parser(OptionParser):
         return self._cmd.get(cmd_str)
 
     def has_command(self, cmd_str):
-        return self._cmd.has_key(cmd_str)
+        return cmd_str in self._cmd
 
     def remove_command(self, cmd_str):
         command = self._cmd.get(cmd_str)

@@ -25,7 +25,7 @@ class ScriptTest(Script):
         log.debug("This is a debug message")
         log.info("This is an info message")
         log.warning("This is a warning message")
-        print self.options.toto_val
+        print(self.options.toto_val)
         return 0
 
 if __name__ == '__main__':

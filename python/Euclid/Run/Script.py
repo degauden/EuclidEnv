@@ -34,7 +34,7 @@ except:
 from Euclid.Run.Lookup import getEnvXmlPath, findProject
 from Euclid.Run.Version import isValidVersion, expandVersionAlias
 
-#auto_override_projects = [('Compat', 'latest')]
+# auto_override_projects = [('Compat', 'latest')]
 auto_override_projects = []
 
 
@@ -50,7 +50,7 @@ def projectExtraPath(projroot):
     def extractList(filename, varname):
         if os.path.exists(filename):
             data = {}
-            exec open(filename).read() in data  # IGNORE:W0122
+            exec(open(filename).read(), data)  # IGNORE:W0122
             # Get the list and convert it to strings
             return filter(str, data.get(varname, []))
         else:

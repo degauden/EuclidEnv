@@ -125,7 +125,7 @@ class my_sdist(_sdist):
         if fext == ".in":
             return os.path.join("dist", fname)
         else:
-            print "Error: the %s file has not the '.in' extension" % filename
+            print("Error: the %s file has not the '.in' extension" % filename)
             sys.exit(1)
 
     def _get_sdist_filepath(self):
@@ -136,7 +136,7 @@ class my_sdist(_sdist):
 
     def expand_template_file(self, filename):
         out_fname = self._get_template_target(filename)
-        print "Generating %s from the %s template" % (out_fname, filename)
+        print("Generating %s from the %s template" % (out_fname, filename))
         rmd160_digest = getRMD160Digest(self._get_sdist_filepath())
         sha256_digest = getSHA256Digest(self._get_sdist_filepath())
         changelog_content = open(self._get_changelog_filepath()).read()
@@ -164,8 +164,8 @@ class my_sdist(_sdist):
 class my_bdist_rpm(_bdist_rpm):
 
     def run(self):
-        print "Cannot run directly the bdist_rpm target. Please rather use the generated " \
-            "spec file (together with the sdist target) in the dist sub-directory"
+        print("Cannot run directly the bdist_rpm target. Please rather use the generated " \
+               "spec file (together with the sdist target) in the dist sub-directory")
         sys.exit(1)
 
 
@@ -207,7 +207,7 @@ class my_install(_install):
         proc_list = self.get_config_scripts()
         this_install = os.path.join(self.get_etc_install_root(), "etc")
         for p in proc_list:
-            print "Fixing %s with the %s prefix path" % (p, this_install)
+            print("Fixing %s with the %s prefix path" % (p, this_install))
             call(["python", fixscript, "-n", "this_etc_install_prefix", this_install, p])
 
 
@@ -219,7 +219,7 @@ class my_install(_install):
             proc_list.append(file2fix)
         proc_list += self.get_profile_scripts()
         for p in proc_list:
-            print "Fixing %s with the %s prefix path" % (p, os.path.dirname(self.install_scripts))
+            print("Fixing %s with the %s prefix path" % (p, os.path.dirname(self.install_scripts)))
             call(["python", fixscript, os.path.dirname(self.install_scripts), p])
         self.fix_etc_install_path()
 
@@ -227,7 +227,7 @@ class my_install(_install):
         fixscript = os.path.join(self.install_scripts, "FixInstallPath")
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
-            print "Fixing %s with the %s version" % (file2fix, __version__)
+            print("Fixing %s with the %s version" % (file2fix, __version__))
             call(
                 ["python", fixscript, "-n", "this_install_version", __version__, file2fix])
 
@@ -258,7 +258,7 @@ class my_install(_install):
         if os.path.exists(file2fix):
             proc_list.append(file2fix)
         for p in proc_list:
-            print "Fixing %s with the %s euclid base" % (p, this_euclid_base)
+            print("Fixing %s with the %s euclid base" % (p, this_euclid_base))
             call(
                 ["python", fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
@@ -266,7 +266,7 @@ class my_install(_install):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
 
         if not os.path.exists(init_file):
-            print "Creating the %s file" % init_file
+            print("Creating the %s file" % init_file)
             init_content = """# This is the initial setup for the Euclid namespace package
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
@@ -317,7 +317,7 @@ class PyTest(Command):
     def _generate_runtests_file(self):
         import subprocess
         errno = subprocess.call(["py.test", "--genscript=%s" % self.runtests_filename])
-        print "%s generated. Please consider to add it to your sources" % self.runtests_filename
+        print("%s generated. Please consider to add it to your sources" % self.runtests_filename)
         if errno != 0:
             raise SystemExit(errno)
 

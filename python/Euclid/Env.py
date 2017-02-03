@@ -67,13 +67,6 @@ class Environment:
         """
         return self.env.keys()
 
-    def has_key(self, key):
-        """
-        return True if the key is present
-        """
-        key = self._fixKey(key)
-        return (key in self.env.keys())
-
     def items(self):
         """
         Return the list of (name,value) pairs for the defined environment variables.
@@ -201,7 +194,7 @@ def varArgSplit(vararg):
         if len(pathsep) == 1:
             varlist.append(vararg.split(pathsep))
         else:
-            raise EnvVarException, "Mixing of path separator symbol"
+            raise EnvVarException("Mixing of path separator symbol")
     else:
         varlist.append(vararg)
     for c in varlist:
@@ -213,7 +206,7 @@ def varArgSplit(vararg):
                 for v in varcontent:
                     vardict[v] = value
             else:
-                raise EnvVarException, "Mixing of var separator symbol"
+                raise EnvVarException("Mixing of var separator symbol")
         else:
             vardict[c] = None
     return vardict

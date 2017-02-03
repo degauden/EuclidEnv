@@ -20,7 +20,6 @@ class TestCase(unittest.TestCase):
         name1 = str(self.tmpdir)
         name2 = self.tmpdir.getName()
         # the next line should print twice the same thing
-        print self.tmpdir, name2, " ",
         self.assert_(name1 == name2)
 
     def testDestruction(self):
