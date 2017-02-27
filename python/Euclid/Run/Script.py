@@ -38,31 +38,6 @@ from Euclid.Run.Version import isValidVersion, expandVersionAlias
 auto_override_projects = []
 
 
-def projectExtraPath(projroot):
-    '''
-    Return any extra search path required by the project at 'projroot'.
-    '''
-    extra_path = []
-    # drop the 'InstallArea' part of the path
-    while 'InstallArea' in projroot:
-        projroot = os.path.dirname(projroot)
-
-    def extractList(filename, varname):
-        if os.path.exists(filename):
-            data = {}
-            exec(open(filename).read(), data)  # IGNORE:W0122
-            # Get the list and convert it to strings
-            return filter(str, data.get(varname, []))
-        else:
-            return []
-
-    # check for the Python digested search path
-    spFile = os.path.join(projroot, 'searchPath.py')
-    extra_path.extend(extractList(spFile, 'path'))
-
-    return extra_path
-
-
 class ERun(EnvConfig.Script):
     __usage__ = "Usage: %prog [OPTION]... [NAME=VALUE]... PROJECT VERSION [COMMAND [ARG]...]"
 
@@ -151,20 +126,6 @@ class ERun(EnvConfig.Script):
         projects.extend(self.opts.overriding_projects)
         projects.append((self.project, self.version))
         projects.extend(self.opts.runtime_projects)
-
-        # Check if the main project needs a special search path
-        self.log.debug('check if we need extra search path')
-        extra_path = projectExtraPath(
-            findProject(self.project, self.version, self.opts.platform))
-        if extra_path:
-            self.log.debug('the project requires an extra search path')
-            # we add the extra search path between the command line entries and
-            # the default
-            idx = len(self.opts.dev_dirs)
-            if self.opts.user_area:
-                idx += 1
-                path[:] = path[:idx] + extra_path + path[idx:]
-            self.log.debug('final search path: %r', path)
 
         # set the environment XML search path
         env_path = []
