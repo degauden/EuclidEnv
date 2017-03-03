@@ -22,7 +22,6 @@ if(NOT BUILD_PREFIX_NAME)
 endif()
 
 message(STATUS "The build prefix is set to ${BUILD_PREFIX_NAME}")
-# set_property(GLOBAL APPEND PROPERTY CMAKE_EXTRA_FLAGS "-DBUILD_PREFIX_NAME:STRING=${BUILD_PREFIX_NAME}")
 
 if(NOT BUILD_SUBDIR)
   file(RELATIVE_PATH build_subdir_name ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
@@ -57,7 +56,7 @@ set(ELEMENTS_FORTIFY_DEFAULT ON)
 #
 
 option(ELEMENTS_HIDE_SYMBOLS
-       "enable explicit symbol visibility on gcc-4"
+       "Enable explicit symbol visibility on gcc-4"
        OFF)
 
 
@@ -66,16 +65,16 @@ option(ELEMENTS_CPP11
        ${ELEMENTS_CPP11_DEFAULT})
 
 option(ELEMENTS_CPP14
-       "enable C++14 compilation"
+       "Enable C++14 compilation"
        OFF)
 
 
 option(ELEMENTS_PARALLEL
-       "enable C++11 parallel support with OpenMP"
+       "Enable C++11 parallel support with OpenMP"
        ${ELEMENTS_PARALLEL_DEFAULT})
 
 option(ELEMENTS_FORTIFY
-       "enable g++ fortify option"
+       "Enable g++ fortify option"
        ${ELEMENTS_FORTIFY_DEFAULT})
 
 option(USE_LOCAL_INSTALLAREA
@@ -102,6 +101,10 @@ option(USE_DOXYGEN
        "Use doxygen documentation generation"
        ON)
 
+option(USE_PYTHON_DOXYGEN
+       "Use doxygen documentation generation"
+       ON)
+
 option(USE_SPHINX_APIDOC
        "Use sphinx API documentation generation"
        ON)
@@ -113,14 +116,22 @@ option(USE_SPHINX_BREATHE
 option(ELEMENTS_USE_RPATH
        "Use full RPATH for both build and installation"
        ON)
-       
+
 option(HIDE_SYSINC_WARNINGS
        "Hide System includes warnings by using -isystem instead of -I"
        OFF)
-       
+
 option(CXX_SUGGEST_OVERRIDE
        "Enable the -Wsuggest-override warning"
        OFF)
+
+option(FLOAT_EQUAL_WARNING
+       "Enable the -Wfloat-equal warning"
+       OFF)
+
+option(SQUEEZED_INSTALL
+       "Enable the squeezing of the installation into a prefix directory"
+       ON)
 
 #--- Compilation Flags ---------------------------------------------------------
 if(NOT ELEMENTS_FLAGS_SET)
@@ -129,14 +140,29 @@ if(NOT ELEMENTS_FLAGS_SET)
 
     # Common compilation flags
   set(CMAKE_CXX_FLAGS
-      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal -fPIC"
+      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Woverloaded-virtual -Wno-long-long -Wno-unknown-pragmas -fPIC"
       CACHE STRING "Flags used by the compiler during all build types."
       FORCE)
       
   set(CMAKE_C_FLAGS
-      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Wno-long-long -Wno-unknown-pragmas -Wfloat-equal -Wno-unused-parameter -fPIC"
+      "-fmessage-length=0 -pipe -ansi -Wall -Wextra -Werror=return-type -pthread -pedantic -Wwrite-strings -Wpointer-arith -Wno-long-long -Wno-unknown-pragmas -Wno-unused-parameter -fPIC"
       CACHE STRING "Flags used by the compiler during all build types."
       FORCE)
+
+  if(FLOAT_EQUAL_WARNING)
+    check_cxx_compiler_flag(-Wfloat-equal CXX_HAS_FLOAT_EQUAL)
+    if(CXX_HAS_FLOAT_EQUAL)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfloat-equal"
+          CACHE STRING "Flags used by the compiler during all build types."
+          FORCE)
+    endif()  
+    check_c_compiler_flag(-Wfloat-equal C_HAS_FLOAT_EQUAL)
+    if(C_HAS_FLOAT_EQUAL)
+      set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wfloat-equal"
+          CACHE STRING "Flags used by the compiler during all build types."
+          FORCE)
+    endif()  
+  endif()
 
   if(CXX_SUGGEST_OVERRIDE AND (SGS_COMP STREQUAL gcc))
     check_cxx_compiler_flag(-Wsuggest-override CXX_HAS_SUGGEST_OVERRIDE)
@@ -169,9 +195,9 @@ if(NOT ELEMENTS_FLAGS_SET)
 
   if (SGS_COMPVERS VERSION_GREATER "47")
     # Use -Og with Debug builds in gcc >= 4.8
-     set(CMAKE_CXX_FLAGS_DEBUG "-g"
-        CACHE STRING "Flags used by the compiler during Debug builds."
-        FORCE)
+    set(CMAKE_CXX_FLAGS_DEBUG "-g"
+      CACHE STRING "Flags used by the compiler during Debug builds."
+      FORCE)
     set(CMAKE_C_FLAGS_DEBUG "-g"
         CACHE STRING "Flags used by the compiler during Debug builds."
         FORCE)
