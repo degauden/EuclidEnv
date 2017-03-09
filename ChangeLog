@@ -1,3 +1,6 @@
+* Mon Mar 6 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.0-1
+- update to the latest cmake library of Elements (5.0)
+
 * Mon Feb 27 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 2.1.2-1
 - hotfix of the Euclid.Run.Script module. Remove obsolete buggy part for 
   the extra search path implemented in a searchPath.py python file.
