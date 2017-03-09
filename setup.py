@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# Commit Id: $Format:%H$
+# Author:    $Format:%an$
+# Date  :    $Format:%ad$
+
+
 from distutils.core import setup, Command
 from distutils.command.install import install as _install
 from distutils.command.sdist import sdist as _sdist
@@ -13,7 +19,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "2.1.2"
+__version__ = "3.0"
 __project__ = "EuclidEnv"
 
 
