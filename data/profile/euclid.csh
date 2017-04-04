@@ -2,15 +2,13 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
   set my_own_prefix4 = "%(this_install_prefix)s"
 
-  if ( ! $?EUCLID_CONFIG_FILE ) then
-    if ( -r ${my_own_prefix4}/bin/Euclid_config.csh ) then
-      set confscr=${my_own_prefix4}/bin/Euclid_config.csh
-    else
-      set confscr=`/usr/bin/which Euclid_config.csh`        
-    endif
-    source ${confscr} "${*:q}"
-    unset confscr    
+  if ( -r ${my_own_prefix4}/bin/Euclid_config.csh ) then
+    set confscr=${my_own_prefix4}/bin/Euclid_config.csh
+  else
+    set confscr=`/usr/bin/which Euclid_config.csh`        
   endif
+  source ${confscr} "${*:q}"
+  unset confscr    
   
   # shell part. has to deal with the shell settings. Pretty much everything but 
   # the environment variables. The script can be manually called from .tcshrc
