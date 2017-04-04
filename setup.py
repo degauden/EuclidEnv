@@ -339,6 +339,27 @@ class PyTest(Command):
         errno = subprocess.call([sys.executable, 'runtests.py'] + self._get_tests_files())
         raise SystemExit(errno)
 
+class Purge(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+
+        import shutil
+
+        parent_dir = os.path.dirname(__file__)
+
+        for d in ["build", "dist"]:
+            full_d = os.path.join(parent_dir, d)
+            if os.path.exists(full_d):
+                print("Removing the %s directory" % full_d)
+                shutil.rmtree(full_d)
+
 setup(name=__project__,
       version=__version__,
       description="Euclid Environment Scripts",
@@ -369,6 +390,7 @@ setup(name=__project__,
                 "build": my_build,
                 "sdist": my_sdist,
                 "bdist_rpm": my_bdist_rpm,
-                "test": PyTest
+                "test": PyTest,
+                "purge": Purge,
                 },
       )
