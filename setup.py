@@ -19,7 +19,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "3.0"
+__version__ = "3.1"
 __project__ = "EuclidEnv"
 
 
