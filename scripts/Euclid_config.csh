@@ -188,7 +188,7 @@ endif
 unset arch_type
 
 # end of the guard
-setenv EUCLID_CONFIG_SCRIPT} ${my_own_exe_prefix0}/bin/Euclid_config.csh
+setenv EUCLID_CONFIG_SCRIPT ${my_own_exe_prefix0}/bin/Euclid_config.csh
 endif
 
 unset my_own_prefix0

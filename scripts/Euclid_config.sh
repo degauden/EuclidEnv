@@ -190,7 +190,7 @@ fi
 
 unset arch_type
 
-export EUCLID_CONFIG_SCRIPT}=${my_own_exe_prefix0}/bin/Euclid_config.sh
+export EUCLID_CONFIG_SCRIPT=${my_own_exe_prefix0}/bin/Euclid_config.sh
 
 fi #end of the guard
 
