@@ -42,6 +42,9 @@ these_files = get_data_files("data/cmake", __project__)
 these_files += get_data_files("data/texmf", __project__)
 
 
+# Please note the that the local install is
+# also needed for --prefix. Take as example the
+# /usr/local prefix.
 use_local_install = False
 for a in sys.argv:
     for b in ["--user", "--prefix", "--home"]:
@@ -50,6 +53,7 @@ for a in sys.argv:
 
 
 etc_install_root = None
+install_root = None
 for a in sys.argv:
     if a.startswith("--etc-root"):
         # TODO implement the extratction of the value from
@@ -58,6 +62,13 @@ for a in sys.argv:
         if len(e_base) == 1:
             etc_install_root = e_base[0]
         sys.argv.remove(a)
+    if a.startswith("--root"):
+        # TODO implement the extratction of the value from
+        # the option
+        r_base = a.split("=")[1:]
+        if len(r_base) == 1:
+            install_root = r_base[0]
+
 
 if not etc_install_root:
     if use_local_install:
@@ -373,6 +384,42 @@ class Purge(Command):
                 print("Removing the %s directory" % full_d)
                 shutil.rmtree(full_d)
 
+
+class Uninstall(Command):
+
+    description = 'Uninstallation of recorded files'
+    user_options = [
+            ('root=', None, 'path to the root install location'),
+        ]
+
+    def initialize_options(self):
+        self.root = None
+
+    def finalize_options(self):
+        if self.root:
+            assert os.path.exists(self.root), ("The %s root installation directory doesn't exist" % self.root)
+
+    def run(self):
+
+        import shutil
+        parent_dir = os.path.dirname(__file__)
+        record = os.path.join(parent_dir, "dist", "installed_files.txt")
+        with open(record) as rf:
+            for l in rf:
+                f = l.strip()
+                if self.root:
+                    if f.startswith("/"):
+                        f = f[1:]
+                    f = os.path.join(self.root, f)
+                if os.path.exists(f):
+                    if os.path.isdir(f):
+                        print("Removing the %s directory" % f)
+                        shutil.rmtree(f)
+                    else:
+                        print("Removing the %s file" % f)
+                        os.remove(f)
+
+
 setup(name=__project__,
       version=__version__,
       description="Euclid Environment Scripts",
@@ -405,5 +452,6 @@ setup(name=__project__,
                 "bdist_rpm": my_bdist_rpm,
                 "test": PyTest,
                 "purge": Purge,
+                "uninstall": Uninstall,
                 },
       )
