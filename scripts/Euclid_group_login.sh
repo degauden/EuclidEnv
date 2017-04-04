@@ -3,15 +3,13 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
 
   my_own_prefix2="%(this_install_prefix)s"
 
-  if [[ ! -n "$EUCLID_CONFIG_FILE" ]]; then
-    if [[ -r ${my_own_prefix2}/bin/Euclid_config.sh ]]; then
-      confscr=${my_own_prefix2}/bin/Euclid_config.sh
-    else
-      confscr=`/usr/bin/which Euclid_config.sh`
-    fi
-    . ${confscr} "$@"
-    unset confscr
+  if [[ -r ${my_own_prefix2}/bin/Euclid_config.sh ]]; then
+    confscr=${my_own_prefix2}/bin/Euclid_config.sh
+  else
+    confscr=`/usr/bin/which Euclid_config.sh`
   fi
+  . ${confscr} "$@"
+  unset confscr
 
   if [[ -n "$E_BANNER" ]]; then
     cat ${E_BANNER}

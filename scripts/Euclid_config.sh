@@ -8,6 +8,9 @@
 my_own_prefix0="%(this_etc_install_prefix)s"
 my_own_exe_prefix0="%(this_install_prefix)s"
 
+# internal guard to avoid double sourcing of the SAME file
+if [[ ! "${EUCLID_CONFIG_SCRIPT}" = "${my_own_exe_prefix0}/bin/Euclid_config.sh" ]]; then
+
 # default values if no config file is found
 export SOFTWARE_BASE_VAR=EUCLID_BASE
 export EUCLID_BASE=%(this_euclid_base)s
@@ -186,6 +189,11 @@ if [[ "${EUCLID_USE_PREFIX}" == "yes" ]]; then
 fi
 
 unset arch_type
+
+export EUCLID_CONFIG_SCRIPT}=${my_own_exe_prefix0}/bin/Euclid_config.sh
+
+fi #end of the guard
+
 unset my_own_prefix0
 unset my_own_exe_prefix0
 
