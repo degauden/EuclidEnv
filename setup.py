@@ -177,6 +177,19 @@ class my_bdist_rpm(_bdist_rpm):
 
 class my_install(_install):
 
+    def initialize_options(self):
+
+        _install.initialize_options(self)
+
+        parent_dir = os.path.dirname(__file__)
+
+        dist_dir = os.path.join(parent_dir, "dist")
+
+        if not os.path.exists(dist_dir):
+            os.mkdir(dist_dir)
+
+        self.record = os.path.join(dist_dir, "installed_files.txt")
+
     def get_login_scripts(self):
         p_list = []
         for c in ["ELogin", "Euclid_group_login", "Euclid_group_setup"]:
