@@ -21,6 +21,8 @@ setenv SOFTWARE_BASE_VAR EUCLID_BASE
 setenv EUCLID_BASE %(this_euclid_base)s
 setenv EUCLID_USE_BASE no
 setenv EUCLID_USE_PREFIX no
+setenv EUCLID_CUSTOM_PREFIX %(this_euclid_base)s/../../usr
+setenv EUCLID_USE_CUSTOM_PREFIX no
 
 
 set cfgfiles=""
@@ -91,24 +93,23 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
       endif
     endif
     
-    if ( -d ${EUCLID_BASE}/python ) then
-      set my_python_base = `python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))"`
-
-      if ( -d ${my_python_base} ) then
-        if ( $?PYTHONPATH ) then 
-          setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
-        else
-          setenv PYTHONPATH ${my_python_base}        
-        endif       
+    set my_python_base=`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))"`
+    if ( -d ${my_python_base} ) then
+      if ( $?PYTHONPATH ) then 
+        setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
       else
+        setenv PYTHONPATH ${my_python_base}        
+      endif       
+    else
+      if ( -d ${EUCLID_BASE}/python ) then
         if ( $?PYTHONPATH ) then 
           setenv PYTHONPATH ${EUCLID_BASE}/python:${PYTHONPATH}
         else
           setenv PYTHONPATH ${EUCLID_BASE}/python        
         endif
-      endif  
-      unset my_python_base
-    endif
+      endif
+    endif  
+    unset my_python_base
     
     if ( $?CMAKE_PREFIX_PATH ) then 
       setenv CMAKE_PREFIX_PATH ${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
@@ -159,24 +160,23 @@ if ( "${EUCLID_USE_PREFIX}" == "yes" ) then
       endif
     endif
     
-    if ( -d ${my_own_exe_prefix0}/python ) then
-      set my_python_base = `python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))"`
-
-      if ( -d ${my_python_base} ) then
-        if ( $?PYTHONPATH ) then 
-          setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
-        else
-          setenv PYTHONPATH ${my_python_base}        
-        endif       
+    set my_python_base=`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))"`
+    if ( -d ${my_python_base} ) then
+      if ( $?PYTHONPATH ) then 
+        setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
       else
+        setenv PYTHONPATH ${my_python_base}        
+      endif       
+    else
+      if ( -d ${my_own_exe_prefix0}/python ) then
         if ( $?PYTHONPATH ) then 
           setenv PYTHONPATH ${my_own_exe_prefix0}/python:${PYTHONPATH}
         else
           setenv PYTHONPATH ${my_own_exe_prefix0}/python        
         endif
-      endif  
-      unset my_python_base
-    endif
+      endif
+    endif  
+    unset my_python_base
     
     if ( $?CMAKE_PREFIX_PATH ) then 
       setenv CMAKE_PREFIX_PATH ${my_own_exe_prefix0}:${CMAKE_PREFIX_PATH}
@@ -185,6 +185,74 @@ if ( "${EUCLID_USE_PREFIX}" == "yes" ) then
     endif
     if ( -d ${my_own_exe_prefix0}/cmake ) then
       setenv CMAKE_PREFIX_PATH ${my_own_exe_prefix0}/cmake:${CMAKE_PREFIX_PATH}
+    endif                
+
+ endif
+endif
+
+# prepend path entries from the custom install prefix to the environment
+# by default it is relative to the EUCLID_BASE directory
+if ( "${EUCLID_USE_CUSTOM_PREFIX}" == "yes" ) then
+ if ( -d ${EUCLID_CUSTOM_PREFIX} ) then
+
+    if ( -d ${EUCLID_CUSTOM_PREFIX}/bin ) then
+      setenv PATH ${EUCLID_CUSTOM_PREFIX}/bin:${PATH}
+    endif
+    if ( -d ${EUCLID_CUSTOM_PREFIX}/scripts ) then
+      setenv PATH ${EUCLID_CUSTOM_PREFIX}/scripts:${PATH}
+    endif
+    
+    if ( "${arch_type}" == "x86_64" ) then
+      if ( -d ${EUCLID_CUSTOM_PREFIX}/lib32 ) then
+        if ( $?LD_LIBRARY_PATH ) then 
+          setenv LD_LIBRARY_PATH ${EUCLID_CUSTOM_PREFIX}/lib32:${LD_LIBRARY_PATH}
+        else
+          setenv LD_LIBRARY_PATH ${EUCLID_CUSTOM_PREFIX}/lib32        
+        endif
+      endif
+    endif
+    if ( -d ${EUCLID_CUSTOM_PREFIX}/lib ) then
+      if ( $?LD_LIBRARY_PATH ) then 
+        setenv LD_LIBRARY_PATH ${EUCLID_CUSTOM_PREFIX}/lib:${LD_LIBRARY_PATH}
+      else
+        setenv LD_LIBRARY_PATH ${EUCLID_CUSTOM_PREFIX}/lib        
+      endif
+    endif
+    if ( "${arch_type}" == "x86_64" ) then
+      if ( -d ${EUCLID_CUSTOM_PREFIX}/lib64 ) then
+        if ( $?LD_LIBRARY_PATH ) then 
+          setenv LD_LIBRARY_PATH ${EUCLID_CUSTOM_PREFIX}/lib64:${LD_LIBRARY_PATH}
+        else
+          setenv LD_LIBRARY_PATH ${EUCLID_CUSTOM_PREFIX}/lib64        
+        endif
+      endif
+    endif
+    
+    set my_python_base=`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_CUSTOM_PREFIX}'))"`
+    if ( -d ${my_python_base} ) then
+      if ( $?PYTHONPATH ) then 
+        setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
+      else
+        setenv PYTHONPATH ${my_python_base}        
+      endif       
+    else
+      if ( -d ${EUCLID_CUSTOM_PREFIX}/python ) then
+        if ( $?PYTHONPATH ) then 
+          setenv PYTHONPATH ${EUCLID_CUSTOM_PREFIX}/python:${PYTHONPATH}
+        else
+          setenv PYTHONPATH ${EUCLID_CUSTOM_PREFIX}/python        
+        endif
+      endif
+    endif  
+    unset my_python_base
+    
+    if ( $?CMAKE_PREFIX_PATH ) then 
+      setenv CMAKE_PREFIX_PATH ${EUCLID_CUSTOM_PREFIX}:${CMAKE_PREFIX_PATH}
+    else
+      setenv CMAKE_PREFIX_PATH ${EUCLID_CUSTOM_PREFIX}        
+    endif
+    if ( -d ${EUCLID_CUSTOM_PREFIX}/cmake ) then
+      setenv CMAKE_PREFIX_PATH ${EUCLID_CUSTOM_PREFIX}/cmake:${CMAKE_PREFIX_PATH}
     endif                
 
  endif
