@@ -137,7 +137,8 @@ class my_build(_build):
 
 class my_sdist(_sdist):
 
-    def _get_template_target(self, filename):
+    @staticmethod
+    def _get_template_target(filename):
         fname, fext = os.path.splitext(os.path.basename(filename))
         if fext == ".in":
             return os.path.join("dist", fname)
@@ -145,10 +146,12 @@ class my_sdist(_sdist):
             print("Error: the %s file has not the '.in' extension" % filename)
             sys.exit(1)
 
-    def _get_sdist_filepath(self):
+    @staticmethod
+    def _get_sdist_filepath():
         return os.path.join("dist", "%s-%s.tar.gz" % (__project__, __version__))
 
-    def _get_changelog_filepath(self):
+    @staticmethod
+    def _get_changelog_filepath():
         return "ChangeLog"
 
     def expand_template_file(self, filename):
@@ -180,7 +183,8 @@ class my_sdist(_sdist):
 
 class my_bdist_rpm(_bdist_rpm):
 
-    def run(self):
+    @staticmethod
+    def run():
         print("Cannot run directly the bdist_rpm target. Please rather use the generated " \
                "spec file (together with the sdist target) in the dist sub-directory")
         sys.exit(1)
@@ -336,11 +340,13 @@ class PyTest(Command):
     def finalize_options(self):
         pass
 
-    def _get_python_path(self):
+    @staticmethod
+    def _get_python_path():
         parent_dir = os.path.dirname(__file__)
         return os.path.join(parent_dir, "python")
 
-    def _get_tests_files(self):
+    @staticmethod
+    def _get_tests_files():
         parent_dir = os.path.dirname(__file__)
         return glob(os.path.join(parent_dir, "tests", "*Test.py"))
 
@@ -372,7 +378,8 @@ class Purge(Command):
     def finalize_options(self):
         pass
 
-    def run(self):
+    @staticmethod
+    def run():
 
         import shutil
 
@@ -397,7 +404,7 @@ class Uninstall(Command):
 
     def finalize_options(self):
         if self.root:
-            assert os.path.exists(self.root), ("The %s root installation directory doesn't exist" % self.root)
+            assert os.path.exists(self.root), "The %s root installation directory doesn't exist" % self.root
 
     def run(self):
 
