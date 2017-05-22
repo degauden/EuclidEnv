@@ -66,6 +66,8 @@ from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
 EOF
 fi
+%{__python} -m compileall $${python_loc}/Euclid/Login.py $${python_loc}/Euclid/__init__.py
+%{__python} -O -m compileall $${python_loc}/Euclid/Login.py $${python_loc}/Euclid/__init__.py
 
 
 %changelog
