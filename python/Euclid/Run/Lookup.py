@@ -82,6 +82,8 @@ def findProject(name, version, platform):
                         if p_version == version:
                             project_dir = d
                             break
+            else:
+                break
 
     else:
         # The version is latest. The last project with the highest version subdir or
