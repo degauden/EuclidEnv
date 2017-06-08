@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """ Main script to setup the basic Euclid environment """
 
 import sys
