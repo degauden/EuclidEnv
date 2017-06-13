@@ -63,7 +63,7 @@ for a in sys.argv:
             etc_install_root = e_base[0]
         sys.argv.remove(a)
     if a.startswith("--root"):
-        # TODO implement the extratction of the value from
+        # TODO implement the extraction of the value from
         # the option
         r_base = a.split("=")[1:]
         if len(r_base) == 1:
