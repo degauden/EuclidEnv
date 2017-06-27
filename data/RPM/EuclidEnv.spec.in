@@ -10,7 +10,6 @@ License:        Public Domain
 Source:         %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
-BuildRequires:  python-devel
 Prefix:         /usr
 Prefix:         /etc
 Prefix:         /opt/euclid
