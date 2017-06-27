@@ -114,7 +114,7 @@ option(ELEMENTS_USE_CASE_SENSITIVE_PROJECTS "No uppercase projects allowed" ON)
 #---------------------------------------------------------------------------------------------------
 include(CMakeParseArguments)
 
-find_package(PythonInterp QUIET)
+find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} QUIET)
 
 #-------------------------------------------------------------------------------
 # elements_project(project version
@@ -141,7 +141,7 @@ macro(elements_project project version)
   set(CMAKE_PROJECT_VERSION ${version} CACHE STRING "Version of the project")
 
   #--- Parse the other arguments on the
-  CMAKE_PARSE_ARGUMENTS(PROJECT "" "" "USE;DATA;DESCRIPTION" ${ARGN})
+  CMAKE_PARSE_ARGUMENTS(PROJECT "" "DESCRIPTION" "USE;DATA" ${ARGN})
   if (PROJECT_UNPARSED_ARGUMENTS)
     message(FATAL_ERROR "Wrong arguments.")
   endif()
@@ -304,6 +304,13 @@ macro(elements_project project version)
   endif()
 
 
+  find_program(thismodheader_cmd createThisModHeader.py HINTS ${binary_paths})
+  if(thismodheader_cmd)
+    set(thismodheader_cmd ${PYTHON_EXECUTABLE} ${thismodheader_cmd})
+  endif()
+
+
+
   find_program(Boost_testmain_cmd createBoostTestMain.py HINTS ${binary_paths})
   if(Boost_testmain_cmd)
     set(Boost_testmain_cmd ${PYTHON_EXECUTABLE} ${Boost_testmain_cmd})
@@ -332,6 +339,7 @@ macro(elements_project project version)
 
   mark_as_advanced(env_cmd merge_cmd versheader_cmd instheader_cmd versmodule_cmd instmodule_cmd
                    thisheader_cmd thismodule_cmd
+                   thismodheader_cmd
                    Boost_testmain_cmd CppUnit_testmain_cmd
                    zippythondir_cmd elementsrun_cmd
                    rpmbuild_wrap_cmd)
@@ -781,6 +789,47 @@ elements_generate_env_conf\(${installed_env_xml} ${installed_project_build_envir
     endforeach()
   endif()
 
+  option(RPM_FORWARD_PREFIX_PATH "Forward the CMAKE_PREFIX_PATH when using 'make rpm'" ON)
+
+  if(NOT SQUEEZED_INSTALL)
+    set(CPACK_CMAKE_PREFIX_PATH_LINE "export CMAKE_PREFIX_PATH=\$PWD/cmake:/usr/share/EuclidEnv/cmake")
+  else()
+    set(CPACK_CMAKE_PREFIX_PATH_LINE "#")  
+  endif()
+
+
+  if(RPM_FORWARD_PREFIX_PATH)
+  
+      file(TO_CMAKE_PATH "$ENV{CMAKE_PREFIX_PATH}" env_prefix_path)
+      set(CPACK_PREFIX_LIST)
+  
+      if(NOT SQUEEZED_INSTALL)
+          list(APPEND CPACK_PREFIX_LIST "\$PWD/cmake")
+      endif()
+  
+      foreach(prefix_comp ${env_prefix_path})
+          list(FIND CPACK_PREFIX_LIST "${prefix_comp}" _index)
+          if(${_index} EQUAL -1)
+              list(APPEND CPACK_PREFIX_LIST "${prefix_comp}")
+          endif()
+      endforeach()
+
+      if(NOT SQUEEZED_INSTALL)
+          list(FIND CPACK_PREFIX_LIST "/usr/share/EuclidEnv/cmake" _index)
+          if(${_index} EQUAL -1)
+              list(APPEND CPACK_PREFIX_LIST "/usr/share/EuclidEnv/cmake")
+          endif()
+      endif()
+  
+      if(CPACK_PREFIX_LIST)
+          JOIN("${CPACK_PREFIX_LIST}" ":" CPACK_PREFIX_PATH)
+    
+          set(CPACK_CMAKE_PREFIX_PATH_LINE "export CMAKE_PREFIX_PATH=${CPACK_PREFIX_PATH}")
+      endif()
+  
+      message(STATUS "The CMAKE_PREFIX_PATH used in the spec file is: ${CPACK_PREFIX_PATH}")
+  
+  endif()
 
 #------------------------------------------------------------------------------
   get_property(regular_lib_objects GLOBAL PROPERTY REGULAR_LIB_OBJECTS)
@@ -930,13 +979,8 @@ elements_generate_env_conf\(${installed_env_xml} ${installed_project_build_envir
 
     list(SORT debinfo_objects)
     foreach(_do ${debinfo_objects})
-      if("${_do}" MATCHES "^lib")
-        set(CPACK_RPM_DEBINFO_FILES "${CPACK_RPM_DEBINFO_FILES}
-%{libdir}/${_do}")
-      else()
-        set(CPACK_RPM_DEBINFO_FILES "${CPACK_RPM_DEBINFO_FILES}
-%{_bindir}/${_do}")
-      endif()
+      set(CPACK_RPM_DEBINFO_FILES "${CPACK_RPM_DEBINFO_FILES}
+${_do}")
     endforeach()
     #message(STATUS "The debuginfo objects: ${CPACK_RPM_DEBINFO_FILES}")
   endif()
@@ -998,12 +1042,20 @@ ${MAIN_PROJECT_CHANGELOG}
         message(STATUS "Using ${main_project_changelog_file} for the ChangeLog of the project")
       endif()
 
-
-     find_file_to_configure(Elements.spec.in
-                            FILETYPE "RPM SPEC"
-                            OUTPUTDIR "${PROJECT_RPM_TOPDIR}/SPECS"
-                            OUTPUTNAME "${project}.spec"
-                            PATHS ${CMAKE_MODULE_PATH})
+     if(SQUEEZED_INSTALL)
+         find_file_to_configure(Elements_squeezed.spec.in
+                                FILETYPE "RPM SPEC"
+                                OUTPUTDIR "${PROJECT_RPM_TOPDIR}/SPECS"
+                                OUTPUTNAME "${project}.spec"
+                                PATHS ${CMAKE_MODULE_PATH})
+     else()
+         find_file_to_configure(Elements.spec.in
+                                FILETYPE "RPM SPEC"
+                                OUTPUTDIR "${PROJECT_RPM_TOPDIR}/SPECS"
+                                OUTPUTNAME "${project}.spec"
+                                PATHS ${CMAKE_MODULE_PATH})
+     endif()
+    
 
      file(MAKE_DIRECTORY ${PROJECT_RPM_TOPDIR}/BUILD)
      file(MAKE_DIRECTORY ${PROJECT_RPM_TOPDIR}/BUILDROOT)
@@ -1384,30 +1436,103 @@ macro(_elements_handle_data_packages)
   endwhile()
 endmacro()
 
+macro(_get_include_dir_from_package inc_dir pck)
+
+  set(${inc_dir})
+  if(TARGET ${pck})
+    get_target_property(${inc_dir} ${pck} SOURCE_DIR)
+  elseif(IS_ABSOLUTE ${pck} AND IS_DIRECTORY ${pck})
+    set(${inc_dir} ${pck})
+  elseif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${pck})
+    set(${inc_dir} ${CMAKE_CURRENT_SOURCE_DIR}/${pck})
+  elseif(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/${pck}) # pck can be the name of a subdir
+    set(${inc_dir} ${CMAKE_SOURCE_DIR}/${pck})
+  else()
+    # ensure that the current directory knows about the package
+    find_package(${pck} QUIET)
+    set(to_incl_var)
+    string(TOUPPER ${pck} _pack_upper)
+    if(${_pack_upper}_FOUND OR ${pck}_FOUND)
+      # Handle some special cases first, then try for package uppercase (DIRS and DIR)
+      # If the package is found, add INCLUDE_DIRS or (if not defined) INCLUDE_DIR.
+      # If none of the two is defined, do not add anything.
+      if(${pck} STREQUAL PythonLibs)
+        set(to_incl_var PYTHON_INCLUDE_DIRS)
+      elseif(${_pack_upper}_INCLUDE_DIRS)
+        set(to_incl_var ${_pack_upper}_INCLUDE_DIRS)
+      elseif(${_pack_upper}_INCLUDE_DIR)
+        set(to_incl_var ${_pack_upper}_INCLUDE_DIR)
+      elseif(${pck}_INCLUDE_DIRS)
+        set(to_incl_var ${pck}_INCLUDE_DIRS)
+      endif()
+      # Include the directories
+      set(${inc_dir} ${${to_incl_var}})
+    endif()
+  endif()
+ 
+endmacro()
+
+
 #-------------------------------------------------------------------------------
-# include_package_directories(Package1 [Package2 ...])
+# include_package_directories(Package1 [Package2 ...]
+#                             RECURSE_PATTERN pattern)
 #
-# Add the include directories of each package to the include directories.
+# Add the include directories of each package to the include directories. If the recurse
+# pattern is present the subdirectories are also individually search for and the ones 
+# containing files that respect the pattern are also included.
 #-------------------------------------------------------------------------------
 function(include_package_directories)
-  #message(STATUS "include_package_directories(${ARGN})")
+
+  CMAKE_PARSE_ARGUMENTS(ARG "" "RECURSE_PATTERN" "" ${ARGN})
+
+  foreach(package ${ARG_UNPARSED_ARGUMENTS})
+    # we need to ensure that the user can call this function also for directories
+    _get_include_dir_from_package(to_incl ${package})
+
+    foreach(_i ${to_incl})
+      starts_with_sys_include(_is_sys ${_i})
+      if(${_is_sys} AND ${HIDE_SYSINC_WARNINGS})
+        include_directories(SYSTEM ${_i})    
+      else()
+        # recursion applies only to non-system dirs
+        if(ARG_RECURSE_PATTERN)
+          elements_recurse(hsubdir ${_i} PATTERN ${ARG_RECURSE_PATTERN})
+          if(hsubdir)
+            list(REMOVE_DUPLICATES hsubdir)
+            foreach(hs ${hsubdir})
+              include_directories(${hs})    
+            endforeach()
+          endif()
+        else()
+          include_directories(${_i})
+        endif()    
+      endif()
+    endforeach()
+    
+  endforeach()
+endfunction()
+
+
+#-------------------------------------------------------------------------------
+# print_package_directories(Package1 [Package2 ...])
+#
+# print the include directories of each package.
+#-------------------------------------------------------------------------------
+function(print_package_directories)
+  message(STATUS "print_package_directories(${ARGN})")
   foreach(package ${ARGN})
     # we need to ensure that the user can call this function also for directories
     if(TARGET ${package})
       get_target_property(to_incl ${package} SOURCE_DIR)
       if(to_incl)
-        #message(STATUS "include_package_directories1 include_directories(${to_incl})")
-        include_directories(${to_incl})
+        message(STATUS "print_package_directories1 include_directories(${to_incl})")
       endif()
     elseif(IS_ABSOLUTE ${package} AND IS_DIRECTORY ${package})
-      #message(STATUS "include_package_directories2 include_directories(${package})")
-      include_directories(${package})
+      message(STATUS "print_package_directories2 include_directories(${package})")
     elseif(IS_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${package})
-      #message(STATUS "include_package_directories3 include_directories(${package})")
-      include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${package})
+      message(STATUS "print_package_directories3 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/${package})")
     elseif(IS_DIRECTORY ${CMAKE_SOURCE_DIR}/${package}) # package can be the name of a subdir
-      #message(STATUS "include_package_directories4 include_directories(${package})")
-      include_directories(${CMAKE_SOURCE_DIR}/${package})
+      message(STATUS "print_package_directories4 include_directories(${CMAKE_SOURCE_DIR}/${package})")
     else()
       # ensure that the current directory knows about the package
       find_package(${package} QUIET)
@@ -1427,12 +1552,7 @@ function(include_package_directories)
           set(to_incl ${package}_INCLUDE_DIRS)
         endif()
         # Include the directories
-        #message(STATUS "include_package_directories5 include_directories(${${to_incl}})")
-        if (HIDE_SYSINC_WARNINGS)
-          include_directories(SYSTEM ${${to_incl}})
-        else()
-          include_directories(${${to_incl}})
-        endif()
+        message(STATUS "print_package_directories5 include_directories(${${to_incl}})")
       endif()
     endif()
   endforeach()
@@ -1616,6 +1736,12 @@ macro(elements_subdir name)
   execute_process(COMMAND
                   ${versheader_cmd} --quiet
                   ${name} ${version} ${CMAKE_CURRENT_BINARY_DIR}/${name}Version.h)
+
+
+  execute_process(COMMAND
+                  ${thismodheader_cmd} --quiet
+                  ${name} ${CMAKE_CURRENT_BINARY_DIR}/ThisElementsModule.h)
+
 endmacro()
 
 #-------------------------------------------------------------------------------
@@ -1954,6 +2080,20 @@ macro(_elements_detach_debinfo target)
         set(_tn ${CMAKE_SHARED_${CMAKE_MATCH_0}_PREFIX}${target}${CMAKE_SHARED_${CMAKE_MATCH_0}_SUFFIX})
         set(_builddir ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
         set(_dest ${CMAKE_LIB_INSTALL_SUFFIX})
+        set(spec_prefix "%{libdir}")
+        get_property(_prefix TARGET ${target} PROPERTY PREFIX)
+        # python module
+        if(_prefix STREQUAL "_")
+          set(_tn _${target}.so)
+          set(_builddir ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+          set(_dest ${PYTHON_DYNLIB_INSTALL_SUFFIX})
+          set(spec_prefix "%{pydyndir}")
+        elseif(_prefix STREQUAL "")
+          set(_tn ${target}.so)
+          set(_builddir ${CMAKE_LIBRARY_OUTPUT_DIRECTORY})
+          set(_dest ${PYTHON_DYNLIB_INSTALL_SUFFIX})        
+          set(spec_prefix "%{pydyndir}")
+        endif()
       else()
         set(_tn ${target})
         if(ELEMENTS_USE_EXE_SUFFIX)
@@ -1961,6 +2101,7 @@ macro(_elements_detach_debinfo target)
         endif()
         set(_builddir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
         set(_dest bin)
+        set(spec_prefix "%{_bindir}")
       endif()
     endif()
     #message(STATUS "_elements_detach_debinfo(${target}): target name -> ${_tn}")
@@ -1978,7 +2119,7 @@ macro(_elements_detach_debinfo target)
     install(FILES ${_builddir}/${_tn}.dbg DESTINATION ${_dest} OPTIONAL)
     # ... and removed on 'make clean'.
     set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${_builddir}/${_tn}.dbg)
-    set_property(GLOBAL APPEND PROPERTY DEBINFO_OBJECTS ${_tn}.dbg)
+    set_property(GLOBAL APPEND PROPERTY DEBINFO_OBJECTS ${spec_prefix}/${_tn}.dbg)
   endif()
 endmacro()
 
@@ -2146,17 +2287,25 @@ endfunction()
 
 #---------------------------------------------------------------------------------------------------
 # elements_add_python_module(name
-#                         sources ...
-#                         LINK_LIBRARIES ...
-#                         INCLUDE_DIRS ...)
+#                           sources ...
+#                           PLAIN_MODULE
+#                           LINK_LIBRARIES ...
+#                           INCLUDE_DIRS ...)
 #
 # Build a binary python module from the given sources.
 #---------------------------------------------------------------------------------------------------
 function(elements_add_python_module module)
-  elements_common_add_build(${ARGN})
+
+  # this function uses an extra option: 'PLAIN_MODULE'
+  CMAKE_PARSE_ARGUMENTS(ARG "PLAIN_MODULE" "" "LIBRARIES;LINK_LIBRARIES;INCLUDE_DIRS;PUBLIC_HEADERS" ${ARGN})
+
+  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS}
+                            LIBRARIES ${ARG_LIBRARIES}
+                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                            INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
 
   # require Python libraries
-  find_package(PythonLibs QUIET REQUIRED)
+  find_package(PythonLibs ${PYTHON_EXPLICIT_VERSION} QUIET REQUIRED)
 
   if(HIDE_SYSINC_WARNINGS)
     include_directories(SYSTEM ${PYTHON_INCLUDE_DIRS})
@@ -2164,14 +2313,110 @@ function(elements_add_python_module module)
     include_directories(${PYTHON_INCLUDE_DIRS})
   endif()
   add_library(${module} MODULE ${srcs})
-  set_target_properties(${module} PROPERTIES SUFFIX .so PREFIX "_")
+  
+  if(NOT ${ARG_PLAIN_MODULE})
+    set_target_properties(${module} PROPERTIES SUFFIX .so PREFIX "_")
+  else()
+    set_target_properties(${module} PROPERTIES SUFFIX .so PREFIX "")
+  endif()
   target_link_libraries(${module} ${PYTHON_LIBRARIES} ${ARG_LINK_LIBRARIES})
-#  _elements_detach_debinfo(${module})
+  _elements_detach_debinfo(${module})
 
   #----Installation details-------------------------------------------------------
   install(TARGETS ${module} LIBRARY DESTINATION ${PYTHON_DYNLIB_INSTALL_SUFFIX} OPTIONAL)
   set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
-  set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_DYNLIB_OBJECTS _${module}.so)
+  if(NOT ${ARG_PLAIN_MODULE})
+    set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_DYNLIB_OBJECTS _${module}.so)
+  else()
+    set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_DYNLIB_OBJECTS ${module}.so)
+  endif()
+
+endfunction()
+
+
+#---------------------------------------------------------------------------------------------------
+# _generate_swig_files(<swig_module>
+#                      i_src1 i_src2 ...
+#                      OUTFILE out.cxx
+#                      LINK_LIBRARIES library1 library2 ...
+#                      INCLUDE_DIRS dir1 package2 ...)
+#
+# generate the SWIG python and C++ files
+#---------------------------------------------------------------------------------------------------
+function(_generate_swig_files swig_module)
+
+  find_package(SWIG QUIET REQUIRED)
+  CMAKE_PARSE_ARGUMENTS(ARG "" "OUTFILE" "INCLUDE_DIRS;LINK_LIBRARIES" ${ARGN})
+  
+  if("${ARG_OUTFILE}" STREQUAL "")
+    message(FATAL_ERROR "_generate_swig_files: No OUTFILE defined")
+  endif()
+
+  set(i_srcs ${ARG_UNPARSED_ARGUMENTS})
+
+
+  # locate and set include directories
+  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS}
+                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                            INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
+
+
+  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+  list(REMOVE_DUPLICATES dirs)
+  set(SWIG_MOD_INCLUDE_DIRS)
+  foreach(dir ${dirs})
+    set(SWIG_MOD_INCLUDE_DIRS -I${dir} ${SWIG_MOD_INCLUDE_DIRS})
+  endforeach()
+  
+  set(PY_MODULE_DIR ${CMAKE_BINARY_DIR}/python)
+  set(PY_MODULE ${swig_module})
+  set(PY_MODULE_SWIG_SRC ${ARG_OUTFILE})
+
+  execute_process(
+    COMMAND ${SWIG_EXECUTABLE} -MM -python -module ${PY_MODULE} -Wextra -outdir ${PY_MODULE_DIR} -c++ ${SWIG_MOD_INCLUDE_DIRS} ${i_srcs}
+    OUTPUT_VARIABLE swmm_dependencies
+    RESULT_VARIABLE swmm_return_value
+  )
+
+  string(REGEX MATCHALL "\n  [^ ]+" temp ${swmm_dependencies})
+  set(swig_deps)
+  foreach(t ${temp})
+    string(STRIP "${t}" t)
+    set(swig_deps ${swig_deps} "${t}")
+  endforeach()
+
+
+  #SWIG command
+  add_custom_command(
+    OUTPUT
+        ${PY_MODULE_DIR}/${PY_MODULE}.py
+        ${PY_MODULE_SWIG_SRC}
+    COMMAND
+        ${env_cmd} --xml ${env_xml} ${SWIG_EXECUTABLE}
+        -python
+        -module ${PY_MODULE}
+        -Wextra
+        -outdir ${PY_MODULE_DIR}
+        -c++
+        ${SWIG_MOD_INCLUDE_DIRS}
+        -o ${PY_MODULE_SWIG_SRC}
+        ${i_srcs}
+    DEPENDS
+        ${i_srcs} ${swig_deps}
+    COMMENT "Generating SWIG binding: ${SWIG_EXECUTABLE} -python -module ${PY_MODULE} -Wextra -outdir ${PY_MODULE_DIR} -c++ ${SWIG_MOD_INCLUDE_DIRS} -o ${PY_MODULE_SWIG_SRC} ${i_srcs}"
+  )
+
+  set_source_files_properties(${PY_MODULE_SWIG_SRC} PROPERTIES GENERATED TRUE)
+
+  set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${i_srcs} ${swig_deps})
+ 
+  if(CXX_HAS_SUGGEST_OVERRIDE)
+    set_property(SOURCE ${PY_MODULE_SWIG_SRC}
+                 PROPERTY COMPILE_FLAGS -Wno-suggest-override)
+  endif()
+
+  install(FILES ${PY_MODULE_DIR}/${PY_MODULE}.py DESTINATION ${PYTHON_INSTALL_SUFFIX})
+  
 endfunction()
 
 #---------------------------------------------------------------------------------------------------
@@ -2188,36 +2433,14 @@ endfunction()
 #---------------------------------------------------------------------------------------------------
 function(elements_add_swig_binding binding)
 
-  find_package(SWIG QUIET REQUIRED)
-  find_package(PythonLibs QUIET REQUIRED)
-
-  # this function uses an extra option: 'PUBLIC_HEADERS'
   CMAKE_PARSE_ARGUMENTS(ARG "NO_PUBLIC_HEADERS" "" "LIBRARIES;LINK_LIBRARIES;INCLUDE_DIRS;PUBLIC_HEADERS" ${ARGN})
-
-  set(MODULE_ARG_LINK_LIBRARIES ${ARG_LINK_LIBRARIES})
-  set(MODULE_ARG_INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
-
-
-  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS}
-                            LIBRARIES ${ARG_LIBRARIES}
-                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
-                            INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
-
-  get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
-  list(REMOVE_DUPLICATES dirs)
-  set(SWIG_MOD_INCLUDE_DIRS)
-  foreach(dir ${dirs})
-    set(SWIG_MOD_INCLUDE_DIRS ${SWIG_MOD_INCLUDE_DIRS} -I${dir})
-  endforeach()
 
   if(NOT ARG_NO_PUBLIC_HEADERS AND NOT ARG_PUBLIC_HEADERS)
     elements_get_package_name(package)
-    message(WARNING "Binding ${binding} (in ${package}) does not declare PUBLIC_HEADERS. Use the option NO_PUBLIC_HEADERS if it is intended.")
+    message(WARNING "Swig binding ${binding} (in ${package}) does not declare PUBLIC_HEADERS. Use the option NO_PUBLIC_HEADERS if it is intended.")
   endif()
 
-  # find the sources
   elements_expand_sources(srcs ${ARG_UNPARSED_ARGUMENTS})
-
   set(cpp_srcs)
   set(i_srcs)
   foreach(s ${srcs})
@@ -2226,51 +2449,200 @@ function(elements_add_swig_binding binding)
     else()
       list(APPEND cpp_srcs ${s})
     endif()
+    set_property(SOURCE ${s} PROPERTY CPLUSPLUS ON)
   endforeach()
+  
+  set(PY_MODULE_SWIG_SRC ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${binding}PYTHON_wrap.cxx)
+  
+  _generate_swig_files(${binding}
+                       ${i_srcs}
+                       OUTFILE ${PY_MODULE_SWIG_SRC}
+                       INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
 
-  set(PY_MODULE_DIR ${CMAKE_BINARY_DIR}/python)
-  set(PY_MODULE ${binding})
-  set(PY_MODULE_SWIG_SRC ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${PY_MODULE}PYTHON_wrap.cxx)
-
-
-  #SWIG command
-  add_custom_command(
-	OUTPUT
-		${PY_MODULE_DIR}/${PY_MODULE}.py
-		${PY_MODULE_SWIG_SRC}
-	COMMAND
-		${SWIG_EXECUTABLE}
-		-python
-		-module ${binding}
-		-Wextra
-		-outdir ${PY_MODULE_DIR}
-		-c++
-		${SWIG_MOD_INCLUDE_DIRS}
-		-o ${PY_MODULE_SWIG_SRC}
-		${i_srcs}
-	DEPENDS
-		${i_srcs}
-	COMMENT "Generating SWIG binding"
-  )
-
-  if(CXX_HAS_SUGGEST_OVERRIDE)
-    set_property(SOURCE ${PY_MODULE_SWIG_SRC}
-                 PROPERTY COMPILE_FLAGS -Wno-suggest-override)
-  endif()
 
   elements_add_python_module(${binding}
                              ${PY_MODULE_SWIG_SRC} ${cpp_srcs}
-                             LINK_LIBRARIES ${MODULE_ARG_LINK_LIBRARIES}
-                             INCLUDE_DIRS ${MODULE_ARG_INCLUDE_DIRS})
-
-  install(FILES ${PY_MODULE_DIR}/${binding}.py DESTINATION ${PYTHON_INSTALL_SUFFIX})
+                             LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                             INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
 
   set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
   set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${binding}.py)
   set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${binding}.pyo)
   set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${binding}.pyc)
 
+  elements_install_headers(${ARG_PUBLIC_HEADERS})
 
+endfunction()
+
+#---------------------------------------------------------------------------------------------------
+# _generate_cython_cpp(interface
+#                      OUTFILE out.cxx
+#                      LINK_LIBRARIES library1 library2 ...
+#                      INCLUDE_DIRS dir1 package2 ...)
+#
+# Generate the C++ source file from the .pyx file using the INCLUDE_DIRS
+#---------------------------------------------------------------------------------------------------
+function(_generate_cython_cpp)
+
+  find_package(Cython QUIET REQUIRED)
+  CMAKE_PARSE_ARGUMENTS(ARG "" "OUTFILE" "INCLUDE_DIRS;LINK_LIBRARIES" ${ARGN})
+  
+  if("${ARG_OUTFILE}" STREQUAL "")
+    message(FATAL_ERROR "_generate_cython_cpp: No OUTFILE defined")
+  endif()
+
+  set(src ${ARG_UNPARSED_ARGUMENTS})
+
+  # locate and set include directories
+  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS}
+                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                            INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
+
+
+
+  # get the source file directory
+  get_source_file_property(src_location ${src} LOCATION)
+  get_filename_component(pyx_dir ${src_location} DIRECTORY)
+
+  include_directories(AFTER ${pyx_dir})
+
+  get_property(cy_dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY INCLUDE_DIRECTORIES)
+  if(cy_dirs)
+    list(REMOVE_DUPLICATES cy_dirs)
+  endif()
+  
+  # pattern enabled recursion in non-system directories
+  set(all_cy_dirs)
+  foreach(_i ${cy_dirs})
+    set(starts_with_sys FALSE)
+    starts_with_sys_include(starts_with_sys ${_i})
+    if(NOT ${starts_with_sys})
+      elements_recurse(hsubdir ${_i} PATTERN "*.px[di]")
+      if(hsubdir)
+        list(REMOVE_DUPLICATES hsubdir)
+        set(all_cy_dirs ${all_cy_dirs} ${hsubdir})    
+      endif()
+    endif()
+    set(all_cy_dirs ${all_cy_dirs} ${_i})    
+  endforeach()
+  list(REMOVE_DUPLICATES all_cy_dirs)
+  
+  
+  set(CYTHON_MOD_INCLUDE_DIRS)
+  foreach(dir ${all_cy_dirs})
+    debug_print_var(dir)
+    set(CYTHON_MOD_INCLUDE_DIRS ${CYTHON_MOD_INCLUDE_DIRS} -I${dir})
+  endforeach()  
+  
+  
+  # Set additional flags.
+  set(annotate_arg)
+  if(CYTHON_ANNOTATE)
+    set(annotate_arg "--annotate")
+  endif()
+
+  set(no_docstrings_arg)
+  if( CYTHON_NO_DOCSTRINGS )
+    set(no_docstrings_arg "--no-docstrings")
+  endif()
+
+  if( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" OR
+        "${CMAKE_BUILD_TYPE}" STREQUAL "RelWithDebInfo" )
+      set(cython_debug_arg "--gdb")
+  endif()
+  if("${PYTHONLIBS_VERSION_STRING}" MATCHES "^2.")
+    set(version_arg "-2")
+  elseif("${PYTHONLIBS_VERSION_STRING}" MATCHES "^3.")
+    set(version_arg "-3")
+  else()
+    set(version_arg)
+  endif()  
+    
+  add_custom_command(
+    OUTPUT 
+        ${ARG_OUTFILE}
+    COMMAND 
+        ${env_cmd} --xml ${env_xml} ${CYTHON_EXECUTABLE}
+        --cplus
+        ${CYTHON_MOD_INCLUDE_DIRS}
+        ${version_arg}
+        ${annotate_arg} 
+        ${no_docstrings_arg} 
+        ${cython_debug_arg}
+        ${CYTHON_FLAGS}
+        --output-file ${ARG_OUTFILE}
+        ${src}
+    DEPENDS 
+        ${src}
+    COMMENT "Generating Cython module: ${CYTHON_EXECUTABLE} --cplus ${CYTHON_MOD_INCLUDE_DIRS} ${version_arg} ${annotate_arg} ${no_docstrings_arg} ${cython_debug_arg} ${CYTHON_FLAGS} --output-file ${ARG_OUTFILE}  ${srcs}"
+    )
+  
+  set_source_files_properties(${ARG_OUTFILE} PROPERTIES GENERATED TRUE COMPILE_FLAGS "-fvisibility=default -UELEMENTS_HIDE_SYMBOLS")  
+
+endfunction()
+
+
+#---------------------------------------------------------------------------------------------------
+# elements_add_cython_module([interface] source1 source2 ...
+#                            LINK_LIBRARIES library1 library2 ...
+#                            INCLUDE_DIRS dir1 package2 ...
+#                            [NO_PUBLIC_HEADERS | PUBLIC_HEADERS dir1 dir2 ...])
+#
+# Create a Cython binary python module from the specified sources (glob patterns are allowed), linking
+# it with the libraries specified and adding the include directories to the search path. The sources
+# can be either *.i or *.cpp files. Their location is relative to the base of the Elements package
+# (module).
+#---------------------------------------------------------------------------------------------------
+function(elements_add_cython_module)
+
+  CMAKE_PARSE_ARGUMENTS(ARG "NO_PUBLIC_HEADERS" "" "LIBRARIES;LINK_LIBRARIES;INCLUDE_DIRS;PUBLIC_HEADERS" ${ARGN})
+
+  elements_expand_sources(srcs ${ARG_UNPARSED_ARGUMENTS})
+  set(pyx_module_sources)
+  set(other_module_sources)
+  foreach( _file ${srcs})
+    if( ${_file} MATCHES ".*\\.py[x]?$" )
+      list( APPEND pyx_module_sources ${_file} )
+    else()
+      list( APPEND other_module_sources ${_file} )
+    endif()
+  endforeach()
+
+  list(LENGTH pyx_module_sources nb_pyx)
+  
+  if(${nb_pyx} GREATER 1)
+    message(FATAL_ERROR "To many pyx files for the Cython module: ${pyx_module_sources}")
+  endif()
+
+  get_filename_component(mod_name ${pyx_module_sources} NAME_WE)
+
+  if(NOT ARG_NO_PUBLIC_HEADERS AND NOT ARG_PUBLIC_HEADERS)
+    elements_get_package_name(package)
+    message(WARNING "Cython module ${mod_name} (in ${package}) does not declare PUBLIC_HEADERS. Use the option NO_PUBLIC_HEADERS if it is intended.")
+  endif()
+
+  set(PY_MODULE_CYTHON_SRC ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/${mod_name}CYTHON_wrap.cxx)
+
+
+  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS}
+                            LIBRARIES ${ARG_LIBRARIES}
+                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                            INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
+
+  _generate_cython_cpp(${pyx_module_sources}
+                       OUTFILE ${PY_MODULE_CYTHON_SRC}
+                       LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                       INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
+
+  elements_add_python_module(${mod_name}
+                             PLAIN_MODULE
+                             ${PY_MODULE_CYTHON_SRC} ${other_module_sources}
+                             LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                             INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
+
+  set_target_properties(${mod_name} PROPERTIES PLAIN_MODULE TRUE)
+  set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
+  
   elements_install_headers(${ARG_PUBLIC_HEADERS})
 
 endfunction()
@@ -2545,6 +2917,7 @@ function(elements_install_headers)
               PATTERN "*.hpp"
               PATTERN "*.hxx"
               PATTERN "*.i"
+              PATTERN "*.pxd"
               PATTERN "CVS" EXCLUDE
               PATTERN ".svn" EXCLUDE)
       if(NOT IS_ABSOLUTE ${hdr_dir})
@@ -3426,7 +3799,7 @@ endmacro()
 #-------------------------------------------------------------------------------
 function(elements_generate_project_manifest filename project version)
   # FIXME: partial replication of function argument parsing done in elements_project()
-  CMAKE_PARSE_ARGUMENTS(PROJECT "" "" "USE;DATA" ${ARGN})
+  CMAKE_PARSE_ARGUMENTS(PROJECT "" "DESCRIPTION" "USE;DATA" ${ARGN})
   # Non need to check consistency because it's already done in elements_project().
 
   #header
@@ -3434,7 +3807,7 @@ function(elements_generate_project_manifest filename project version)
 <manifest>\n")
 
   # Project name and version
-  set(data "${data}  <project name=\"${project}\" version=\"${version}\" />\n")
+  set(data "${data}  <project name=\"${project}\" version=\"${version}\" description=\"${PROJECT_DESCRIPTION}\" />\n")
 
   # Astro toolchain infos
   if(astrotools_version)
@@ -3512,8 +3885,11 @@ function(elements_add_python_program executable module)
   # the sources has to be passed
   get_property(python_pkg_list GLOBAL PROPERTY PROJ_PYTHON_PACKAGE_LIST)
 
+  get_directory_property(elements_module_name name)
+  get_directory_property(elements_module_version version)
+
   add_custom_command(OUTPUT ${executable_file}
-                     COMMAND ${pythonprogramscript_cmd} --module ${module} --outdir ${CMAKE_BINARY_DIR}/scripts --execname ${executable} --project-name ${CMAKE_PROJECT_NAME}
+                     COMMAND ${pythonprogramscript_cmd} --python-explicit-version="${PYTHON_EXPLICIT_VERSION}" --module ${module} --outdir ${CMAKE_BINARY_DIR}/scripts --execname ${executable} --project-name ${CMAKE_PROJECT_NAME} --elements-module-name ${elements_module_name} --elements-module-version ${elements_module_version}
                      DEPENDS ${program_file})
 
   string(REPLACE "." "_" python_program_target ${module})

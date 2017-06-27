@@ -20,8 +20,15 @@ endif()
 if(NOT BUILD_PREFIX_NAME)
   set(BUILD_PREFIX_NAME "build" CACHE STRING "Prefix name for the build directory" FORCE)
 endif()
-
 message(STATUS "The build prefix is set to ${BUILD_PREFIX_NAME}")
+
+if(NOT PYTHON_EXPLICIT_VERSION)
+  set(PYTHON_EXPLICIT_VERSION "" CACHE STRING "Set the explicit python version to be used" FORCE)
+endif()
+
+if(NOT "${PYTHON_EXPLICIT_VERSION}" STREQUAL "")
+  set_property(GLOBAL APPEND PROPERTY CMAKE_EXTRA_FLAGS "-DPYTHON_EXPLICIT_VERSION=${PYTHON_EXPLICIT_VERSION}")
+endif()
 
 if(NOT BUILD_SUBDIR)
   file(RELATIVE_PATH build_subdir_name ${CMAKE_SOURCE_DIR} ${CMAKE_BINARY_DIR})
@@ -32,6 +39,12 @@ message(STATUS "The path to the sources is set to ${CMAKE_SOURCE_DIR}")
 message(STATUS "The path to the build is set to ${CMAKE_BINARY_DIR}")
 message(STATUS "The relative location for the build is set to ${BUILD_SUBDIR}")
 
+set(CYTHON_ANNOTATE OFF
+  CACHE BOOL "Create an annotated .html file when compiling *.pyx.")
+set(CYTHON_NO_DOCSTRINGS OFF
+  CACHE BOOL "Strip docstrings from the compiled module.")
+set(CYTHON_FLAGS "" CACHE STRING
+  "Extra flags to the cython compiler.")
 
 # Special defaults
 if ( (SGS_COMP STREQUAL gcc AND ( (NOT SGS_COMPVERS VERSION_LESS "47") OR (SGS_COMPVERS MATCHES "max") ))
