@@ -21,7 +21,14 @@ build_types = {
     "MinSizeRel": "min"
 }
 
-
+canonical_order = [
+    "RelWithDebInfo",
+    "Release",
+    "Debug",
+    "Profile",
+    "Coverage",
+    "MinSizeRel"
+    ]
 # BINARY_TAG extraction
 
 def isBinaryType(binary_tag, btype):
@@ -40,6 +47,19 @@ def getBinaryOfType(binary_tag, btype):
         blist.append(build_types[btype])
         btother = "-".join(blist)
     return btother
+
+def getSearchList(binary_tag):
+    """ return the list of search binary type
+        with the first one being the default
+     """
+    search_list = [binary_tag]
+
+    for t in canonical_order:
+        new_binary_tag = getBinaryOfType(binary_tag, t)
+        if new_binary_tag != binary_tag:
+            search_list.append(new_binary_tag)
+
+    return search_list
 
 
 def getBinaryTypeName(binary_tag):

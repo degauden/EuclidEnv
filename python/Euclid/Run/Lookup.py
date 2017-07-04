@@ -1,6 +1,7 @@
 # FIXME: when we drop Python 2.4, this should become 'from . import path'
 from Euclid.Run import path, Error
 from Euclid.Run.Version import getVersionDirs, versionSort
+from Euclid.Platform import getSearchList
 
 
 import os
@@ -179,8 +180,24 @@ def getEnvXmlPath(project, version, platform):
             raise MissingManifestError(manifest)
         projects, _ = parseManifest(manifest)
         # add the project directories ...
-        pdirs = [findProject(p, v, platform) for p, v in projects]
+        # search in all binary tag. Starting with the default one
+        pdirs = []
+        for p, v in projects:
+            p_dirs = None
+            for b in getSearchList(platform):
+                try:
+                    p_dirs = findProject(p, v, b)
+                except MissingProjectError:
+                    pass
+                if p_dirs:
+                    break
+            if not p_dirs:
+                raise MissingProjectError(p, v, platform, path)
+            pdirs.append(p_dirs)
+
         search_path.extend(pdirs)
+
+
         # ... and their manifests to the list of manifests to parse
         manifests.extend([os.path.join(pdir, 'manifest.xml')
                           for pdir in pdirs])

@@ -1,6 +1,9 @@
 from Euclid.Platform import NativeMachine, getBinaryOfType, getBinaryTypeName
 from Euclid.Platform import isBinaryType
+from Euclid.Platform import getSearchList
+
 import unittest
+from sqlalchemy.orm.attributes import backref_listeners
 
 
 class PlatformTestCase(unittest.TestCase):
@@ -78,6 +81,17 @@ class PlatformTestCase(unittest.TestCase):
         self.assertEqual(getBinaryTypeName("pro"), "Profile")
         self.assertEqual(getBinaryTypeName("o2g"), "RelWithDebInfo")
         self.assertEqual(getBinaryTypeName("min"), "MinSizeRel")
+
+    def testSearchBinaryList(self):
+        ref_list = ["x86_64-fc20-gcc48-cov",
+                    "x86_64-fc20-gcc48-o2g",
+                    "x86_64-fc20-gcc48-opt",
+                    "x86_64-fc20-gcc48-dbg",
+                    "x86_64-fc20-gcc48-pro",
+                    "x86_64-fc20-gcc48-min"
+                    ]
+        search_list = getSearchList("x86_64-fc20-gcc48-cov")
+        self.assertEqual(search_list, ref_list)
 
     def testVersion(self):
         pass
