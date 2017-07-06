@@ -10,6 +10,7 @@ from distutils.command.sdist import sdist as _sdist
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 from distutils.command.build import build as _build
 
+from setuptools import find_packages
 
 import os
 import sys
@@ -38,11 +39,6 @@ def get_data_files(input_dir, output_dir):
         da_files = []
         for f in files:
             da_files.append(os.path.join(root, f))
-#             splf = os.path.splitext(f)
-#             if splf[1] == ".py":
-#                 pass
-#                 da_files.append(os.path.join(root, splf[0] + ".pyo"))
-#                 da_files.append(os.path.join(root, splf[0] + ".pyc"))
         result.append(
             (os.sep.join([output_dir] + root.split(os.sep)[1:]), da_files))
     return result
@@ -336,20 +332,23 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
         self.fix_use_custom_prefix()
         self.create_extended_init()
 
+    def print_install_locations(self):
+        print("This is the prefix %s" % self.prefix)
+        print("This is the install base %s" % self.install_base)
+        print("This is the install platbase %s" % self.install_platbase)
+        print("This is the install root %s" % self.root)
+        print("This is the install purelib %s" % self.install_purelib)
+        print("This is the install platlib %s" % self.install_platlib)
+        print("This is the install lib %s" % self.install_lib)
+        print("This is the install headers %s" % self.install_headers)
+        print("This is the install scripts %s" % self.install_scripts)
+        print("This is the install data %s" % self.install_data)
+
     def run(self):
         _install.run(self)
         # postinstall
         if not skip_custom_postinstall:
-#             print "This is the prefix %s" % self.prefix
-#             print "This is the install base %s" % self.install_base
-#             print "This is the install platbase %s" % self.install_platbase
-#             print "This is the install root %s" % self.root
-#             print "This is the install purelib %s" % self.install_purelib
-#             print "This is the install platlib %s" % self.install_platlib
-#             print "This is the install lib %s" % self.install_lib
-#             print "This is the install headers %s" % self.install_headers
-#             print "This is the install scripts %s" % self.install_scripts
-#             print "This is the install data %s" % self.install_data
+#            self.print_install_locations()
             self.custom_post_install()
 
 class PyTest(Command):
@@ -455,8 +454,8 @@ setup(name=__project__,
       author="Hubert Degaudenzi",
       author_email="Hubert.Degaudenzi@unige.ch",
       url="http://www.isdc.unige.ch/redmine/projects/euclidenv",
-      package_dir={"": "python"},
-      packages=["Euclid", "Euclid.Run"],
+      package_dir={"Euclid": os.path.join("python", "Euclid")},
+      packages=find_packages(where="python"),
       scripts=[os.path.join("scripts", "ELogin.sh"),
                os.path.join("scripts", "ELogin.csh"),
                os.path.join("scripts", "Euclid_config.sh"),
