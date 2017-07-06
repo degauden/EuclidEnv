@@ -1,5 +1,5 @@
 # sitelib for noarch packages, sitearch for others (remove the unneeded one)
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib('${usr_prefix}'))")}
 
 Name:           ${project}
 Version:        ${version}
@@ -10,9 +10,9 @@ License:        Public Domain
 Source:         %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
-Prefix:         /usr
-Prefix:         /etc
-Prefix:         /opt/euclid
+Prefix:         ${usr_prefix}
+Prefix:         ${etc_prefix}
+Prefix:         ${euclid_base}
 
 AutoReq: no
 
@@ -65,6 +65,12 @@ cat << EOF > $${python_loc}/Euclid/__init__.py
 from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
 EOF
+fi
+if [[ "${euclid_base}" = "$${RPM_INSTALL_PREFIX2}" ]]; then
+$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_use_custom_prefix no $${RPM_INSTALL_PREFIX1}/sysconfig/euclid
+else
+echo "Activating the custom prefix environment prepending"
+$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_use_custom_prefix yes $${RPM_INSTALL_PREFIX1}/sysconfig/euclid
 fi
 %{__python} -m compileall $${python_loc}/Euclid/Login.py $${python_loc}/Euclid/__init__.py
 %{__python} -O -m compileall $${python_loc}/Euclid/Login.py $${python_loc}/Euclid/__init__.py

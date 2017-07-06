@@ -22,6 +22,15 @@ from string import Template
 __version__ = "3.1"
 __project__ = "EuclidEnv"
 
+# variable used for the package creation
+dist_euclid_base = "/opt/euclid"
+dist_etc_prefix = "/etc"
+dist_usr_prefix = "/usr"
+
+# variable interpolated at install time
+this_euclid_base = "/opt/euclid"
+this_use_custom_prefix = "no"
+
 
 def get_data_files(input_dir, output_dir):
     result = []
@@ -111,7 +120,6 @@ for a in sys.argv:
         skip_custom_postinstall = True
         sys.argv.remove(a)
 
-this_euclid_base = "/opt/euclid"
 for a in sys.argv:
     if a.startswith("--euclid-base"):
         # TODO implement the extratction of the value from
@@ -162,9 +170,14 @@ class my_sdist(_sdist):
         changelog_content = open(self._get_changelog_filepath()).read()
         with open(filename) as in_f:
             src = Template(in_f.read()).substitute(
-                version=__version__, project=__project__,
-                rmd160=rmd160_digest, sha256=sha256_digest,
-                changelog=changelog_content)
+                version=__version__,
+                project=__project__,
+                rmd160=rmd160_digest,
+                sha256=sha256_digest,
+                changelog=changelog_content,
+                euclid_base=dist_euclid_base,
+                usr_prefix=dist_usr_prefix,
+                etc_prefix=dist_etc_prefix)
         with open(out_fname, "w") as out_f:
             out_f.write(src)
 
@@ -296,6 +309,14 @@ class my_install(_install):
             call(
                 ["python", fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
+    def fix_use_custom_prefix(self):
+        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        proc_list = self.get_sysconfig_files()
+        for p in proc_list:
+            print("Fixing %s with the %s use custom prefix" % (p, this_use_custom_prefix))
+            call(
+                ["python", fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
+
     def create_extended_init(self):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
 
@@ -312,6 +333,7 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
         self.fix_install_path()
         self.fix_version()
         self.fix_euclid_base()
+        self.fix_use_custom_prefix()
         self.create_extended_init()
 
     def run(self):
