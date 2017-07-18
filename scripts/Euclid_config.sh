@@ -49,6 +49,8 @@ do
   fi
 done
 
+export EUCLID_CUSTOM_PREFIX=$(readlink -m ${EUCLID_CUSTOM_PREFIX})
+
 unset c
 unset cfgfiles
 

@@ -51,6 +51,8 @@ foreach c ( $cfgfiles )
   endif
 end
 
+setenv EUCLID_CUSTOM_PREFIX `readlink -m ${EUCLID_CUSTOM_PREFIX}`
+
 unset c
 unset cfgfiles
 
