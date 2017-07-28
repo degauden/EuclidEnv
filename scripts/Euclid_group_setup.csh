@@ -3,15 +3,13 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
   set my_own_prefix3 = "%(this_install_prefix)s"
 
-  if ( ! $?EUCLID_CONFIG_FILE ) then
-    if ( -r ${my_own_prefix3}/bin/Euclid_config.csh ) then
-      set confscr=${my_own_prefix3}/bin/Euclid_config.csh
-    else
-      set confscr=`/usr/bin/which Euclid_config.csh`        
-    endif
-    source ${confscr} "${*:q}" >& /dev/null
-    unset confscr    
+  if ( -r ${my_own_prefix3}/bin/Euclid_config.csh ) then
+    set confscr=${my_own_prefix3}/bin/Euclid_config.csh
+  else
+    set confscr=`/usr/bin/which Euclid_config.csh`        
   endif
+  source ${confscr} "${*:q}" >& /dev/null
+  unset confscr    
 
   if ( -r ${my_own_prefix3}/bin/ELogin.csh ) then
     set elogscr=${my_own_prefix3}/bin/ELogin.csh

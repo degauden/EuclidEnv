@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 from sys import stdout
 from os import pathsep, listdir, environ, fdopen

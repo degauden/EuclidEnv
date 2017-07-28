@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import os
 import re
 from optparse import OptionParser
@@ -55,6 +53,7 @@ const std::string %(proj)s_INSTALL_LOCATION_STRING {"%(location)s"};
 
     outputdata += """
 const std::vector<std::string> %(proj)s_SEARCH_DIRS {%(locations)s};
+
 #endif
 """ % { 'proj': project.upper(), 'locations': ", ".join(used_locations) }
 

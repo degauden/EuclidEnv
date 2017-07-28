@@ -9,3 +9,4 @@ __pycache__
 /.externalToolBuilders/
 /.coverage
 /runtests.pyc
+/EuclidEnv.egg-info/

@@ -1,6 +1,7 @@
 # FIXME: when we drop Python 2.4, this should become 'from . import path'
 from Euclid.Run import path, Error
 from Euclid.Run.Version import getVersionDirs, versionSort
+from Euclid.Platform import getSearchList
 
 
 import os
@@ -38,45 +39,16 @@ class MissingProjectError(NotFoundError):
         return 'cannot find project {0} {1} for {2} in {3}'.format(*self.args)
 
 
-# def findProject(name, version, platform):
-#     '''
-#     Find a Elements-based project in the directories specified in the 'path'
-#     variable.
-#
-#     @param name: name of the project (case sensitive for local projects)
-#     @param version: version of the project
-#     @param platform: binary platform id
-#
-#     @return path to the project binary directory
-#     '''
-#     log.debug('findProject(%r, %r, %r)', name, version, platform)
-#     # standard project suffixes
-#     suffixes = [os.path.join(name, version),
-#                 '{0}_{1}'.format(name, version),
-#                 os.path.join(name.upper(), '{0}_{1}'.format(name.upper(), version))]
-#     # special case: with the default 'latest' version we allow the plain name
-#     if version == 'latest':
-#         suffixes.insert(0, name)
-#
-#     bindir = os.path.join('InstallArea', platform)
-#     for d in [os.path.join(b, s, bindir)
-#               for b in path
-#               for s in suffixes]:
-#         log.debug('check %s', d)
-#         if os.path.exists(d):
-#             log.debug('OK')
-#             return d
-#     else:
-#         if version == "latest":
-#             for b in path:
-#                 all_versions = versionSort(
-#                     getVersionDirs(os.path.join(b, name), bindir))
-#                 if all_versions:
-#                     return os.path.join(b, name, all_versions[-1], bindir)
-#         raise MissingProjectError(name, version, platform, path)
-
-
 def findProject(name, version, platform):
+    '''
+    Find a Elements-based project in the directories specified in the 'path'
+    variable.
+    @param name: name of the project (case sensitive for local projects)
+    @param version: version of the project
+    @param platform: binary platform id
+
+    @return path to the project binary directory
+    '''
     log.debug('findProject(%r, %r, %r)', name, version, platform)
     project_dir = None
     # standard project suffixes
@@ -111,6 +83,8 @@ def findProject(name, version, platform):
                         if p_version == version:
                             project_dir = d
                             break
+            else:
+                break
 
     else:
         # The version is latest. The last project with the highest version subdir or
@@ -206,8 +180,24 @@ def getEnvXmlPath(project, version, platform):
             raise MissingManifestError(manifest)
         projects, _ = parseManifest(manifest)
         # add the project directories ...
-        pdirs = [findProject(p, v, platform) for p, v in projects]
+        # search in all binary tag. Starting with the default one
+        pdirs = []
+        for p, v in projects:
+            p_dirs = None
+            for b in getSearchList(platform):
+                try:
+                    p_dirs = findProject(p, v, b)
+                except MissingProjectError:
+                    pass
+                if p_dirs:
+                    break
+            if not p_dirs:
+                raise MissingProjectError(p, v, platform, path)
+            pdirs.append(p_dirs)
+
         search_path.extend(pdirs)
+
+
         # ... and their manifests to the list of manifests to parse
         manifests.extend([os.path.join(pdir, 'manifest.xml')
                           for pdir in pdirs])

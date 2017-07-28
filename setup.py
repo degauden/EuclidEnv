@@ -1,9 +1,16 @@
+#!/usr/bin/env python
+# Commit Id: $Format:%H$
+# Author:    $Format:%an$
+# Date  :    $Format:%ad$
+
+
 from distutils.core import setup, Command
 from distutils.command.install import install as _install
 from distutils.command.sdist import sdist as _sdist
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 from distutils.command.build import build as _build
 
+from setuptools import find_packages
 
 import os
 import sys
@@ -13,8 +20,17 @@ from glob import glob
 
 from string import Template
 
-__version__ = "2.1.1"
+__version__ = "3.1.1"
 __project__ = "EuclidEnv"
+
+# variable used for the package creation
+dist_euclid_base = "/opt/euclid"
+dist_etc_prefix = "/etc"
+dist_usr_prefix = "/usr"
+
+# variable interpolated at install time
+this_euclid_base = "/opt/euclid"
+this_use_custom_prefix = "no"
 
 
 def get_data_files(input_dir, output_dir):
@@ -23,11 +39,6 @@ def get_data_files(input_dir, output_dir):
         da_files = []
         for f in files:
             da_files.append(os.path.join(root, f))
-#             splf = os.path.splitext(f)
-#             if splf[1] == ".py":
-#                 pass
-#                 da_files.append(os.path.join(root, splf[0] + ".pyo"))
-#                 da_files.append(os.path.join(root, splf[0] + ".pyc"))
         result.append(
             (os.sep.join([output_dir] + root.split(os.sep)[1:]), da_files))
     return result
@@ -36,6 +47,9 @@ these_files = get_data_files("data/cmake", __project__)
 these_files += get_data_files("data/texmf", __project__)
 
 
+# Please note the that the local install is
+# also needed for --prefix. Take as example the
+# /usr/local prefix.
 use_local_install = False
 for a in sys.argv:
     for b in ["--user", "--prefix", "--home"]:
@@ -44,6 +58,7 @@ for a in sys.argv:
 
 
 etc_install_root = None
+install_root = None
 for a in sys.argv:
     if a.startswith("--etc-root"):
         # TODO implement the extratction of the value from
@@ -52,6 +67,13 @@ for a in sys.argv:
         if len(e_base) == 1:
             etc_install_root = e_base[0]
         sys.argv.remove(a)
+    if a.startswith("--root"):
+        # TODO implement the extraction of the value from
+        # the option
+        r_base = a.split("=")[1:]
+        if len(r_base) == 1:
+            install_root = r_base[0]
+
 
 if not etc_install_root:
     if use_local_install:
@@ -94,7 +116,6 @@ for a in sys.argv:
         skip_custom_postinstall = True
         sys.argv.remove(a)
 
-this_euclid_base = "/opt/euclid"
 for a in sys.argv:
     if a.startswith("--euclid-base"):
         # TODO implement the extratction of the value from
@@ -120,7 +141,8 @@ class my_build(_build):
 
 class my_sdist(_sdist):
 
-    def _get_template_target(self, filename):
+    @staticmethod
+    def _get_template_target(filename):
         fname, fext = os.path.splitext(os.path.basename(filename))
         if fext == ".in":
             return os.path.join("dist", fname)
@@ -128,10 +150,12 @@ class my_sdist(_sdist):
             print("Error: the %s file has not the '.in' extension" % filename)
             sys.exit(1)
 
-    def _get_sdist_filepath(self):
+    @staticmethod
+    def _get_sdist_filepath():
         return os.path.join("dist", "%s-%s.tar.gz" % (__project__, __version__))
 
-    def _get_changelog_filepath(self):
+    @staticmethod
+    def _get_changelog_filepath():
         return "ChangeLog"
 
     def expand_template_file(self, filename):
@@ -142,9 +166,14 @@ class my_sdist(_sdist):
         changelog_content = open(self._get_changelog_filepath()).read()
         with open(filename) as in_f:
             src = Template(in_f.read()).substitute(
-                version=__version__, project=__project__,
-                rmd160=rmd160_digest, sha256=sha256_digest,
-                changelog=changelog_content)
+                version=__version__,
+                project=__project__,
+                rmd160=rmd160_digest,
+                sha256=sha256_digest,
+                changelog=changelog_content,
+                euclid_base=dist_euclid_base,
+                usr_prefix=dist_usr_prefix,
+                etc_prefix=dist_etc_prefix)
         with open(out_fname, "w") as out_f:
             out_f.write(src)
 
@@ -163,13 +192,27 @@ class my_sdist(_sdist):
 
 class my_bdist_rpm(_bdist_rpm):
 
-    def run(self):
+    @staticmethod
+    def run():
         print("Cannot run directly the bdist_rpm target. Please rather use the generated " \
                "spec file (together with the sdist target) in the dist sub-directory")
         sys.exit(1)
 
 
 class my_install(_install):
+
+    def initialize_options(self):
+
+        _install.initialize_options(self)
+
+        parent_dir = os.path.dirname(__file__)
+
+        dist_dir = os.path.join(parent_dir, "dist")
+
+        if not os.path.exists(dist_dir):
+            os.mkdir(dist_dir)
+
+        self.record = os.path.join(dist_dir, "installed_files.txt")
 
     def get_login_scripts(self):
         p_list = []
@@ -262,6 +305,14 @@ class my_install(_install):
             call(
                 ["python", fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
+    def fix_use_custom_prefix(self):
+        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        proc_list = self.get_sysconfig_files()
+        for p in proc_list:
+            print("Fixing %s with the %s use custom prefix" % (p, this_use_custom_prefix))
+            call(
+                ["python", fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
+
     def create_extended_init(self):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
 
@@ -278,22 +329,26 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
         self.fix_install_path()
         self.fix_version()
         self.fix_euclid_base()
+        self.fix_use_custom_prefix()
         self.create_extended_init()
+
+    def print_install_locations(self):
+        print("This is the prefix %s" % self.prefix)
+        print("This is the install base %s" % self.install_base)
+        print("This is the install platbase %s" % self.install_platbase)
+        print("This is the install root %s" % self.root)
+        print("This is the install purelib %s" % self.install_purelib)
+        print("This is the install platlib %s" % self.install_platlib)
+        print("This is the install lib %s" % self.install_lib)
+        print("This is the install headers %s" % self.install_headers)
+        print("This is the install scripts %s" % self.install_scripts)
+        print("This is the install data %s" % self.install_data)
 
     def run(self):
         _install.run(self)
         # postinstall
         if not skip_custom_postinstall:
-#             print "This is the prefix %s" % self.prefix
-#             print "This is the install base %s" % self.install_base
-#             print "This is the install platbase %s" % self.install_platbase
-#             print "This is the install root %s" % self.root
-#             print "This is the install purelib %s" % self.install_purelib
-#             print "This is the install platlib %s" % self.install_platlib
-#             print "This is the install lib %s" % self.install_lib
-#             print "This is the install headers %s" % self.install_headers
-#             print "This is the install scripts %s" % self.install_scripts
-#             print "This is the install data %s" % self.install_data
+#            self.print_install_locations()
             self.custom_post_install()
 
 class PyTest(Command):
@@ -306,11 +361,13 @@ class PyTest(Command):
     def finalize_options(self):
         pass
 
-    def _get_python_path(self):
+    @staticmethod
+    def _get_python_path():
         parent_dir = os.path.dirname(__file__)
         return os.path.join(parent_dir, "python")
 
-    def _get_tests_files(self):
+    @staticmethod
+    def _get_tests_files():
         parent_dir = os.path.dirname(__file__)
         return glob(os.path.join(parent_dir, "tests", "*Test.py"))
 
@@ -333,14 +390,72 @@ class PyTest(Command):
         errno = subprocess.call([sys.executable, 'runtests.py'] + self._get_tests_files())
         raise SystemExit(errno)
 
+class Purge(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    @staticmethod
+    def run():
+
+        import shutil
+
+        parent_dir = os.path.dirname(__file__)
+
+        for d in ["build", "dist"]:
+            full_d = os.path.join(parent_dir, d)
+            if os.path.exists(full_d):
+                print("Removing the %s directory" % full_d)
+                shutil.rmtree(full_d)
+
+
+class Uninstall(Command):
+
+    description = 'Uninstallation of recorded files'
+    user_options = [
+            ('root=', None, 'path to the root install location'),
+        ]
+
+    def initialize_options(self):
+        self.root = None
+
+    def finalize_options(self):
+        if self.root:
+            assert os.path.exists(self.root), "The %s root installation directory doesn't exist" % self.root
+
+    def run(self):
+
+        import shutil
+        parent_dir = os.path.dirname(__file__)
+        record = os.path.join(parent_dir, "dist", "installed_files.txt")
+        with open(record) as rf:
+            for l in rf:
+                f = l.strip()
+                if self.root:
+                    if f.startswith("/"):
+                        f = f[1:]
+                    f = os.path.join(self.root, f)
+                if os.path.exists(f):
+                    if os.path.isdir(f):
+                        print("Removing the %s directory" % f)
+                        shutil.rmtree(f)
+                    else:
+                        print("Removing the %s file" % f)
+                        os.remove(f)
+
+
 setup(name=__project__,
       version=__version__,
       description="Euclid Environment Scripts",
       author="Hubert Degaudenzi",
       author_email="Hubert.Degaudenzi@unige.ch",
       url="http://www.isdc.unige.ch/redmine/projects/euclidenv",
-      package_dir={"": "python"},
-      packages=["Euclid", "Euclid.Run"],
+      package_dir={"Euclid": os.path.join("python", "Euclid")},
+      packages=find_packages(where="python"),
       scripts=[os.path.join("scripts", "ELogin.sh"),
                os.path.join("scripts", "ELogin.csh"),
                os.path.join("scripts", "Euclid_config.sh"),
@@ -363,6 +478,8 @@ setup(name=__project__,
                 "build": my_build,
                 "sdist": my_sdist,
                 "bdist_rpm": my_bdist_rpm,
-                "test": PyTest
+                "test": PyTest,
+                "purge": Purge,
+                "uninstall": Uninstall,
                 },
       )

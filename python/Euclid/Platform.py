@@ -21,7 +21,14 @@ build_types = {
     "MinSizeRel": "min"
 }
 
-
+canonical_order = [
+    "RelWithDebInfo",
+    "Release",
+    "Debug",
+    "Profile",
+    "Coverage",
+    "MinSizeRel"
+    ]
 # BINARY_TAG extraction
 
 def isBinaryType(binary_tag, btype):
@@ -40,6 +47,19 @@ def getBinaryOfType(binary_tag, btype):
         blist.append(build_types[btype])
         btother = "-".join(blist)
     return btother
+
+def getSearchList(binary_tag):
+    """ return the list of search binary type
+        with the first one being the default
+     """
+    search_list = [binary_tag]
+
+    for t in canonical_order:
+        new_binary_tag = getBinaryOfType(binary_tag, t)
+        if new_binary_tag != binary_tag:
+            search_list.append(new_binary_tag)
+
+    return search_list
 
 
 def getBinaryTypeName(binary_tag):
@@ -124,6 +144,8 @@ binary_opt_list = ["x86_64-slc5-gcc43-opt", "i686-slc5-gcc43-opt",
                    "x86_64-fc23-gcc53-opt", "i686-fc23-gcc53-opt",
                    "x86_64-fc24-gcc61-opt", "i686-fc24-gcc61-opt",
                    "x86_64-fc24-gcc62-opt", "i686-fc24-gcc62-opt",
+                   "x86_64-fc24-gcc63-opt", "i686-fc24-gcc63-opt",
+                   "x86_64-fc25-gcc63-opt", "i686-fc25-gcc63-opt",
                    "x86_64-osx109-clang34-opt"
                    ]
 # future possible supported binaries
@@ -230,6 +252,7 @@ lsb_flavour_aliases = {
 flavor_runtime_compatibility = {
     "slc7": ["slc7", "co7"],
     "co7": ["co7", "slc7"],
+    "fc25": ["fc25", "fc24", "fc23", "fc22", "fc21", "fc20", "fc19", "slc7"],
     "fc24": ["fc24", "fc23", "fc22", "fc21", "fc20", "fc19", "slc7"],
     "fc23": ["fc23", "fc22", "fc21", "fc20", "fc19", "slc7"],
     "fc22": ["fc22", "fc21", "fc20", "fc19", "slc7"],
@@ -256,6 +279,7 @@ arch_runtime_compatiblity = {
 }
 
 flavor_runtime_equivalence = {
+    "fc25": ["fc25"],
     "fc24": ["fc24"],
     "fc23": ["fc23"],
     "fc22": ["fc22"],
@@ -274,7 +298,8 @@ flavor_runtime_equivalence = {
 
 # the first ones in the list have higher precedence
 supported_compilers = {
-    "fc24": ["gcc62", "gcc61"],
+    "fc25": ["gcc63", "gcc62"],
+    "fc24": ["gcc63", "gcc62", "gcc61"],
     "fc23": ["gcc53"],
     "fc22": ["gcc51"],
     "fc21": ["gcc49"],

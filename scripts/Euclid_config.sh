@@ -8,11 +8,16 @@
 my_own_prefix0="%(this_etc_install_prefix)s"
 my_own_exe_prefix0="%(this_install_prefix)s"
 
+# internal guard to avoid double sourcing of the SAME file
+if [[ ! "${EUCLID_CONFIG_SCRIPT}" = "${my_own_exe_prefix0}/bin/Euclid_config.sh" ]]; then
+
 # default values if no config file is found
 export SOFTWARE_BASE_VAR=EUCLID_BASE
 export EUCLID_BASE=%(this_euclid_base)s
 export EUCLID_USE_BASE=no
 export EUCLID_USE_PREFIX=no
+export EUCLID_CUSTOM_PREFIX=%(this_euclid_base)s/../../usr
+export EUCLID_USE_CUSTOM_PREFIX=no
 
 
 cfgfiles=""
@@ -43,6 +48,8 @@ do
     break;
   fi
 done
+
+export EUCLID_CUSTOM_PREFIX=$(readlink -m ${EUCLID_CUSTOM_PREFIX})
 
 unset c
 unset cfgfiles
@@ -86,24 +93,23 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
       fi
     fi
 
-    
-    if [[ -d ${EUCLID_BASE}/python ]]; then
-      my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))")
-      if [[ -d ${my_python_base} ]]; then
-        if [[ -n "$PYTHONPATH" ]]; then
-          export PYTHONPATH=${my_python_base}:${PYTHONPATH}
-        else
-          export PYTHONPATH=${my_python_base}
-        fi
+    my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))")
+    if [[ -d ${my_python_base} ]]; then
+      if [[ -n "$PYTHONPATH" ]]; then
+        export PYTHONPATH=${my_python_base}:${PYTHONPATH}
       else
+        export PYTHONPATH=${my_python_base}
+      fi
+    else
+      if [[ -d ${EUCLID_BASE}/python ]]; then
         if [[ -n "$PYTHONPATH" ]]; then
           export PYTHONPATH=${EUCLID_BASE}/python:${PYTHONPATH}
         else
           export PYTHONPATH=${EUCLID_BASE}/python
         fi
       fi
-      unset my_python_base
     fi
+    unset my_python_base
     
     if [[ -n "$CMAKE_PREFIX_PATH" ]]; then
       export CMAKE_PREFIX_PATH=${EUCLID_BASE}:${CMAKE_PREFIX_PATH}
@@ -117,7 +123,7 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
   fi
 fi
 
-# prepend path entries from the prefix to the environment
+# prepend path entries from the current install prefix to the environment
 if [[ "${EUCLID_USE_PREFIX}" == "yes" ]]; then
  if [[ -d ${my_own_exe_prefix0} ]]; then
 
@@ -153,25 +159,24 @@ if [[ "${EUCLID_USE_PREFIX}" == "yes" ]]; then
         fi
       fi
     fi
-
     
-    if [[ -d ${my_own_exe_prefix0}/python ]]; then
-      my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))")
-      if [[ -d ${my_python_base} ]]; then
-        if [[ -n "$PYTHONPATH" ]]; then
-          export PYTHONPATH=${my_python_base}:${PYTHONPATH}
-        else
-          export PYTHONPATH=${my_python_base}
-        fi
+    my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))")
+    if [[ -d ${my_python_base} ]]; then
+      if [[ -n "$PYTHONPATH" ]]; then
+        export PYTHONPATH=${my_python_base}:${PYTHONPATH}
       else
+        export PYTHONPATH=${my_python_base}
+      fi
+    else
+      if [[ -d ${my_own_exe_prefix0}/python ]]; then
         if [[ -n "$PYTHONPATH" ]]; then
           export PYTHONPATH=${my_own_exe_prefix0}/python:${PYTHONPATH}
         else
           export PYTHONPATH=${my_own_exe_prefix0}/python
         fi
       fi
-      unset my_python_base
     fi
+    unset my_python_base
     
     if [[ -n "$CMAKE_PREFIX_PATH" ]]; then
       export CMAKE_PREFIX_PATH=${my_own_exe_prefix0}:${CMAKE_PREFIX_PATH}
@@ -185,7 +190,81 @@ if [[ "${EUCLID_USE_PREFIX}" == "yes" ]]; then
  fi
 fi
 
+# prepend path entries from the custom install prefix to the environment
+# by default it is relative to the EUCLID_BASE directory
+if [[ "${EUCLID_USE_CUSTOM_PREFIX}" == "yes" ]]; then
+ if [[ -d ${EUCLID_CUSTOM_PREFIX} ]]; then
+
+    if [[ -d ${EUCLID_CUSTOM_PREFIX}/bin ]]; then
+      export PATH=${EUCLID_CUSTOM_PREFIX}/bin:${PATH}
+    fi
+    if [[ -d ${EUCLID_CUSTOM_PREFIX}/scripts ]]; then
+      export PATH=${EUCLID_CUSTOM_PREFIX}/scripts:${PATH}
+    fi
+    
+    if [[ "${arch_type}" == "x86_64" ]]; then
+      if [[ -d ${EUCLID_CUSTOM_PREFIX}/lib32 ]]; then
+        if [[ -n "$LD_LIBRARY_PATH" ]]; then
+          export LD_LIBRARY_PATH=${EUCLID_CUSTOM_PREFIX}/lib32:${LD_LIBRARY_PATH}
+        else
+          export LD_LIBRARY_PATH=${EUCLID_CUSTOM_PREFIX}/lib32
+        fi
+      fi
+    fi
+    if [[ -d ${EUCLID_CUSTOM_PREFIX}/lib ]]; then
+      if [[ -n "$LD_LIBRARY_PATH" ]]; then
+        export LD_LIBRARY_PATH=${EUCLID_CUSTOM_PREFIX}/lib:${LD_LIBRARY_PATH}
+      else
+        export LD_LIBRARY_PATH=${EUCLID_CUSTOM_PREFIX}/lib
+      fi
+    fi
+    if [[ "${arch_type}" == "x86_64" ]]; then
+      if [[ -d ${EUCLID_CUSTOM_PREFIX}/lib64 ]]; then
+        if [[ -n "$LD_LIBRARY_PATH" ]]; then
+          export LD_LIBRARY_PATH=${EUCLID_CUSTOM_PREFIX}/lib64:${LD_LIBRARY_PATH}
+        else
+          export LD_LIBRARY_PATH=${EUCLID_CUSTOM_PREFIX}/lib64
+        fi
+      fi
+    fi
+
+    my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_CUSTOM_PREFIX}'))")
+    if [[ -d ${my_python_base} ]]; then
+      if [[ -n "$PYTHONPATH" ]]; then
+        export PYTHONPATH=${my_python_base}:${PYTHONPATH}
+      else
+        export PYTHONPATH=${my_python_base}
+      fi
+    else
+      if [[ -d ${EUCLID_CUSTOM_PREFIX}/python ]]; then
+        if [[ -n "$PYTHONPATH" ]]; then
+          export PYTHONPATH=${EUCLID_CUSTOM_PREFIX}/python:${PYTHONPATH}
+        else
+          export PYTHONPATH=${EUCLID_CUSTOM_PREFIX}/python
+        fi
+      fi
+    fi
+    unset my_python_base
+    
+    if [[ -n "$CMAKE_PREFIX_PATH" ]]; then
+      export CMAKE_PREFIX_PATH=${EUCLID_CUSTOM_PREFIX}:${CMAKE_PREFIX_PATH}
+    else
+      export CMAKE_PREFIX_PATH=${EUCLID_CUSTOM_PREFIX}
+    fi
+    if [[ -d ${EUCLID_BASE}/cmake ]]; then
+      export CMAKE_PREFIX_PATH=${EUCLID_CUSTOM_PREFIX}/cmake:${CMAKE_PREFIX_PATH}
+    fi
+
+ fi
+fi
+
+
 unset arch_type
+
+export EUCLID_CONFIG_SCRIPT=${my_own_exe_prefix0}/bin/Euclid_config.sh
+
+fi #end of the guard
+
 unset my_own_prefix0
 unset my_own_exe_prefix0
 

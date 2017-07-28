@@ -1,3 +1,35 @@
+* Fri Jul 28 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.1.1-1
+- Add the possibility to setup a custom prefix location
+- Compile the file (Login.py) which is modified in the RPM postinstall phase
+- Fix a bug which didn't pickup the right project from the user area it has 
+  been reported at https://euclid.roe.ac.uk/issues/5098 it happens when
+  - the version is explicitly asked for: E-Run Elements 5.0.1 ...
+  - and the layout of the project has an explicit version directory:
+  ~/Work/Projects/Elements/5.0.1 (instead of simply
+  ~/Work/Projects/Elements)
+  In that case, the /opt/euclid/Elements/5.0.1 was called anyway.
+- Make the use prefix flag set automatically if EUCLID_BASE is special. If 
+  the --relocate option is passed for the /opt/euclid location at the
+  rpm install command, the use custom prefix flag is set to "yes" in the
+  /etc/sysconfig/euclid. Please note that the --relocate option is just changing
+  the EUCLID_BASE location. It doesn't relocate anything.
+- Update to the latest CMake library of Elements (5.1).
+
+* Tue Apr 4 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.1-1
+- Add the purge command
+- Add the automatic record of the installed files
+- Add the uninstall command. It also works with the --root offset
+- Fix the guard that avoid that the SAME config file is read twice. Before any
+  file pointed by EUCLID_CONFIG_FILE was no reread. That was causing a 
+  problem of local and CVMFS installations together.
+
+* Mon Mar 6 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.0-1
+- update to the latest cmake library of Elements (5.0)
+
+* Mon Feb 27 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 2.1.2-1
+- hotfix of the Euclid.Run.Script module. Remove obsolete buggy part for 
+  the extra search path implemented in a searchPath.py python file.
+
 * Fri Feb 24 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 2.1.1-1
 - hotfix of the Euclid.ConfigFile module.
 

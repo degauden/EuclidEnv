@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """ Main script to setup the basic Euclid environment """
 
 import sys
@@ -589,6 +588,11 @@ The type is to be chosen among the following list:
                 ev["CMAKEFLAGS"] = "-DCMAKE_FIND_FRAMEWORK=LAST"
                 ev["CMAKEFLAGS"] += " -DCMAKE_FIND_ROOT_PATH=%s" % ev["MACPORT_LOCATION"]
 
+    def setExtraEnv(self):
+
+        ev = self.Environment()
+        ev["ELEMENTS_NAMING_DB_URL"] = "https://pieclddj00.isdc.unige.ch/elementsnaming"
+
     def copyEnv(self):
         ev = self.Environment()
         retenv = dict(ev.env)
@@ -604,6 +608,7 @@ The type is to be chosen among the following list:
 
         self.setBinaryTag()
         self.setCMakePath()
+        self.setExtraEnv()
 
         # this is use internally by the 'sgs-' compiler wrapper.
         self.setSGShostos()
