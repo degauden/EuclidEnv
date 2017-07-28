@@ -12,7 +12,11 @@ cmake_minimum_required(VERSION 2.8.5)
 #        CMake >= 2.8.12, so we must keep the old behavior until we bump the
 #        cmake_minimum_required version. (policy added in CMake 3.0)
 if(NOT CMAKE_VERSION VERSION_LESS 3.0) # i.e CMAKE_VERSION >= 3.0
-  cmake_policy(SET CMP0026 OLD)
+  if(NOT CMAKE_VERSION VERSION_LESS 3.9.0)
+    cmake_policy(SET CMP0026 NEW)
+  else()  
+    cmake_policy(SET CMP0026 OLD)
+  endif()
   if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     cmake_policy(SET CMP0042 OLD)
   endif()
@@ -63,51 +67,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Ensure that the include directories added are always taken first.
 set(CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
 
-if (ELEMENTS_BUILD_PREFIX_CMD)
-  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${ELEMENTS_BUILD_PREFIX_CMD}")
-  message(STATUS "Prefix build commands with '${ELEMENTS_BUILD_PREFIX_CMD}'")
-else()
-
-  find_package(CCache QUIET)
-
-  if(CCACHE_FOUND)
-    option(CMAKE_USE_CCACHE "Use ccache to speed up compilation." OFF)
-    if(CMAKE_USE_CCACHE)
-      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_EXECUTABLE})
-      message(STATUS "Using ccache for building")
-    endif()
-  endif()
-
-  find_package(DistCC QUIET)
-
-  if(DISTCC_FOUND)
-    option(CMAKE_USE_DISTCC "Use distcc to speed up compilation." OFF)
-    if(CMAKE_USE_DISTCC)
-      if(CMAKE_USE_CCACHE AND CCACHE_FOUND)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "CCACHE_PREFIX=${DISTCC_EXECUTABLE} ${CCACHE_EXECUTABLE}")
-        message(STATUS "Enabling distcc builds in ccache")
-      else()
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${DISTCC_EXECUTABLE})
-        message(STATUS "Using distcc for building")
-      endif()
-    endif()
-  endif()
-
-endif()
-
-# This option make sense only if we have 'objcopy'
-if(CMAKE_OBJCOPY)
-  option(ELEMENTS_DETACHED_DEBINFO
-         "When CMAKE_BUILD_TYPE is RelWithDebInfo, save the debug information on a different file."
-         ON)
-else()
-  set(ELEMENTS_DETACHED_DEBINFO OFF)
-endif()
-
-option(USE_ODB "Use the ODB libraries" OFF)
-option(ELEMENTS_USE_STRICT_BINARY_DEP "Flag to force the strict binary dependencies" OFF)
-option(ELEMENTS_USE_CASE_SENSITIVE_PROJECTS "No uppercase projects allowed" ON)
-
 
 #---------------------------------------------------------------------------------------------------
 # Programs and utilities needed for the build
@@ -155,15 +114,8 @@ macro(elements_project project version)
     # 'HEAD' version is special
     set(CMAKE_PROJECT_VERSION_MAJOR 999)
     set(CMAKE_PROJECT_VERSION_MINOR 999)
-    set(CMAKE_PROJECT_VERSION_PATCH 0)
+    set(CMAKE_PROJECT_VERSION_PATCH "")
   endif()
-
-  #--- Project Options and Global settings----------------------------------------------------------
-  option(BUILD_SHARED_LIBS "Set to OFF to build static libraries." ON)
-  option(ELEMENTS_BUILD_TESTS "Set to OFF to disable the build of the tests (libraries and executables)." ON)
-  option(ELEMENTS_HIDE_WARNINGS "Turn on or off options that are used to hide warning messages." ON)
-  option(ELEMENTS_USE_EXE_SUFFIX "Add the .exe suffix to executables on Unix systems (like CMT does)." OFF)
-  #-------------------------------------------------------------------------------------------------
 
   include(ElementsLocations)
 
@@ -344,6 +296,12 @@ macro(elements_project project version)
                    zippythondir_cmd elementsrun_cmd
                    rpmbuild_wrap_cmd)
 
+#--- Global actions for the project
+  #message(STATUS "CMAKE_MODULE_PATH -> ${CMAKE_MODULE_PATH}")
+  include(ElementsBuildFlags)
+
+
+
   #--- Project Installations------------------------------------------------------------------------
   install(DIRECTORY cmake/ DESTINATION ${CMAKE_INSTALL_SUFFIX}
                            FILES_MATCHING
@@ -363,9 +321,6 @@ macro(elements_project project version)
     set_property(GLOBAL APPEND PROPERTY REGULAR_CMAKE_OBJECTS ${cm})
   endforeach()
 
-  #--- Global actions for the project
-  #message(STATUS "CMAKE_MODULE_PATH -> ${CMAKE_MODULE_PATH}")
-  include(ElementsBuildFlags)
 
   #------------------------------------------------------------------------------------------------
 
@@ -448,8 +403,10 @@ execute_process\(COMMAND ${instheader_cmd} --quiet ${project} \${CMAKE_INSTALL_P
     install(FILES ${CMAKE_BINARY_DIR}/python/${_proj}_VERSION.py DESTINATION ${PYTHON_INSTALL_SUFFIX})
     set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
     set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_VERSION.py)
-    set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_VERSION.pyo)
-    set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_VERSION.pyc)
+    if("${PYTHON_EXPLICIT_VERSION}" STREQUAL "" OR PYTHON_EXPLICIT_VERSION VERSION_LESS 3)
+      set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_VERSION.pyo)
+      set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_VERSION.pyc)
+    endif()
   endif()
 
   if(instmodule_cmd)
@@ -462,8 +419,10 @@ execute_process\(COMMAND ${instheader_cmd} --quiet ${project} \${CMAKE_INSTALL_P
 execute_process\(COMMAND ${instmodule_cmd} --quiet ${project} \${CMAKE_INSTALL_PREFIX} ${joined_used_projects} \$ENV{DESTDIR}\${CMAKE_INSTALL_PREFIX}/${PYTHON_INSTALL_SUFFIX}/${_proj}_INSTALL.py\)")
     set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
     set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_INSTALL.py)
-    set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_INSTALL.pyo)
-    set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_INSTALL.pyc)
+    if("${PYTHON_EXPLICIT_VERSION}" STREQUAL "" OR PYTHON_EXPLICIT_VERSION VERSION_LESS 3)
+      set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_INSTALL.pyo)
+      set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${_proj}_INSTALL.pyc)
+    endif()
   endif()
 
 
@@ -537,6 +496,17 @@ execute_process\(COMMAND ${instmodule_cmd} --quiet ${project} \${CMAKE_INSTALL_P
     set(project_environment ${project_environment}
         SEARCH_PATH ${${other_project}_DIR})
   endforeach()
+
+  if(EXISTS ${ELEMENTS_DEFAULT_SEARCH_PATH})
+      set(project_environment ${project_environment}
+        SEARCH_PATH ${ELEMENTS_DEFAULT_SEARCH_PATH})
+  endif()
+
+  if(EXISTS ${ELEMENTS_USR_SEARCH_PATH})
+      set(project_environment ${project_environment}
+        SEARCH_PATH ${ELEMENTS_USR_SEARCH_PATH})
+  endif()
+
 
   foreach(other_project ${used_elements_projects})
     set(project_environment ${project_environment}
@@ -788,6 +758,14 @@ elements_generate_env_conf\(${installed_env_xml} ${installed_project_build_envir
       set(CPACK_EXTRA_CMAKEFLAGS "${CPACK_EXTRA_CMAKEFLAGS} ${_do}")
     endforeach()
   endif()
+  
+  if(CCACHE_FOUND AND CPACK_USE_CCACHE)
+    set(CPACK_EXTRA_CMAKEFLAGS "${CPACK_EXTRA_CMAKEFLAGS} -DCMAKE_USE_CCACHE=ON")
+  endif()
+
+  if(DISTCC_FOUND AND CPACK_USE_DISTCC)
+    set(CPACK_EXTRA_CMAKEFLAGS "${CPACK_EXTRA_CMAKEFLAGS} -DCMAKE_USE_DISTCC=ON")
+  endif()
 
   option(RPM_FORWARD_PREFIX_PATH "Forward the CMAKE_PREFIX_PATH when using 'make rpm'" ON)
 
@@ -892,6 +870,12 @@ elements_generate_env_conf\(${installed_env_xml} ${installed_project_build_envir
   get_property(proj_has_python GLOBAL PROPERTY PROJ_HAS_PYTHON)
 
   if(proj_has_python)
+
+    if(NOT ("${PYTHON_EXPLICIT_VERSION}" STREQUAL "" OR PYTHON_EXPLICIT_VERSION VERSION_LESS 3))
+      set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS __pycache__)
+    endif()
+
+
 
     get_property(regular_python_objects GLOBAL PROPERTY REGULAR_PYTHON_OBJECTS)
     foreach(_do ${regular_python_objects})
@@ -1020,12 +1004,27 @@ ${_do}")
 
     if (RPMBUILD_FOUND)
 
+      if(CPACK_REMOVE_SYSTEM_DEPS)
+        set(CPACK_RPM_AUTOREQ_LINE "Autoreq: 0")
+        set(RPM_DEVEL_BUILDDEP_SYS_LINES)
+        set(RPM_DEP_SYS_LINES)
+        set(RPM_DEVEL_DEP_SYS_LINES)
+      else()
+        set(CPACK_RPM_AUTOREQ_LINE)
+        get_rpm_sys_dep_lines("gcc > 4.7;cmake >= 2.8.5" "BuildRequires" RPM_DEVEL_BUILDDEP_SYS_LINES)
+        get_rpm_sys_dep_lines("python${PYTHON_EXPLICIT_VERSION};EucliEnv" "Requires" RPM_DEP_SYS_LINES)
+        get_rpm_sys_dep_lines("cmake >= 2.8.5" "Requires" RPM_DEVEL_DEP_SYS_LINES)
+      endif()
 
       get_rpm_dep_list("${PROJECT_USE}" "debuginfo" "${SQUEEZED_INSTALL}" RPM_DEBUGINFO_DEP_LIST)
+      get_rpm_dep_lines("${PROJECT_USE}" "debuginfo" "${SQUEEZED_INSTALL}" "Requires" RPM_DEBUGINFO_DEP_LINES)
 
       get_rpm_dep_list("${PROJECT_USE}" "devel" "${SQUEEZED_INSTALL}" RPM_DEVEL_DEP_LIST)
+      get_rpm_dep_lines("${PROJECT_USE}" "devel" "${SQUEEZED_INSTALL}" "BuildRequires" RPM_DEVEL_BUILDDEP_LINES)
+      get_rpm_dep_lines("${PROJECT_USE}" "devel" "${SQUEEZED_INSTALL}" "Requires" RPM_DEVEL_DEP_LINES)
 
       get_rpm_dep_list("${PROJECT_USE}" "" "${SQUEEZED_INSTALL}" RPM_DEP_LIST)
+      get_rpm_dep_lines("${PROJECT_USE}" "" "${SQUEEZED_INSTALL}" "Requires" RPM_DEP_LINES)
 
       find_file(main_project_changelog_file
                 NAMES ChangeLog
@@ -1153,13 +1152,14 @@ macro(_elements_use_other_projects)
       # "HEAD" is a special version id (mapped to v999r999).
       set(other_project_cmake_version 999.999)
     endif()
+    set(other_project_original_version ${other_project_version})
 
     # Manage the lists which contains the dependencies and the project which
     # introduced them
     if(${other_project}_FOUND)
       # If the dependency is already handled check that the version numbers
       # much, otherwise raise an error
-      string(COMPARE NOTEQUAL "${${other_project}_VERSION}" "${other_project_cmake_version}" ver_mismatch)
+      string(COMPARE NOTEQUAL "${${other_project}_VERSION}" "${other_project_original_version}" ver_mismatch)
       if(ver_mismatch)
         list(FIND dependency_list "${other_project}" dep_index)
         list(GET dependency_dependee_list ${dep_index} dep_name)
@@ -1167,7 +1167,7 @@ macro(_elements_use_other_projects)
         list(GET dependency_dependee_list ${dep_index} dep_version)
         set(ver_mis_message "Dependency version mismatch:")
         set(ver_mis_message "${ver_mis_message} ${other_dependee} ${other_dependee_version}")
-        set(ver_mis_message "${ver_mis_message} -> ${other_project} ${other_project_cmake_version}")
+        set(ver_mis_message "${ver_mis_message} -> ${other_project} ${other_project_original_version}")
         set(ver_mis_message "${ver_mis_message} , ${dep_name} ${dep_version}")
         set(ver_mis_message "${ver_mis_message} -> ${other_project} ${${other_project}_VERSION}")
         message(FATAL_ERROR ${ver_mis_message})
@@ -1180,6 +1180,8 @@ macro(_elements_use_other_projects)
 
       set(suffixes)
       get_installed_project_suffixes(${other_project} ${other_project_version} ${BINARY_TAG} ${SGS_SYSTEM} suffixes)
+      set(suffixes2)
+      get_installed_versionless_project_suffixes(${other_project} ${BINARY_TAG} ${SGS_SYSTEM} suffixes2)
       foreach(pth ${projects_search_path})
         find_package(${other_project} ${other_project_cmake_version} QUIET
                      HINTS ${pth}
@@ -1187,8 +1189,6 @@ macro(_elements_use_other_projects)
         if(${other_project}_FOUND)
           break()
         else()
-          set(suffixes2)
-          get_installed_versionless_project_suffixes(${other_project} ${BINARY_TAG} ${SGS_SYSTEM} suffixes2)
           find_package(${other_project} ${other_project_cmake_version} QUIET
                        HINTS ${pth}
                        PATH_SUFFIXES ${suffixes2})
@@ -1197,6 +1197,7 @@ macro(_elements_use_other_projects)
           endif()
         endif()
       endforeach()
+
       if(${other_project}_FOUND)
         message(STATUS "  found ${other_project} ${${other_project}_VERSION} ${${other_project}_DIR}")
         if(NOT SGS_SYSTEM STREQUAL ${other_project}_astrotools_system)
@@ -1221,7 +1222,7 @@ macro(_elements_use_other_projects)
             list(APPEND known_packages ${exported})
             get_filename_component(expname ${exported} NAME)
             include(${expname}Export)
-            message(STATUS "    imported ${exported} ${${exported}_VERSION}")
+            message(STATUS "    imported module ${exported} ${${exported}_MODULE_VERSION}")
           endif()
         endforeach()
         list(APPEND known_packages ${${other_project}_OVERRIDDEN_SUBDIRS})
@@ -1243,6 +1244,7 @@ macro(_elements_use_other_projects)
         message(FATAL_ERROR "
 Cannot find project ${other_project} ${other_project_version}
 with the suffixes: ${suffixes}
+or with the suffixes: ${suffixes}
 in the paths: ${projects_search_path}
 ")
       endif()
@@ -1250,6 +1252,7 @@ in the paths: ${projects_search_path}
     endif()
 
   endwhile()
+  
 endmacro()
 
 #-------------------------------------------------------------------------------
@@ -1489,25 +1492,27 @@ function(include_package_directories)
     # we need to ensure that the user can call this function also for directories
     _get_include_dir_from_package(to_incl ${package})
 
-    foreach(_i ${to_incl})
-      starts_with_sys_include(_is_sys ${_i})
-      if(${_is_sys} AND ${HIDE_SYSINC_WARNINGS})
-        include_directories(SYSTEM ${_i})    
-      else()
-        # recursion applies only to non-system dirs
-        if(ARG_RECURSE_PATTERN)
-          elements_recurse(hsubdir ${_i} PATTERN ${ARG_RECURSE_PATTERN})
-          if(hsubdir)
-            list(REMOVE_DUPLICATES hsubdir)
-            foreach(hs ${hsubdir})
-              include_directories(${hs})    
-            endforeach()
-          endif()
+    if(to_incl)
+      foreach(_i ${to_incl})
+        starts_with_sys_include(_is_sys ${_i})
+        if(${_is_sys} AND ${HIDE_SYSINC_WARNINGS})
+          include_directories(SYSTEM ${_i})    
         else()
-          include_directories(${_i})
-        endif()    
-      endif()
-    endforeach()
+          # recursion applies only to non-system dirs
+          if(ARG_RECURSE_PATTERN)
+            elements_recurse(hsubdir ${_i} PATTERN ${ARG_RECURSE_PATTERN})
+            if(hsubdir)
+              list(REMOVE_DUPLICATES hsubdir)
+              foreach(hs ${hsubdir})
+                include_directories(${hs})    
+              endforeach()
+            endif()
+          else()
+            include_directories(${_i})
+          endif()    
+        endif()
+      endforeach()
+    endif()
     
   endforeach()
 endfunction()
@@ -2163,6 +2168,8 @@ Provide source files and the NO_PUBLIC_HEADERS option for a plugin/module librar
 
   add_library(${library} ${srcs} ${h_srcs})
 
+  set_target_properties(${library} PROPERTIES BASENAME "${CMAKE_SHARED_LIBRARY_PREFIX}${library}${CMAKE_SHARED_LIBRARY_SUFFIX}")
+
   if(ARG_LINKER_LANGUAGE)
     set_target_properties(${library} PROPERTIES LINKER_LANGUAGE ${ARG_LINKER_LANGUAGE})
   endif()
@@ -2316,8 +2323,10 @@ function(elements_add_python_module module)
   
   if(NOT ${ARG_PLAIN_MODULE})
     set_target_properties(${module} PROPERTIES SUFFIX .so PREFIX "_")
+    set_target_properties(${module} PROPERTIES BASENAME "_${module}.so")
   else()
     set_target_properties(${module} PROPERTIES SUFFIX .so PREFIX "")
+    set_target_properties(${module} PROPERTIES BASENAME "${module}.so")
   endif()
   target_link_libraries(${module} ${PYTHON_LIBRARIES} ${ARG_LINK_LIBRARIES})
   _elements_detach_debinfo(${module})
@@ -2467,8 +2476,10 @@ function(elements_add_swig_binding binding)
 
   set_property(GLOBAL APPEND PROPERTY PROJ_HAS_PYTHON TRUE)
   set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${binding}.py)
-  set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${binding}.pyo)
-  set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${binding}.pyc)
+  if("${PYTHON_EXPLICIT_VERSION}" STREQUAL "" OR PYTHON_EXPLICIT_VERSION VERSION_LESS 3)
+    set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${binding}.pyo)
+    set_property(GLOBAL APPEND PROPERTY REGULAR_PYTHON_OBJECTS ${binding}.pyc)
+  endif()
 
   elements_install_headers(${ARG_PUBLIC_HEADERS})
 
@@ -2530,7 +2541,6 @@ function(_generate_cython_cpp)
   
   set(CYTHON_MOD_INCLUDE_DIRS)
   foreach(dir ${all_cy_dirs})
-    debug_print_var(dir)
     set(CYTHON_MOD_INCLUDE_DIRS ${CYTHON_MOD_INCLUDE_DIRS} -I${dir})
   endforeach()  
   
@@ -2666,6 +2676,9 @@ function(elements_add_executable executable)
 
   if (ELEMENTS_USE_EXE_SUFFIX)
     set_target_properties(${executable} PROPERTIES SUFFIX .exe)
+    set_target_properties(${executable} PROPERTIES BASENAME ${executable}.exe)
+  else()
+    set_target_properties(${executable} PROPERTIES BASENAME ${executable}.exe)
   endif()
 
   #----Installation details-------------------------------------------------------
@@ -3112,7 +3125,9 @@ function(elements_install_scripts)
               PATTERN "CVS" EXCLUDE
               PATTERN ".svn" EXCLUDE
               PATTERN "*~" EXCLUDE
-              PATTERN "*.pyc" EXCLUDE)
+              PATTERN "*.pyc" EXCLUDE
+              PATTERN "__pycache__" EXCLUDE
+              PATTERN "*.pyo" EXCLUDE)
       set_property(GLOBAL APPEND PROPERTY PROJ_HAS_SCRIPTS TRUE)
       file(GLOB scr_list RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/${scrsubdir} ${CMAKE_CURRENT_SOURCE_DIR}/${scrsubdir}/*)
       foreach(scr ${scr_list})
@@ -3512,14 +3527,6 @@ function(elements_generate_env_conf filename)
     endif()
   endforeach()
 
-  if(EXISTS ${ELEMENTS_DEFAULT_SEARCH_PATH})
-      set(data "${data}  <env:search_path>${ELEMENTS_DEFAULT_SEARCH_PATH}</env:search_path>\n")
-  endif()
-
-  if(EXISTS ${ELEMENTS_USR_SEARCH_PATH})
-      set(data "${data}  <env:search_path>${ELEMENTS_USR_SEARCH_PATH}</env:search_path>\n")
-  endif()
-
   foreach(other_project ${used_elements_projects})
     if(${${other_project}_DIR})
       set(data "${data}  <env:include>${other_project}Environment.xml</env:include>\n")
@@ -3541,7 +3548,8 @@ function(elements_generate_env_conf filename)
   set(data "${data}</env:config>\n")
 
   get_filename_component(fn ${filename} NAME)
-  message(STATUS "Generating ${fn}")
+  message(STATUS "Generating ${fn}")  
+  
   file(WRITE ${filename} "${data}")
 endfunction()
 
@@ -3753,8 +3761,13 @@ set(_IMPORT_PREFIX \"${CMAKE_INSTALL_PREFIX}\")
           endif()
         endforeach()
 
-        get_property(prop TARGET ${library} PROPERTY LOCATION)
-        get_filename_component(prop ${prop} NAME)
+        if(NOT CMAKE_VERSION VERSION_LESS 3.9.0)
+#          set(prop $<TARGET_FILE:${library}>)
+          get_property(prop TARGET ${library} PROPERTY BASENAME)        
+        else()
+          get_property(prop TARGET ${library} PROPERTY LOCATION)        
+          get_filename_component(prop ${prop} NAME)
+        endif()
         file(APPEND ${pkg_exp_file} "  IMPORTED_SONAME \"${prop}\"\n")
         file(APPEND ${pkg_exp_file} "  IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/${CMAKE_LIB_INSTALL_SUFFIX}/${prop}\"\n")
 
@@ -3766,8 +3779,12 @@ set(_IMPORT_PREFIX \"${CMAKE_INSTALL_PREFIX}\")
         file(APPEND ${pkg_exp_file} "add_executable(${executable} IMPORTED)\n")
         file(APPEND ${pkg_exp_file} "set_target_properties(${executable} PROPERTIES\n")
 
-        get_property(prop TARGET ${executable} PROPERTY LOCATION)
-        get_filename_component(prop ${prop} NAME)
+        if(NOT CMAKE_VERSION VERSION_LESS 3.9.0)
+          get_property(prop TARGET ${executable} PROPERTY BASENAME)        
+        else()
+          get_property(prop TARGET ${executable} PROPERTY LOCATION)        
+          get_filename_component(prop ${prop} NAME)
+        endif()
         file(APPEND ${pkg_exp_file} "  IMPORTED_LOCATION \"\${_IMPORT_PREFIX}/bin/${prop}\"\n")
 
         file(APPEND ${pkg_exp_file} "  )\n")
@@ -3782,7 +3799,7 @@ set(_IMPORT_PREFIX \"${CMAKE_INSTALL_PREFIX}\")
       endif()
 
       if(subdir_version)
-        file(APPEND ${pkg_exp_file} "set(${package}_VERSION ${subdir_version})\n")
+        file(APPEND ${pkg_exp_file} "set(${package}_MODULE_VERSION ${subdir_version})\n")
       endif()
     endif()
     install(FILES ${pkg_exp_file} DESTINATION ${CMAKE_INSTALL_SUFFIX})
