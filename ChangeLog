@@ -1,3 +1,7 @@
+* Wed Aug 2 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.1.2-1
+- hotfix from Elements 5.1.1 cmake library. There was a typo in the automatic
+  dependency generation for the spec files.
+
 * Fri Jul 28 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.1.1-1
 - Add the possibility to setup a custom prefix location
 - Compile the file (Login.py) which is modified in the RPM postinstall phase
