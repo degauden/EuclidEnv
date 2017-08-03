@@ -3,8 +3,6 @@ from Euclid.Platform import isBinaryType
 from Euclid.Platform import getSearchList
 
 import unittest
-from sqlalchemy.orm.attributes import backref_listeners
-
 
 class PlatformTestCase(unittest.TestCase):
 
