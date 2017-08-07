@@ -20,7 +20,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "3.1.3"
+__version__ = "3.2"
 __project__ = "EuclidEnv"
 
 # variable used for the package creation
