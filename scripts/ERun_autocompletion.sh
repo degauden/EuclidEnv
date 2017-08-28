@@ -23,8 +23,8 @@ function _find_project_version() {
 		# List all folder in $root/$d
                 _list_folder $root/$d
 
-		# Select only folder that match a version number: X.Y where X and Y are number in [0, 9]
-		pattern="[0-9]+\.[0-9]+"
+		# Select only folder that match a version number: X.Y[.Z] where X, Y and Z are number in [0, 9]
+		pattern="[0-9]+\.[0-9]+[\.0-9]*"
 		for folder in $_lst_folder_
 		do
 		    [[ $folder =~ $pattern ]]
