@@ -1,3 +1,8 @@
+* Wed Sep 20 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.3.1-1
+- Fix ERun autocompletion (missing project version X.Y[.Z] when Z 
+  number is provided)
+- Update to the 5.2.2 version of the Elements CMake library
+
 * Wed Aug 9 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.3-1
 - data/sys/config/euclid: add an extra post script to be sourced called
   EdenEnv.sh. It is looked in the path and should have no side effect if
