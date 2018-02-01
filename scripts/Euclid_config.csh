@@ -18,14 +18,6 @@ endif
 
 if ( "${EUCLID_CONFIG_SCRIPT}" != "${my_own_exe_prefix0}/bin/Euclid_config.csh" ) then
 
-# default values if no config file is found
-setenv SOFTWARE_BASE_VAR EUCLID_BASE
-setenv EUCLID_BASE %(this_euclid_base)s
-setenv EUCLID_USE_BASE no
-setenv EUCLID_USE_PREFIX no
-setenv EUCLID_CUSTOM_PREFIX %(this_euclid_base)s/../../usr
-setenv EUCLID_USE_CUSTOM_PREFIX no
-
 
 set cfgfiles=""
 if ( $?XDG_CONFIG_HOME ) then
@@ -46,18 +38,33 @@ set cfgfiles="$cfgfiles $my_own_prefix0/sysconfig/euclid"
 set cfgfiles="$cfgfiles /etc/default/Euclid"
 set cfgfiles="$cfgfiles /etc/sysconfig/euclid"
 
+set euclid_config_file_current=""
 foreach c ( $cfgfiles )
   if ( -r $c ) then
-    setenv EUCLID_CONFIG_FILE $c
-    eval `cat $EUCLID_CONFIG_FILE | sed -n -e '/^[^+]/s/\(\\\$[^ ]*\)/"\\\\\1"/' -e '/^[^+]/s/\([^=]*\)[=]\(.*\)/setenv \1 \"\2\";/gp'`
+    set euclid_config_file_current=$c
     break
   endif
 end
 
-setenv EUCLID_CUSTOM_PREFIX `readlink -m ${EUCLID_CUSTOM_PREFIX}`
-
 unset c
 unset cfgfiles
+
+if ( "${EUCLID_CONFIG_FILE}" != "${euclid_config_file_current}" ) then
+
+# default values if no config file is found
+setenv SOFTWARE_BASE_VAR EUCLID_BASE
+setenv EUCLID_BASE %(this_euclid_base)s
+setenv EUCLID_USE_BASE no
+setenv EUCLID_USE_PREFIX no
+setenv EUCLID_CUSTOM_PREFIX %(this_euclid_base)s/../../usr
+setenv EUCLID_USE_CUSTOM_PREFIX no
+
+if ( "${euclid_config_file_current}" != "" ) then
+  eval `cat ${euclid_config_file_current} | sed -n -e '/^[^+]/s/\(\\\$[^ ]*\)/"\\\\\1"/' -e '/^[^+]/s/\([^=]*\)[=]\(.*\)/setenv \1 \"\2\";/gp'`
+endif
+
+setenv EUCLID_CUSTOM_PREFIX `readlink -m ${EUCLID_CUSTOM_PREFIX}`
+
 
 set arch_type=`uname -m`
 
@@ -264,6 +271,12 @@ if ( "${EUCLID_USE_CUSTOM_PREFIX}" == "yes" ) then
 endif
 
 unset arch_type
+
+setenv EUCLID_CONFIG_FILE ${euclid_config_file_current}
+
+endif
+
+unset euclid_config_file_current
 
 # end of the guard
 setenv EUCLID_CONFIG_SCRIPT ${my_own_exe_prefix0}/bin/Euclid_config.csh
