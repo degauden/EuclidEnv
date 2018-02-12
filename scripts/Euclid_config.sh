@@ -265,7 +265,7 @@ fi
 
 unset arch_type
 
-export EUCLID_CONFIG_FILE} = ${euclid_config_file_current}
+export EUCLID_CONFIG_FILE=${euclid_config_file_current}
 
 fi
 
