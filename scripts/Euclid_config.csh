@@ -10,14 +10,9 @@
 set my_own_prefix0 = "%(this_etc_install_prefix)s"
 set my_own_exe_prefix0 = "%(this_install_prefix)s"
 
-# internal guard to avoid double sourcing of the SAME file
-
 if (! $?EUCLID_CONFIG_SCRIPT) then
   setenv EUCLID_CONFIG_SCRIPT ""
 endif
-
-if ( "${EUCLID_CONFIG_SCRIPT}" != "${my_own_exe_prefix0}/bin/Euclid_config.csh" ) then
-
 
 set cfgfiles=""
 if ( $?XDG_CONFIG_HOME ) then
@@ -278,9 +273,7 @@ endif
 
 unset euclid_config_file_current
 
-# end of the guard
 setenv EUCLID_CONFIG_SCRIPT ${my_own_exe_prefix0}/bin/Euclid_config.csh
-endif
 
 unset my_own_prefix0
 unset my_own_exe_prefix0

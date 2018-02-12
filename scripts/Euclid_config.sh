@@ -10,9 +10,6 @@
 my_own_prefix0="%(this_etc_install_prefix)s"
 my_own_exe_prefix0="%(this_install_prefix)s"
 
-# internal guard to avoid double sourcing of the SAME file
-if [[ ! "${EUCLID_CONFIG_SCRIPT}" = "${my_own_exe_prefix0}/bin/Euclid_config.sh" ]]; then
-
 cfgfiles=""
 if [[  -n "$XDG_CONFIG_HOME" ]]; then
   cfgfiles="$cfgfiles $XDG_CONFIG_HOME/Euclid/default"
@@ -275,8 +272,6 @@ fi
 unset euclid_config_file_current
 
 export EUCLID_CONFIG_SCRIPT=${my_own_exe_prefix0}/bin/Euclid_config.sh
-
-fi #end of the guard
 
 unset my_own_prefix0
 unset my_own_exe_prefix0
