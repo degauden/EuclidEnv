@@ -237,6 +237,10 @@ option(CPACK_REMOVE_SYSTEM_DEPS
        "When active this option remove the dependencies onto the system (external) packages"
        OFF)
 
+option(INSTALL_DOC
+       "Build and Install the API documentation by default"
+       OFF)
+
 #--- Compilation Flags ---------------------------------------------------------
 if(NOT ELEMENTS_FLAGS_SET)
   #message(STATUS "Setting cached build flags")
@@ -381,6 +385,12 @@ if(NOT ELEMENTS_FLAGS_SET)
     set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -flat_namespace -undefined dynamic_lookup"
         CACHE STRING "Flags used by the linker during the creation of modules."
         FORCE)
+  endif()
+
+  if(CMAKE_BUILD_TYPE STREQUAL Coverage AND SGS_COMP STREQUAL gcc)
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage"
+          CACHE STRING "Flags used by the linker during the creation of exe's."
+          FORCE)
   endif()
 
   # prevent resetting of the flags

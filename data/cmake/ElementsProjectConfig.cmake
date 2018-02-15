@@ -87,7 +87,7 @@ find_package(PythonInterp ${PYTHON_EXPLICIT_VERSION} QUIET)
 # The USE list can be used to declare which Elements-based projects are required by
 # the broject being compiled.
 #
-# The DATA list can be used to declare the data packages requried by the project
+# The DATA list can be used to declare the data packages required by the project
 # runtime.
 #-------------------------------------------------------------------------------
 macro(elements_project project version)
@@ -138,6 +138,7 @@ macro(elements_project project version)
   mark_as_advanced(CMAKE_RUNTIME_OUTPUT_DIRECTORY CMAKE_LIBRARY_OUTPUT_DIRECTORY
                    env_xml env_release_xml
                    installed_env_xml installed_env_release_xml)
+
 
   if(ELEMENTS_BUILD_TESTS)
     find_package(Valgrind QUIET)
@@ -289,12 +290,16 @@ macro(elements_project project version)
   find_program(pythonprogramscript_cmd createPythonProgramScript.py HINTS ${binary_paths})
   set(pythonprogramscript_cmd ${PYTHON_EXECUTABLE} ${pythonprogramscript_cmd})
 
+  find_program(ctest2junit_cmd ctest2JUnit.py HINTS ${binary_paths})
+  set(ctest2junit_cmd ${PYTHON_EXECUTABLE} ${ctest2junit_cmd})
+
+
   mark_as_advanced(env_cmd merge_cmd versheader_cmd instheader_cmd versmodule_cmd instmodule_cmd
                    thisheader_cmd thismodule_cmd
                    thismodheader_cmd
                    Boost_testmain_cmd CppUnit_testmain_cmd
                    zippythondir_cmd elementsrun_cmd
-                   rpmbuild_wrap_cmd)
+                   rpmbuild_wrap_cmd pythonprogramscript_cmd ctest2junit_cmd)
 
 #--- Global actions for the project
   #message(STATUS "CMAKE_MODULE_PATH -> ${CMAKE_MODULE_PATH}")
@@ -312,7 +317,8 @@ macro(elements_project project version)
                              PATTERN "*.sh"
                              PATTERN "*.csh"
                              PATTERN "*.bat"
-                             PATTERN ".svn" EXCLUDE)
+                             PATTERN ".svn" EXCLUDE
+                             PATTERN ".git" EXCLUDE)
 
   set_property(GLOBAL APPEND PROPERTY PROJ_HAS_CMAKE TRUE)
 
@@ -321,6 +327,13 @@ macro(elements_project project version)
     set_property(GLOBAL APPEND PROPERTY REGULAR_CMAKE_OBJECTS ${cm})
   endforeach()
 
+  file(GLOB m_list RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/${MAKE_DIR_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/${MAKE_DIR_NAME}/*)
+  foreach(m ${m_list})
+    install(FILES ${MAKE_DIR_NAME}/${m} DESTINATION ${MAKE_INSTALL_SUFFIX})
+    message(STATUS "Installing ${m} in ${MAKE_INSTALL_SUFFIX}")
+    set_property(GLOBAL APPEND PROPERTY PROJ_HAS_MAKE TRUE)
+    set_property(GLOBAL APPEND PROPERTY REGULAR_MAKE_OBJECTS ${m}) 
+  endforeach()
 
   #------------------------------------------------------------------------------------------------
 
@@ -569,15 +582,19 @@ execute_process\(COMMAND ${instmodule_cmd} --quiet ${project} \${CMAKE_INSTALL_P
   set(installed_project_environment "${project_environment}")
 
   set(project_environment ${project_environment} SET ${_proj}_PROJECT_ROOT "LOCAL_ESCAPE_DOLLAR{.}/../..")
+  set(project_environment ${project_environment} SET THIS_PROJECT_ROOT "LOCAL_ESCAPE_DOLLAR{.}/../..")
   if(NOT SQUEEZED_INSTALL)
     set(installed_project_environment ${installed_project_environment} SET ${_proj}_PROJECT_ROOT "LOCAL_ESCAPE_DOLLAR{.}/../..")
+    set(installed_project_environment ${installed_project_environment} SET THIS_PROJECT_ROOT "LOCAL_ESCAPE_DOLLAR{.}/../..")
   endif()
 
   set(installed_project_build_environment "${project_build_environment}")
   set(project_build_environment ${project_build_environment} SET ${_proj}_PROJECT_ROOT "${CMAKE_SOURCE_DIR}")
+  set(project_build_environment ${project_build_environment} SET THIS_PROJECT_ROOT "${CMAKE_SOURCE_DIR}")
 
   if(NOT SQUEEZED_INSTALL)
     set(installed_project_build_environment ${installed_project_build_environment} SET ${_proj}_PROJECT_ROOT "${CMAKE_INSTALL_PREFIX}/../..")
+    set(installed_project_build_environment ${installed_project_build_environment} SET THIS_PROJECT_ROOT "${CMAKE_INSTALL_PREFIX}/../..")
   endif()
 
   #   - 'packages':
@@ -951,6 +968,22 @@ elements_generate_env_conf\(${installed_env_xml} ${installed_project_build_envir
     #message(STATUS "The devel objects: ${CPACK_RPM_DEVEL_FILES}")
   endif()
 
+#------------------------------------------------------------------------------
+  get_property(proj_has_make GLOBAL PROPERTY PROJ_HAS_MAKE)
+
+  if(proj_has_make)
+
+   get_property(regular_make_objects GLOBAL PROPERTY REGULAR_MAKE_OBJECTS)
+
+    list(REMOVE_DUPLICATES regular_make_objects)
+    foreach(_do ${regular_make_objects})
+      set(CPACK_RPM_DEVEL_FILES "${CPACK_RPM_DEVEL_FILES}
+%{makedir}/${_do}")
+    endforeach()
+
+    #message(STATUS "The devel objects: ${CPACK_RPM_DEVEL_FILES}")
+  endif()
+
 #===============================================================================
 
 #------------------------------------------------------------------------------
@@ -1012,7 +1045,11 @@ ${_do}")
       else()
         set(CPACK_RPM_AUTOREQ_LINE)
         get_rpm_sys_dep_lines("gcc > 4.7;cmake >= 2.8.5" "BuildRequires" RPM_DEVEL_BUILDDEP_SYS_LINES)
-        get_rpm_sys_dep_lines("python${PYTHON_EXPLICIT_VERSION};EuclidEnv" "Requires" RPM_DEP_SYS_LINES)
+        if(SQUEEZED_INSTALL)
+          get_rpm_sys_dep_lines("python${PYTHON_EXPLICIT_VERSION}" "Requires" RPM_DEP_SYS_LINES)
+        else()
+          get_rpm_sys_dep_lines("python${PYTHON_EXPLICIT_VERSION};EuclidEnv" "Requires" RPM_DEP_SYS_LINES)
+        endif()
         get_rpm_sys_dep_lines("cmake >= 2.8.5" "Requires" RPM_DEVEL_DEP_SYS_LINES)
       endif()
 
@@ -1087,6 +1124,7 @@ ${MAIN_PROJECT_CHANGELOG}
   endif()
 
   include(ElementsDocumentation)
+  include(ElementsCoverage)
   include(ElementsUninstall)
 
 endmacro()
@@ -1185,13 +1223,15 @@ macro(_elements_use_other_projects)
       foreach(pth ${projects_search_path})
         find_package(${other_project} ${other_project_cmake_version} QUIET
                      HINTS ${pth}
-                     PATH_SUFFIXES ${suffixes})
+                     PATH_SUFFIXES ${suffixes}
+                     NO_DEFAULT_PATH)
         if(${other_project}_FOUND)
           break()
         else()
           find_package(${other_project} ${other_project_cmake_version} QUIET
                        HINTS ${pth}
-                       PATH_SUFFIXES ${suffixes2})
+                       PATH_SUFFIXES ${suffixes2}
+                       NO_DEFAULT_PATH)
           if(${other_project}_FOUND)
             break()
           endif()
@@ -1216,6 +1256,12 @@ macro(_elements_use_other_projects)
         get_property(_inc_dirs GLOBAL PROPERTY INCLUDE_PATHS)
         set_property(GLOBAL PROPERTY INCLUDE_PATHS ${${other_project}_INCLUDE_DIRS} ${_inc_dirs})
         set(binary_paths ${${other_project}_BINARY_PATH} ${binary_paths})
+        if(EXISTS ${${other_project}_DOC_PATH}/doxygen/${other_project}.tag)
+          if(EXISTS ${${other_project}_DOC_PATH}/doxygen/html)
+            set(DOXYGEN_TAGFILES
+                "${DOXYGEN_TAGFILES} \"${${other_project}_DOC_PATH}/doxygen/${other_project}.tag=${${other_project}_DOC_PATH}/doxygen/html\"")
+          endif()
+        endif()
         foreach(exported ${${other_project}_EXPORTED_SUBDIRS})
           list(FIND known_packages ${exported} is_needed)
           if(is_needed LESS 0)
@@ -1334,7 +1380,7 @@ endfunction()
 #
 # The package will be searched for in all the directories specified in the
 # environment variable CMAKE_PROJECT_PATH and in CMAKE_PREFIX_PATH. If specified,
-# the suffixes willbe appended to eache searched directory to look for the
+# the suffixes will be appended to each searched directory to look for the
 # data packages.
 #
 # The root of the data package will be stored in <variable>.
@@ -2387,13 +2433,14 @@ function(_generate_swig_files swig_module)
     RESULT_VARIABLE swmm_return_value
   )
 
-  string(REGEX MATCHALL "\n  [^ ]+" temp ${swmm_dependencies})
-  set(swig_deps)
-  foreach(t ${temp})
-    string(STRIP "${t}" t)
-    set(swig_deps ${swig_deps} "${t}")
-  endforeach()
-
+  if(swmm_dependencies)
+    string(REGEX MATCHALL "\n  [^ ]+" temp ${swmm_dependencies})
+    set(swig_deps)
+    foreach(t ${temp})
+      string(STRIP "${t}" t)
+      set(swig_deps ${swig_deps} "${t}")
+    endforeach()
+  endif()
 
   #SWIG command
   add_custom_command(
@@ -2448,6 +2495,11 @@ function(elements_add_swig_binding binding)
     elements_get_package_name(package)
     message(WARNING "Swig binding ${binding} (in ${package}) does not declare PUBLIC_HEADERS. Use the option NO_PUBLIC_HEADERS if it is intended.")
   endif()
+
+  elements_common_add_build(${ARG_UNPARSED_ARGUMENTS}
+                            LIBRARIES ${ARG_LIBRARIES}
+                            LINK_LIBRARIES ${ARG_LINK_LIBRARIES}
+                            INCLUDE_DIRS ${ARG_INCLUDE_DIRS})
 
   elements_expand_sources(srcs ${ARG_UNPARSED_ARGUMENTS})
   set(cpp_srcs)
@@ -2998,8 +3050,13 @@ function(add_python_test_dir)
   elements_get_package_name(package)
 
   if(PYFRMK_TEST)
+    set(PYFRMK_JUNIT_FILE_OPT)
+    set(PYFRMK_JUNIT_PREFIX_OPT)
+    if(PYFRMK_NAME STREQUAL "PyTest")
+        set(PYFRMK_JUNIT_FILE_OPT "--junit-xml=${PROJECT_BINARY_DIR}/Testing/Temporary/${package}.${pytest_name}.xml")
+    endif()
     elements_add_test(${pytest_name}
-                      COMMAND ${PYFRMK_TEST} ${pysrcs})
+                      COMMAND ${PYFRMK_TEST} ${PYFRMK_JUNIT_FILE_OPT} ${PYFRMK_JUNIT_PREFIX_OPT} ${pysrcs})
     set_property(TEST ${package}.${pytest_name} APPEND PROPERTY LABELS Python UnitTest ${PYFRMK_NAME})
     if(PYTEST_ARG_TIMEOUT)
       set_property(TEST ${package}.${pytest_name} PROPERTY TIMEOUT ${PYTEST_ARG_TIMEOUT})
@@ -3388,6 +3445,7 @@ endif()
 file(APPEND ${filename} "
 set(${CMAKE_PROJECT_NAME}_CONF_PATH \${_pref_dir}/${CONF_INSTALL_SUFFIX})
 set(${CMAKE_PROJECT_NAME}_AUX_PATH \${_pref_dir}/${AUX_INSTALL_SUFFIX})
+set(${CMAKE_PROJECT_NAME}_DOC_PATH \${_pref_dir}/${DOC_INSTALL_SUFFIX})
 
 
 set(${CMAKE_PROJECT_NAME}_PYTHON_PATH \${_pref_dir}/${PYTHON_INSTALL_SUFFIX})
@@ -3613,6 +3671,7 @@ macro(elements_external_project_environment)
       list(APPEND python_path   ${${pack}_PYTHON_PATH})
       list(APPEND conf_path     ${${pack}_CONF_PATH})
       list(APPEND aux_path      ${${pack}_AUX_PATH})
+      list(APPEND doc_path      ${${pack}_DOC_PATH})
       list(APPEND environment   ${${pack}_ENVIRONMENT})
       list(APPEND library_path2 ${${pack}_LIBRARY_DIR} ${${pack}_LIBRARY_DIRS})
       # Try the version with the name of the package uppercase (unless the
@@ -3622,6 +3681,7 @@ macro(elements_external_project_environment)
         list(APPEND python_path   ${${_pack_upper}_PYTHON_PATH})
         list(APPEND conf_path     ${${_pack_upper}_CONF_PATH})
         list(APPEND aux_path      ${${_pack_upper}_AUX_PATH})
+        list(APPEND doc_path      ${${_pack_upper}_DOC_PATH})
         list(APPEND environment   ${${_pack_upper}_ENVIRONMENT})
         list(APPEND library_path2 ${${_pack_upper}_LIBRARY_DIR} ${${_pack_upper}_LIBRARY_DIRS})
       endif()
