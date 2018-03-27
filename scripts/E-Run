@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python%(this_python_version)s
 ###############################################################################
 # (c) Copyright 2013 CERN                                                     #
 #                                                                             #

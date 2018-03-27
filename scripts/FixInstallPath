@@ -2,13 +2,14 @@
 
 import sys
 import argparse
-import logging
 
 import fileinput
 
 
 def fixInstallPath(prefix, file_list, name="this_install_prefix"):
     inst_dict = { name : prefix }
+    for f in file_list:
+        print("fixing %s: replacing %s with %s" % (f, name, prefix))
     for line in fileinput.input(file_list, inplace=1) :
         try:
             line = line % inst_dict

@@ -97,7 +97,7 @@ if [[ "${EUCLID_USE_BASE}" == "yes" ]]; then
       fi
     fi
 
-    my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))")
+    my_python_base=$(python%(this_python_version)s -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))")
     if [[ -d ${my_python_base} ]]; then
       if [[ -n "$PYTHONPATH" ]]; then
         export PYTHONPATH=${my_python_base}:${PYTHONPATH}
@@ -164,7 +164,7 @@ if [[ "${EUCLID_USE_PREFIX}" == "yes" ]]; then
       fi
     fi
     
-    my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))")
+    my_python_base=$(python%(this_python_version)s -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))")
     if [[ -d ${my_python_base} ]]; then
       if [[ -n "$PYTHONPATH" ]]; then
         export PYTHONPATH=${my_python_base}:${PYTHONPATH}
@@ -232,7 +232,7 @@ if [[ "${EUCLID_USE_CUSTOM_PREFIX}" == "yes" ]]; then
       fi
     fi
 
-    my_python_base=$(python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_CUSTOM_PREFIX}'))")
+    my_python_base=$(python%(this_python_version)s -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_CUSTOM_PREFIX}'))")
     if [[ -d ${my_python_base} ]]; then
       if [[ -n "$PYTHONPATH" ]]; then
         export PYTHONPATH=${my_python_base}:${PYTHONPATH}

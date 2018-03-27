@@ -3,13 +3,13 @@
 
 set my_own_prefix = "%(this_install_prefix)s"
 
-set python_loc = `python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$my_own_prefix'))"`
+set python_loc = `python%(this_python_version)s -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$my_own_prefix'))"`
 
 if ( -r ${python_loc}/Euclid/Login.py ) then
-  set ELogin_tmpfile = `python ${python_loc}/Euclid/Login.py --shell=csh --mktemp ${*:q}`
+  set ELogin_tmpfile = `python%(this_python_version)s ${python_loc}/Euclid/Login.py --shell=csh --mktemp ${*:q}`
   set ELoginStatus = $?
 else
-  set ELogin_tmpfile = `python -m Euclid.Login --shell=csh --mktemp ${*:q}`
+  set ELogin_tmpfile = `python%(this_python_version)s -m Euclid.Login --shell=csh --mktemp ${*:q}`
   set ELoginStatus = $?
 endif
 

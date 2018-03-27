@@ -1,5 +1,5 @@
 # sitelib for noarch packages, sitearch for others (remove the unneeded one)
-%{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${usr_prefix}'))")}
+%{!?python${python_explicit_version}_sitelib: %global python${python_explicit_version}_sitelib %(%{__python${python_explicit_version}} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${usr_prefix}'))")}
 
 Name:           ${project}
 Version:        ${version}
@@ -16,7 +16,7 @@ Prefix:         ${euclid_base}
 
 AutoReq: no
 
-Requires: python, cmake
+Requires: python${python_explicit_version}, cmake
 
 %description
 This package includes the scripts for setting up the run-time and
@@ -28,18 +28,18 @@ development environment. This includes the main ELogin and ERun scripts.
 
 
 %build
-%{__python} setup.py build
+%{__python${python_explicit_version}} setup.py build
 
 
 %install
 rm -rf $$RPM_BUILD_ROOT
-%{__python} setup.py install -O1 --skip-build --skip-install-fix --root $$RPM_BUILD_ROOT
+%{__python${python_explicit_version}} setup.py install -O1 --skip-build --skip-install-fix --root $$RPM_BUILD_ROOT
 
 
 %files
 %doc
 # For noarch packages: sitelib
-%{python_sitelib}/*
+%{python${python_explicit_version}_sitelib}/*
 %{_bindir}/*
 %{_sysconfdir}/profile.d/euclid.csh
 %{_sysconfdir}/profile.d/euclid.sh
@@ -49,17 +49,32 @@ rm -rf $$RPM_BUILD_ROOT
 %{_datadir}/%{name}/make/*
 
 %post
-python_loc=$$(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$$RPM_INSTALL_PREFIX0'))")
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$RPM_INSTALL_PREFIX0/bin/ELogin.{,c}sh
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$RPM_INSTALL_PREFIX0/bin/Euclid_group_{login,setup}.{,c}sh
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$python_loc/Euclid/Login.py
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_install_version %{version} $$python_loc/Euclid/Login.py
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $$RPM_INSTALL_PREFIX2 $$RPM_INSTALL_PREFIX1/sysconfig/euclid
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $$RPM_INSTALL_PREFIX2 $$RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $$RPM_INSTALL_PREFIX2 $$python_loc/Euclid/Login.py
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_etc_install_prefix $$RPM_INSTALL_PREFIX1 $$RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
+python_loc=$$(%{__python${python_explicit_version}} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$$RPM_INSTALL_PREFIX0'))")
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$RPM_INSTALL_PREFIX0/bin/ELogin.{,c}sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$RPM_INSTALL_PREFIX0/bin/Euclid_group_{login,setup}.{,c}sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$RPM_INSTALL_PREFIX1/profile.d/euclid.{,c}sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath $$RPM_INSTALL_PREFIX0 $$python_loc/Euclid/Login.py
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_install_version %{version} $$python_loc/Euclid/Login.py
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $$RPM_INSTALL_PREFIX2 $$RPM_INSTALL_PREFIX1/sysconfig/euclid
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $$RPM_INSTALL_PREFIX2 $$RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $$RPM_INSTALL_PREFIX2 $$python_loc/Euclid/Login.py
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_etc_install_prefix $$RPM_INSTALL_PREFIX1 $$RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/eclipse_pythonpath_fix
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/ELogin.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/ELogin.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/E-Run
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/ERun_autocompletion.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/Euclid_config.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/Euclid_config.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/Euclid_group_login.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/Euclid_group_login.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/Euclid_group_setup.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/Euclid_group_setup.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/runpy
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/StripPath.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/StripPath.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version ${python_explicit_version} $$RPM_INSTALL_PREFIX0/bin/WhereAmI
 if [[ ! -f "$${python_loc}/Euclid/__init__.py" ]]; then
 cat << EOF > $${python_loc}/Euclid/__init__.py
 from pkgutil import extend_path
@@ -67,13 +82,13 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
 EOF
 fi
 if [[ "${euclid_base}" = "$${RPM_INSTALL_PREFIX2}" ]]; then
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_use_custom_prefix no $${RPM_INSTALL_PREFIX1}/sysconfig/euclid
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_use_custom_prefix no $${RPM_INSTALL_PREFIX1}/sysconfig/euclid
 else
 echo "Activating the custom prefix environment prepending"
-$${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_use_custom_prefix yes $${RPM_INSTALL_PREFIX1}/sysconfig/euclid
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_use_custom_prefix yes $${RPM_INSTALL_PREFIX1}/sysconfig/euclid
 fi
-%{__python} -m compileall $${python_loc}/Euclid/Login.py $${python_loc}/Euclid/__init__.py
-%{__python} -O -m compileall $${python_loc}/Euclid/Login.py $${python_loc}/Euclid/__init__.py
+%{__python${python_explicit_version}} -m compileall $${python_loc}/Euclid/Login.py $${python_loc}/Euclid/__init__.py
+%{__python${python_explicit_version}} -O -m compileall $${python_loc}/Euclid/Login.py $${python_loc}/Euclid/__init__.py
 
 
 %changelog

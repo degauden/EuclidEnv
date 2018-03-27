@@ -19,14 +19,24 @@ from glob import glob
 
 
 from string import Template
+from numpy.distutils.misc_util import get_script_files
 
-__version__ = "3.4"
-__project__ = "EuclidEnv"
+__version__     = "3.4"
+__project__     = "EuclidEnv"
+__full_exec__   = sys.executable
+__exec__        = os.path.basename(__full_exec__)
+__exec_maj_vers = "%d" % sys.version_info[0]
+__exec_exp_vers = ""
+
+if __exec__.endswith(__exec_maj_vers) :
+    __exec_exp_vers = __exec_maj_vers
+
 
 # variable used for the package creation
 dist_euclid_base = "/opt/euclid"
 dist_etc_prefix = "/etc"
 dist_usr_prefix = "/usr"
+dist_exp_version = __exec_exp_vers
 
 # variable interpolated at install time
 this_euclid_base = "/opt/euclid"
@@ -47,6 +57,12 @@ these_files = get_data_files("data/cmake", __project__)
 these_files += get_data_files("data/texmf", __project__)
 these_files += get_data_files("data/make", __project__)
 
+def get_script_files():
+    result = []
+    for root, dirs, files in os.walk("scripts"):
+        for f in files:
+            result.append(f)
+    return result
 
 # Please note the that the local install is
 # also needed for --prefix. Take as example the
@@ -174,7 +190,8 @@ class my_sdist(_sdist):
                 changelog=changelog_content,
                 euclid_base=dist_euclid_base,
                 usr_prefix=dist_usr_prefix,
-                etc_prefix=dist_etc_prefix)
+                etc_prefix=dist_etc_prefix,
+                python_explicit_version=dist_exp_version)
         with open(out_fname, "w") as out_f:
             out_f.write(src)
 
@@ -252,7 +269,7 @@ class my_install(_install):
         this_install = os.path.join(self.get_etc_install_root(), "etc")
         for p in proc_list:
             print("Fixing %s with the %s prefix path" % (p, this_install))
-            call(["python", fixscript, "-n", "this_etc_install_prefix", this_install, p])
+            call([__exec__, fixscript, "-n", "this_etc_install_prefix", this_install, p])
 
 
     def fix_install_path(self):
@@ -264,7 +281,7 @@ class my_install(_install):
         proc_list += self.get_profile_scripts()
         for p in proc_list:
             print("Fixing %s with the %s prefix path" % (p, os.path.dirname(self.install_scripts)))
-            call(["python", fixscript, os.path.dirname(self.install_scripts), p])
+            call([__exec__, fixscript, os.path.dirname(self.install_scripts), p])
         self.fix_etc_install_path()
 
     def fix_version(self):
@@ -273,7 +290,7 @@ class my_install(_install):
         if os.path.exists(file2fix):
             print("Fixing %s with the %s version" % (file2fix, __version__))
             call(
-                ["python", fixscript, "-n", "this_install_version", __version__, file2fix])
+                [__exec__, fixscript, "-n", "this_install_version", __version__, file2fix])
 
     def get_sysconfig_files(self):
         p_list = []
@@ -304,7 +321,7 @@ class my_install(_install):
         for p in proc_list:
             print("Fixing %s with the %s euclid base" % (p, this_euclid_base))
             call(
-                ["python", fixscript, "-n", "this_euclid_base", this_euclid_base, p])
+                [__exec__, fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
     def fix_use_custom_prefix(self):
         fixscript = os.path.join(self.install_scripts, "FixInstallPath")
@@ -312,7 +329,17 @@ class my_install(_install):
         for p in proc_list:
             print("Fixing %s with the %s use custom prefix" % (p, this_use_custom_prefix))
             call(
-                ["python", fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
+                [__exec__, fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
+            
+    def fix_python_version(self):
+        fixscript_name = "FixInstallPath"
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
+        for s in get_script_files():
+            if s != fixscript_name:
+                full_s = os.path.join(self.install_scripts, s)
+                print("Fixing %s with the %s python version" % (full_s, dist_exp_version))
+                call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, full_s])
+        
 
     def create_extended_init(self):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
@@ -331,6 +358,7 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
         self.fix_version()
         self.fix_euclid_base()
         self.fix_use_custom_prefix()
+        self.fix_python_version()
         self.create_extended_init()
 
     def print_install_locations(self):
@@ -457,23 +485,7 @@ setup(name=__project__,
       url="http://www.isdc.unige.ch/redmine/projects/euclidenv",
       package_dir={"Euclid": os.path.join("python", "Euclid")},
       packages=find_packages(where="python"),
-      scripts=[os.path.join("scripts", "ELogin.sh"),
-               os.path.join("scripts", "ELogin.csh"),
-               os.path.join("scripts", "Euclid_config.sh"),
-               os.path.join("scripts", "Euclid_config.csh"),
-               os.path.join("scripts", "Euclid_group_login.sh"),
-               os.path.join("scripts", "Euclid_group_login.csh"),
-               os.path.join("scripts", "Euclid_group_setup.sh"),
-               os.path.join("scripts", "Euclid_group_setup.csh"),
-               os.path.join("scripts", "runpy"),
-               os.path.join("scripts", "StripPath.csh"),
-               os.path.join("scripts", "StripPath.sh"),
-               os.path.join("scripts", "WhereAmI"),
-               os.path.join("scripts", "E-Run"),
-               os.path.join("scripts", "eclipse_pythonpath_fix"),
-               os.path.join("scripts", "FixInstallPath"),
-               os.path.join("scripts", "ERun_autocompletion.sh"),
-               ],
+      scripts=[os.path.join("scripts", s) for s in get_script_files()],
       data_files=etc_files + these_files,
       cmdclass={"install": my_install,
                 "build": my_build,
