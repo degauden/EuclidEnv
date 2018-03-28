@@ -1,5 +1,6 @@
 # sitelib for noarch packages, sitearch for others (remove the unneeded one)
-%{!?python${python_explicit_version}_sitelib: %global python${python_explicit_version}_sitelib %(%{__python${python_explicit_version}} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${usr_prefix}'))")}
+%global __python${python_explicit_version} ${full_exec_python}
+%global python${python_explicit_version}_sitelib %(%{__python${python_explicit_version}} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${usr_prefix}'))")}
 
 Name:           ${project}
 Version:        ${version}
@@ -17,6 +18,8 @@ Prefix:         ${euclid_base}
 AutoReq: no
 
 Requires: python${python_explicit_version}, cmake
+
+%define __python${python_explicit_version} ${full_exec_python}
 
 %description
 This package includes the scripts for setting up the run-time and
