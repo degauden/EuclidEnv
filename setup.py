@@ -39,6 +39,7 @@ for a in sys.argv:
         dist_euclid_base = os.path.join(__root_loc__, dist_euclid_base)
         dist_etc_prefix = os.path.join(__root_loc__, dist_etc_prefix)
         dist_usr_prefix = os.path.join(__root_loc__, dist_usr_prefix)
+        sys.argv.remove(a)
 
 # variable interpolated at install time
 this_euclid_base = "/opt/euclid"
