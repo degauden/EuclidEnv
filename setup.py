@@ -9,15 +9,12 @@ from distutils.command.sdist import sdist as _sdist
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 from distutils.command.build import build as _build
 
-from setuptools import find_packages
-
 import os
 import sys
 from subprocess import call, check_output
 from glob import glob
 
 from string import Template
-from numpy.distutils.misc_util import get_script_files
 
 __version__ = "3.4"
 __project__ = "EuclidEnv"
@@ -477,7 +474,8 @@ setup(name=__project__,
       author_email="Hubert.Degaudenzi@unige.ch",
       url="http://www.isdc.unige.ch/redmine/projects/euclidenv",
       package_dir={"Euclid": os.path.join("python", "Euclid")},
-      packages=find_packages(where="python"),
+#      packages=find_packages(where="python"),
+      packages=["Euclid", "Euclid.Run"],
       scripts=[os.path.join("scripts", s) for s in get_script_files()],
       data_files=etc_files + these_files,
       cmdclass={"install": my_install,
