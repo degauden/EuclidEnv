@@ -19,6 +19,8 @@ from string import Template
 __version__ = "3.4"
 __project__ = "EuclidEnv"
 __full_exec__ = sys.executable
+__usr_loc__ = os.path.dirname(os.path.dirname(__full_exec__))
+__root_loc__ = os.path.dirname(__usr_loc__)
 __exec__ = os.path.basename(__full_exec__)
 __exec_maj_vers = "%d" % sys.version_info[0]
 __exec_exp_vers = ""
@@ -31,6 +33,12 @@ dist_euclid_base = "/opt/euclid"
 dist_etc_prefix = "/etc"
 dist_usr_prefix = "/usr"
 dist_exp_version = __exec_exp_vers
+
+for a in sys.argv:
+    if a.startswith("--use-python-root"):
+        dist_euclid_base = os.path.join(__root_loc__, dist_euclid_base)
+        dist_etc_prefix = os.path.join(__root_loc__, dist_etc_prefix)
+        dist_usr_prefix = os.path.join(__root_loc__, dist_usr_prefix)
 
 # variable interpolated at install time
 this_euclid_base = "/opt/euclid"
