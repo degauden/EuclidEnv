@@ -36,9 +36,9 @@ dist_exp_version = __exec_exp_vers
 
 for a in sys.argv:
     if a.startswith("--use-python-root"):
-        dist_euclid_base = os.path.join(__root_loc__, dist_euclid_base)
-        dist_etc_prefix = os.path.join(__root_loc__, dist_etc_prefix)
-        dist_usr_prefix = os.path.join(__root_loc__, dist_usr_prefix)
+        dist_euclid_base = os.path.join(__root_loc__, dist_euclid_base.lstrip("/"))
+        dist_etc_prefix = os.path.join(__root_loc__, dist_etc_prefix.lstrip("/"))
+        dist_usr_prefix = os.path.join(__root_loc__, dist_usr_prefix.lstrip("/"))
         sys.argv.remove(a)
 
 # variable interpolated at install time
