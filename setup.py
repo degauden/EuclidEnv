@@ -3,7 +3,6 @@
 # Author:    $Format:%an$
 # Date  :    $Format:%ad$
 
-
 from distutils.core import setup, Command
 from distutils.command.install import install as _install
 from distutils.command.sdist import sdist as _sdist
@@ -17,20 +16,18 @@ import sys
 from subprocess import call, check_output
 from glob import glob
 
-
 from string import Template
 from numpy.distutils.misc_util import get_script_files
 
-__version__     = "3.4"
-__project__     = "EuclidEnv"
-__full_exec__   = sys.executable
-__exec__        = os.path.basename(__full_exec__)
+__version__ = "3.4"
+__project__ = "EuclidEnv"
+__full_exec__ = sys.executable
+__exec__ = os.path.basename(__full_exec__)
 __exec_maj_vers = "%d" % sys.version_info[0]
 __exec_exp_vers = ""
 
 if __exec__.endswith(__exec_maj_vers) :
     __exec_exp_vers = __exec_maj_vers
-
 
 # variable used for the package creation
 dist_euclid_base = "/opt/euclid"
@@ -53,9 +50,11 @@ def get_data_files(input_dir, output_dir):
             (os.sep.join([output_dir] + root.split(os.sep)[1:]), da_files))
     return result
 
+
 these_files = get_data_files("data/cmake", __project__)
 these_files += get_data_files("data/texmf", __project__)
 these_files += get_data_files("data/make", __project__)
+
 
 def get_script_files():
     result = []
@@ -63,6 +62,7 @@ def get_script_files():
         for f in files:
             result.append(f)
     return result
+
 
 # Please note the that the local install is
 # also needed for --prefix. Take as example the
@@ -72,7 +72,6 @@ for a in sys.argv:
     for b in ["--user", "--prefix", "--home"]:
         if a.startswith(b):
             use_local_install = True
-
 
 etc_install_root = None
 install_root = None
@@ -91,7 +90,6 @@ for a in sys.argv:
         if len(r_base) == 1:
             install_root = r_base[0]
 
-
 if not etc_install_root:
     if use_local_install:
         etc_install_prefix = "../etc"
@@ -100,13 +98,11 @@ if not etc_install_root:
 else:
     etc_install_prefix = os.path.join(etc_install_root, "etc")
 
-
 etc_files = [(os.path.join(etc_install_prefix, "profile.d"), [os.path.join("data", "profile", "euclid.sh"),
                                        os.path.join("data", "profile", "euclid.csh")]),
              (os.path.join(etc_install_prefix, "sysconfig"),
                   [os.path.join("data", "sys", "config", "euclid")])
             ]
-
 
 use_custom_install_root = False
 for a in sys.argv:
@@ -115,9 +111,7 @@ for a in sys.argv:
         # RPM. This will prevent the post install treatment.
         use_custom_install_root = True
 
-
 skip_install_fix = False
-
 
 # disable the postinstall script if needed. This is especially needed for the RPM
 # creation. In that case the postinstall is done by the RPM spec file.
@@ -152,6 +146,7 @@ def getSHA256Digest(filepath):
 
 
 class my_build(_build):
+
     def run(self):
         _build.run(self)
 
@@ -262,7 +257,6 @@ class my_install(_install):
 
         return this_install
 
-
     def fix_etc_install_path(self):
         fixscript = os.path.join(self.install_scripts, "FixInstallPath")
         proc_list = self.get_config_scripts()
@@ -270,7 +264,6 @@ class my_install(_install):
         for p in proc_list:
             print("Fixing %s with the %s prefix path" % (p, this_install))
             call([__exec__, fixscript, "-n", "this_etc_install_prefix", this_install, p])
-
 
     def fix_install_path(self):
         fixscript = os.path.join(self.install_scripts, "FixInstallPath")
@@ -330,7 +323,7 @@ class my_install(_install):
             print("Fixing %s with the %s use custom prefix" % (p, this_use_custom_prefix))
             call(
                 [__exec__, fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
-            
+
     def fix_python_version(self):
         fixscript_name = "FixInstallPath"
         fixscript = os.path.join(self.install_scripts, fixscript_name)
@@ -339,7 +332,6 @@ class my_install(_install):
                 full_s = os.path.join(self.install_scripts, s)
                 print("Fixing %s with the %s python version" % (full_s, dist_exp_version))
                 call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, full_s])
-        
 
     def create_extended_init(self):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
@@ -380,6 +372,7 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
 #            self.print_install_locations()
             self.custom_post_install()
 
+
 class PyTest(Command):
     user_options = []
     runtests_filename = "runtests.py"
@@ -407,7 +400,6 @@ class PyTest(Command):
         if errno != 0:
             raise SystemExit(errno)
 
-
     def run(self):
         import subprocess
         import sys
@@ -418,6 +410,7 @@ class PyTest(Command):
         os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
         errno = subprocess.call([sys.executable, 'runtests.py'] + self._get_tests_files())
         raise SystemExit(errno)
+
 
 class Purge(Command):
     user_options = []
