@@ -1,4 +1,4 @@
 image: python:3.6
 validate:
   script:
-    - python setup test
+    - python setup.py test
