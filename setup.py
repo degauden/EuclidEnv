@@ -39,7 +39,6 @@ if __usr_loc__ != "/usr":
     dist_euclid_base = os.path.join(__root_loc__, dist_euclid_base.lstrip("/"))
     dist_etc_prefix = os.path.join(__root_loc__, dist_etc_prefix.lstrip("/"))
     dist_usr_prefix = os.path.join(__root_loc__, dist_usr_prefix.lstrip("/"))
-    sys.argv.remove(a)
 
 # variable interpolated at install time
 this_euclid_base = "/opt/euclid"
