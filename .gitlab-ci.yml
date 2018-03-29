@@ -1,4 +1,12 @@
 image: python:3.6
-validate:
+build:
   script:
-    - python setup.py test
+    - python setup.py build
+  
+dist:
+  script:
+    - python setup.py sdist
+
+#validate:
+#  script:
+#    - python setup.py test
