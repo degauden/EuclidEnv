@@ -89,7 +89,7 @@ from pkgutil import extend_path
 __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
 EOF
 fi
-if [[ "${euclid_base}" = "$${RPM_INSTALL_PREFIX2}" ]]; then
+if [[ ( "/usr" = "$${RPM_INSTALL_PREFIX0}" ) || ( "${euclid_base}" = "$${RPM_INSTALL_PREFIX2}" ) ]]; then
 %{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_use_custom_prefix no $${RPM_INSTALL_PREFIX1}/sysconfig/euclid
 else
 echo "Activating the custom prefix environment prepending"
