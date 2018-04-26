@@ -1,3 +1,12 @@
+* Thu Mar 29 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch>
+- global fixing of the python 3 explicit version used in the scripts. That
+  version is correctly interpolated for every use. Please note that the
+  explicit version is detected from the base name of the interpreter which 
+  is used
+- the RPM distribution kit (tar.gz and SPEC file) is now using the python 
+  interpreter fullpath to assert the install root. No on-the-fly rpm relocation
+  should be needed then.
+
 * Wed Aug 9 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.3-1
 - data/sys/config/euclid: add an extra post script to be sourced called
   EdenEnv.sh. It is looked in the path and should have no side effect if
