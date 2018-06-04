@@ -1,3 +1,6 @@
+* Mon Jun 4 2018 Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch> 3.4-1
+- data/cmake: update to the latest cmake library of Elements (5.4)
+
 * Thu Mar 29 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch>
 - global fixing of the python 3 explicit version used in the scripts. That
   version is correctly interpolated for every use. Please note that the
