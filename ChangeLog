@@ -1,4 +1,8 @@
-* Mon Jun 4 2018 Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch> 3.4-1
+* Tue Jun 5 2018 Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch> 3.4-1
+- python/Euclid/Login.py: add the CTEST_OUTPUT_ON_FAILURE=1 as 
+  default environement variable.
+
+* Mon Jun 4 2018 Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch>
 - data/cmake: update to the latest cmake library of Elements (5.4)
 
 * Thu Mar 29 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch>

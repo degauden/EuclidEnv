@@ -592,6 +592,7 @@ The type is to be chosen among the following list:
 
         ev = self.Environment()
         ev["ELEMENTS_NAMING_DB_URL"] = "https://pieclddj00.isdc.unige.ch/elementsnaming"
+        ev["CTEST_OUTPUT_ON_FAILURE"] = "1"
 
     def copyEnv(self):
         ev = self.Environment()
