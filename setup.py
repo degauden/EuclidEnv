@@ -150,13 +150,13 @@ def getSHA256Digest(filepath):
     return check_output(["openssl", "dgst", "-sha256", filepath]).split()[-1]
 
 
-class my_build(_build):
+class MyBuild(_build):
 
     def run(self):
         _build.run(self)
 
 
-class my_sdist(_sdist):
+class MySdist(_sdist):
 
     @staticmethod
     def _get_template_target(filename):
@@ -210,7 +210,7 @@ class my_sdist(_sdist):
         self.expand_templates()
 
 
-class my_bdist_rpm(_bdist_rpm):
+class MyBdistRpm(_bdist_rpm):
 
     @staticmethod
     def run():
@@ -219,7 +219,7 @@ class my_bdist_rpm(_bdist_rpm):
         sys.exit(1)
 
 
-class my_install(_install):
+class MyInstall(_install):
 
     def initialize_options(self):
 
@@ -484,14 +484,13 @@ setup(name=__project__,
       author_email="Hubert.Degaudenzi@unige.ch",
       url="http://www.isdc.unige.ch/redmine/projects/euclidenv",
       package_dir={"Euclid": os.path.join("python", "Euclid")},
-#      packages=find_packages(where="python"),
       packages=["Euclid", "Euclid.Run"],
       scripts=[os.path.join("scripts", s) for s in get_script_files()],
       data_files=etc_files + these_files,
-      cmdclass={"install": my_install,
-                "build": my_build,
-                "sdist": my_sdist,
-                "bdist_rpm": my_bdist_rpm,
+      cmdclass={"install": MyInstall,
+                "build": MyBuild,
+                "sdist": MySdist,
+                "bdist_rpm": MyBdistRpm,
                 "test": PyTest,
                 "purge": Purge,
                 "uninstall": Uninstall,
