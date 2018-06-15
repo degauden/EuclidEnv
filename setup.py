@@ -16,7 +16,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "3.4"
+__version__ = "3.6"
 __project__ = "EuclidEnv"
 __full_exec__ = sys.executable
 __usr_loc__ = os.path.dirname(os.path.dirname(__full_exec__))
