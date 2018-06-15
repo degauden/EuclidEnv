@@ -34,7 +34,7 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
         if [[ -r ${my_own_prefix2}/bin/${EUCLID_POST_SCRIPT}.sh ]]; then
           epostscr=${my_own_prefix2}/bin/${EUCLID_POST_SCRIPT}.sh
         else
-          epostscr=`/usr/bin/which ${EUCLID_POST_SCRIPT}.sh`
+          epostscr=`/usr/bin/which ${EUCLID_POST_SCRIPT}.sh 2> /dev/null`
         fi
         if [[ -r ${epostscr} ]]; then
           . ${epostscr} "$@"
@@ -50,7 +50,7 @@ if [[ ! -e ${HOME}/.noEuclidLoginScript ]]; then
         if [[ -r ${my_own_prefix2}/bin/StripPath.sh ]]; then
           stripscr=${my_own_prefix2}/bin/StripPath.sh
         else
-          stripscr=`/usr/bin/which StripPath.sh`
+          stripscr=`/usr/bin/which StripPath.sh 2> /dev/null`
         fi
         . ${stripscr}
         unset stripscr

@@ -2,8 +2,10 @@
 # 1) $XDG_CONFIG_HOME/Euclid/default (if XDG_CONFIG_HOME exists)
 # 2) $HOME/.config/Euclid/default
 # 3) for f in $XDG_CONFIG_DIRS : $f/Euclid/default (if XDG_CONFIG_DIRS exists)
-# 4) /etc/default/Euclid
-# 5) /etc/sysconfig/euclid
+# 4) %(this_etc_install_prefix)s/default/Euclid
+# 5) %(this_etc_install_prefix)s/sysconfig/euclid
+# 6) /etc/default/Euclid
+# 7) /etc/sysconfig/euclid
 
 set my_own_prefix0 = "%(this_etc_install_prefix)s"
 set my_own_exe_prefix0 = "%(this_install_prefix)s"
@@ -39,6 +41,7 @@ if ( $?XDG_CONFIG_DIRS ) then
   end
   unset d
 endif
+set cfgfiles="$cfgfiles $my_own_prefix0/default/Euclid"
 set cfgfiles="$cfgfiles $my_own_prefix0/sysconfig/euclid"
 set cfgfiles="$cfgfiles /etc/default/Euclid"
 set cfgfiles="$cfgfiles /etc/sysconfig/euclid"

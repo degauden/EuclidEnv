@@ -20,7 +20,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "3.1.1"
+__version__ = "3.4"
 __project__ = "EuclidEnv"
 
 # variable used for the package creation
@@ -45,6 +45,7 @@ def get_data_files(input_dir, output_dir):
 
 these_files = get_data_files("data/cmake", __project__)
 these_files += get_data_files("data/texmf", __project__)
+these_files += get_data_files("data/make", __project__)
 
 
 # Please note the that the local install is

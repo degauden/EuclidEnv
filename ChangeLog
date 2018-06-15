@@ -1,3 +1,18 @@
+* Wed Aug 9 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.3-1
+- data/sys/config/euclid: add an extra post script to be sourced called
+  EdenEnv.sh. It is looked in the path and should have no side effect if
+  it doesn't exist.
+
+* Tue Aug 8 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.2-1
+- update to the latest cmake library of Elements (5.2)
+
+* Thu Aug 3 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.1.3-1
+- hotfix: remove wrong import in the PlatformTest.py file.
+
+* Wed Aug 2 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.1.2-1
+- hotfix from Elements 5.1.1 cmake library. There was a typo in the automatic
+  dependency generation for the spec files.
+
 * Fri Jul 28 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.1.1-1
 - Add the possibility to setup a custom prefix location
 - Compile the file (Login.py) which is modified in the RPM postinstall phase
