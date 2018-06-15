@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python%(this_python_version)s
 
 import os
 import subprocess

@@ -34,7 +34,11 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
         if ( -r "${my_own_prefix2}/bin/${EUCLID_POST_SCRIPT}.csh" ) then
           set epostscr=${my_own_prefix2}/bin/${EUCLID_POST_SCRIPT}.csh
         else
-          set epostscr=`/usr/bin/which ${EUCLID_POST_SCRIPT}.csh`        
+          if ( -X ${EUCLID_POST_SCRIPT}.csh ) then
+            set epostscr=`/usr/bin/which ${EUCLID_POST_SCRIPT}.csh`
+          else
+            set epostscr=""
+          endif        
         endif
         if ( -r "${epostscr}" ) then
           source ${epostscr} ${*:q}

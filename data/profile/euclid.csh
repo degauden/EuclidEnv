@@ -5,7 +5,7 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
   if ( -r ${my_own_prefix4}/bin/Euclid_config.csh ) then
     set confscr=${my_own_prefix4}/bin/Euclid_config.csh
   else
-    set confscr=`/usr/bin/which Euclid_config.csh`        
+    set confscr=`/usr/bin/which Euclid_config.csh`
   endif
   source ${confscr} "${*:q}"
   unset confscr    
@@ -15,7 +15,7 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
   if ( -r ${my_own_prefix4}/bin/Euclid_group_setup.csh ) then
     set shellscr=${my_own_prefix4}/bin/Euclid_group_setup.csh
   else
-    set shellscr=`/usr/bin/which Euclid_group_setup.csh`        
+    set shellscr=`/usr/bin/which Euclid_group_setup.csh`
   endif
   if ( -e ${shellscr} ) then
     source ${shellscr} ${*:q}
@@ -28,7 +28,7 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
     if ( -r ${my_own_prefix4}/bin/Euclid_group_login.csh ) then
       set loginscr=${my_own_prefix4}/bin/Euclid_group_login.csh
     else
-      set loginscr=`/usr/bin/which Euclid_group_login.csh`        
+      set loginscr=`/usr/bin/which Euclid_group_login.csh`
     endif
     if ( -e ${loginscr} ) then
       source ${loginscr} ${*:q}
