@@ -1,0 +1,50 @@
+#!/bin/sh
+
+home_dir=${PWD}
+
+# Create unique directory
+tmpdir=$(mktemp -dq -t temp.XXXXXX)
+
+# Clean and exit
+local_clean_exit() {
+  cd ${home_dir}
+  rm -rf ${tmploc}
+  exit $1
+}
+
+# Check that the temporary directory is created correctly
+cd ${tmpdir} || local_clean_exit 1
+cd ${home_dir}
+
+echo ""
+echo "Running EuclidWrapper tests..."
+echo ""
+
+##############################################################################
+# Check that the wrapped executable runs in the workdir
+##############################################################################
+
+echo "Test --workdir parameter:"
+
+EuclidWrapper --workdir ${tmpdir} pwd | grep -i ${tmpdir}
+if [ $? -ne 0 ]; then
+  echo "Error: Test failed: Wrapped executable is not executed in the workdir" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+##############################################################################
+# Check that if no workdir is given the wrapped executable runs in the
+# current working directory
+##############################################################################
+
+echo "Test default --workdir parameter:"
+
+EuclidWrapper pwd | grep -i ${home_dir}
+if [ $? -ne 0 ]; then
+  echo "Error: Test failed: Wrapped executable is not executed in the current working directory" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""

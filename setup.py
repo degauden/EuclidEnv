@@ -400,6 +400,12 @@ class PyTest(Command):
         parent_dir = os.path.dirname(__file__)
         return glob(os.path.join(parent_dir, "tests", "*Test.py"))
 
+    @staticmethod
+    def _get_executable_tests_files():
+        parent_dir = os.path.dirname(__file__)
+        tst_list = glob(os.path.join(parent_dir, "tests", "*"))
+        return [f for f in tst_list if not os.path.splitext(f)[1] and not os.path.isdir(f)]
+
     def _generate_runtests_file(self):
         import subprocess
         errno = subprocess.call(["py.test", "--genscript=%s" % self.runtests_filename])
