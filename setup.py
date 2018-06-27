@@ -8,6 +8,8 @@ from distutils.command.install import install as _install
 from distutils.command.sdist import sdist as _sdist
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 from distutils.command.build import build as _build
+from distutils.command.build_scripts import build_scripts as _build_scripts
+from distutils.util import convert_path
 
 import os
 import sys
@@ -146,6 +148,9 @@ for a in sys.argv:
         sys.argv.remove(a)
 
 
+fixscript_name = "FixInstallPath"
+
+
 def getRMD160Digest(filepath):
     return check_output(["openssl", "dgst", "-rmd160", filepath]).split()[-1]
 
@@ -159,6 +164,19 @@ class MyBuild(_build):
     def run(self):
         _build.run(self)
 
+
+class MyBuildScripts(_build_scripts):
+
+    def copy_scripts(self):
+        # local fixscript. Before installation
+        fixscript = os.path.join("scripts", fixscript_name)
+        _build_scripts.copy_scripts(self)
+        scripts_build_dir = self.build_dir
+        for script in self.scripts:
+            script = convert_path(script)
+            outfile = os.path.join(self.build_dir, os.path.basename(script))
+            print("Fixing %s with the %s python version" % (outfile, dist_exp_version))
+            call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, outfile])
 
 class MySdist(_sdist):
 
@@ -269,7 +287,7 @@ class MyInstall(_install):
         return this_install
 
     def fix_etc_install_path(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_config_scripts()
         this_install = os.path.join(self.get_etc_install_root(), "etc")
         for p in proc_list:
@@ -277,7 +295,7 @@ class MyInstall(_install):
             call([__exec__, fixscript, "-n", "this_etc_install_prefix", this_install, p])
 
     def fix_install_path(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_login_scripts() + self.get_config_scripts()
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
@@ -289,7 +307,7 @@ class MyInstall(_install):
         self.fix_etc_install_path()
 
     def fix_version(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
             print("Fixing %s with the %s version" % (file2fix, __version__))
@@ -316,7 +334,7 @@ class MyInstall(_install):
         return p_list
 
     def fix_euclid_base(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_sysconfig_files()
         proc_list += self.get_config_scripts()
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
@@ -328,7 +346,7 @@ class MyInstall(_install):
                 [__exec__, fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
     def fix_use_custom_prefix(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_sysconfig_files()
         for p in proc_list:
             print("Fixing %s with the %s use custom prefix" % (p, this_use_custom_prefix))
@@ -336,7 +354,6 @@ class MyInstall(_install):
                 [__exec__, fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
 
     def fix_python_version(self):
-        fixscript_name = "FixInstallPath"
         fixscript = os.path.join(self.install_scripts, fixscript_name)
         for s in get_script_files():
             if s != fixscript_name:
@@ -400,6 +417,17 @@ class PyTest(Command):
         return os.path.join(parent_dir, "python")
 
     @staticmethod
+    def _get_scripts_path():
+        parent_dir = os.path.dirname(__file__)
+        return os.path.join(parent_dir, "scripts")
+
+    @staticmethod
+    def _get_scripts_build_path():
+        parent_dir = os.path.dirname(__file__)
+        return os.path.join(parent_dir, "build", "scripts-%s" % sys.version[0:3])
+
+
+    @staticmethod
     def _get_tests_files():
         parent_dir = os.path.dirname(__file__)
         return glob(os.path.join(parent_dir, "tests", "*Test.py"))
@@ -422,6 +450,9 @@ class PyTest(Command):
         import sys
         sys.path.insert(0, self._get_python_path())
         os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
+        from Euclid.Path import envPathPrepend
+        envPathPrepend("PATH", self._get_scripts_path())
+        envPathPrepend("PATH", self._get_scripts_build_path())
         errno = subprocess.call([pytest_cmd] + self._get_tests_files())
         raise SystemExit(errno)
 
@@ -502,5 +533,6 @@ setup(name=__project__,
                 "test": PyTest,
                 "purge": Purge,
                 "uninstall": Uninstall,
+                "build_scripts": MyBuildScripts,
                 },
       )
