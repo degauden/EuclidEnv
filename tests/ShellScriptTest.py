@@ -14,7 +14,7 @@ def collect_files():
 
     parent_dir = os.path.dirname(__file__)
 
-    tst_list = glob(os.path.join(parent_dir, "tests", "*"))
+    tst_list = glob(os.path.join(parent_dir, "*"))
 
     file_list = [f for f in tst_list if not os.path.splitext(f)[1] and not os.path.isdir(f)]
 
@@ -28,12 +28,13 @@ def test_shell_scripts(file_list = collect_files()):
     '''
     returncode_list = []
     for each_script in file_list:
-        file_name = ' "./' +each_script+'"'
 
-        returncode = sp.call(file_name, shell=True)
+        returncode = sp.call(each_script, shell=True)
         returncode_list.append(returncode)
 
 
     for i in range(len(file_list)):
         assert(returncode_list[i] == 0),"Test Failed for " + file_list[i]
         print("test passed for " + file_list[i])
+
+
