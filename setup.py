@@ -420,9 +420,6 @@ class PyTest(Command):
     def run(self):
         import subprocess
         import sys
-        if not os.path.exists(os.path.join(os.getcwd(), self.runtests_filename)) :
-            self._generate_runtests_file()
-
         sys.path.insert(0, self._get_python_path())
         os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
         errno = subprocess.call([pytest_cmd] + self._get_tests_files())
