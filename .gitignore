@@ -12,3 +12,4 @@ __pycache__
 /EuclidEnv.egg-info/
 *.pyc
 /.pytest_cache
+/.cache
