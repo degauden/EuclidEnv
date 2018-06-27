@@ -44,6 +44,10 @@ if __usr_loc__ != "/usr":
 this_euclid_base = "/opt/euclid"
 this_use_custom_prefix = "no"
 
+if not dist_exp_version:
+    pytest_cmd = "py.test"
+else:
+    pytest_cmd = "py.test-%s" % dist_exp_version
 
 def get_data_files(input_dir, output_dir):
     result = []
@@ -408,7 +412,7 @@ class PyTest(Command):
 
     def _generate_runtests_file(self):
         import subprocess
-        errno = subprocess.call(["py.test", "--genscript=%s" % self.runtests_filename])
+        errno = subprocess.call([pytest_cmd, "--genscript=%s" % self.runtests_filename])
         print("%s generated. Please consider to add it to your sources" % self.runtests_filename)
         if errno != 0:
             raise SystemExit(errno)
@@ -421,7 +425,7 @@ class PyTest(Command):
 
         sys.path.insert(0, self._get_python_path())
         os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
-        errno = subprocess.call([sys.executable, 'runtests.py'] + self._get_tests_files())
+        errno = subprocess.call([pytest_cmd] + self._get_tests_files())
         raise SystemExit(errno)
 
 
