@@ -273,10 +273,10 @@ def multiPathGet(path, subdir, alloccurences=False):
 def getClosestPath(path, subdir, alloccurences=False):
     """ This function get the first neighbour path ending with 'subdir' that
     exists. It starts with 'path/subdir' and moves up. By default only the first
-    @param path: initial path to search in 
+    @param path: initial path to search in
     @param subdir: path fraction to look for
     @param alloccurences: if True doesn't stop at the first match
-    @return: return the list of found paths.  
+    @return: return the list of found paths.
     """
     result = []
 
