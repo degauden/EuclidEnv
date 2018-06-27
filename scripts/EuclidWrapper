@@ -7,9 +7,9 @@ import importlib
 import os
 import subprocess
 import sys
-import ElementsKernel.Logging as log
+import logging
 
-logger = log.getLogger('EuclidWrapper')
+logger = logging.getLogger('EuclidWrapper')
 
 
 def _addWrapperArguments(parser):
