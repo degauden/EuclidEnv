@@ -175,7 +175,6 @@ class MyBuildScripts(_build_scripts):
         for script in self.scripts:
             script = convert_path(script)
             outfile = os.path.join(self.build_dir, os.path.basename(script))
-            print("Fixing %s with the %s python version" % (outfile, dist_exp_version))
             call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, outfile])
 
 class MySdist(_sdist):
@@ -291,7 +290,6 @@ class MyInstall(_install):
         proc_list = self.get_config_scripts()
         this_install = os.path.join(self.get_etc_install_root(), "etc")
         for p in proc_list:
-            print("Fixing %s with the %s prefix path" % (p, this_install))
             call([__exec__, fixscript, "-n", "this_etc_install_prefix", this_install, p])
 
     def fix_install_path(self):
@@ -302,7 +300,6 @@ class MyInstall(_install):
             proc_list.append(file2fix)
         proc_list += self.get_profile_scripts()
         for p in proc_list:
-            print("Fixing %s with the %s prefix path" % (p, os.path.dirname(self.install_scripts)))
             call([__exec__, fixscript, os.path.dirname(self.install_scripts), p])
         self.fix_etc_install_path()
 
@@ -310,7 +307,6 @@ class MyInstall(_install):
         fixscript = os.path.join(self.install_scripts, fixscript_name)
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
-            print("Fixing %s with the %s version" % (file2fix, __version__))
             call(
                 [__exec__, fixscript, "-n", "this_install_version", __version__, file2fix])
 
@@ -341,7 +337,6 @@ class MyInstall(_install):
         if os.path.exists(file2fix):
             proc_list.append(file2fix)
         for p in proc_list:
-            print("Fixing %s with the %s euclid base" % (p, this_euclid_base))
             call(
                 [__exec__, fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
@@ -349,7 +344,6 @@ class MyInstall(_install):
         fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_sysconfig_files()
         for p in proc_list:
-            print("Fixing %s with the %s use custom prefix" % (p, this_use_custom_prefix))
             call(
                 [__exec__, fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
 
@@ -358,7 +352,6 @@ class MyInstall(_install):
         for s in get_script_files():
             if s != fixscript_name:
                 full_s = os.path.join(self.install_scripts, s)
-                print("Fixing %s with the %s python version" % (full_s, dist_exp_version))
                 call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, full_s])
 
     def create_extended_init(self):
