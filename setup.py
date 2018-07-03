@@ -246,7 +246,7 @@ class MyInstall(_install):
 
         _install.initialize_options(self)
 
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
 
         dist_dir = os.path.join(parent_dir, "dist")
 
@@ -406,28 +406,28 @@ class PyTest(Command):
 
     @staticmethod
     def _get_python_path():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(parent_dir, "python")
 
     @staticmethod
     def _get_scripts_path():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(parent_dir, "scripts")
 
     @staticmethod
     def _get_scripts_build_path():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(parent_dir, "build", "scripts-%s" % sys.version[0:3])
 
 
     @staticmethod
     def _get_tests_files():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         return glob(os.path.join(parent_dir, "tests", "*Test.py"))
 
     @staticmethod
     def _get_executable_tests_files():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         tst_list = glob(os.path.join(parent_dir, "tests", "*"))
         return [f for f in tst_list if not os.path.splitext(f)[1] and not os.path.isdir(f)]
 
@@ -464,7 +464,7 @@ class Purge(Command):
 
         import shutil
 
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
 
         for d in ["build", "dist"]:
             full_d = os.path.join(parent_dir, d)
@@ -490,7 +490,7 @@ class Uninstall(Command):
     def run(self):
 
         import shutil
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         record = os.path.join(parent_dir, "dist", "installed_files.txt")
         with open(record) as rf:
             for l in rf:
