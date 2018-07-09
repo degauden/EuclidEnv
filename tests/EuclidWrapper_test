@@ -8,7 +8,7 @@ tmpdir=$(mktemp -dq -t temp.XXXXXX)
 # Clean and exit
 local_clean_exit() {
   cd ${home_dir}
-  rm -rf ${tmploc}
+  rm -rf ${tmpdir}
   exit $1
 }
 
@@ -21,14 +21,35 @@ echo "Running EuclidWrapper tests..."
 echo ""
 
 ##############################################################################
+# Check that the wrapper calls the wrapped executable with all the parameters
+# forwarded
+##############################################################################
+
+echo "Test wrapped executable is called with arguments forwarded..."
+
+result=$(EuclidWrapper --workdir ${tmpdir} echo Wrapped Called)
+if [ "${result}" != "Wrapped Called" ]; then
+  echo "Error: Test failed: Wrapped executable was not called" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+
+##############################################################################
 # Check that the wrapped executable runs in the workdir
 ##############################################################################
 
-echo "Test --workdir parameter:"
+echo "Test --workdir parameter..."
 
-EuclidWrapper --workdir ${tmpdir} pwd | grep -i ${tmpdir}
-if [ $? -ne 0 ]; then
-  echo "Error: Test failed: Wrapped executable is not executed in the workdir" 1>&2
+result=$(EuclidWrapper --workdir ${tmpdir} pwd)
+if [ $result != $tmpdir ]; then
+  echo "Error: Test failed: Wrapped executable is not executed in $tmpdir but in $result" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --workdir=${tmpdir} pwd)
+if [ $result != $tmpdir ]; then
+  echo "Error: Test failed: Wrapped executable is not executed in $tmpdir but in $result" 1>&2
   local_clean_exit 1
 fi
 
@@ -39,12 +60,143 @@ echo ""
 # current working directory
 ##############################################################################
 
-echo "Test default --workdir parameter:"
+echo "Test default --workdir parameter..."
 
-EuclidWrapper pwd | grep -i ${home_dir}
-if [ $? -ne 0 ]; then
+result=$(EuclidWrapper pwd)
+if [ $result != $(pwd) ]; then
   echo "Error: Test failed: Wrapped executable is not executed in the current working directory" 1>&2
   local_clean_exit 1
 fi
 
 echo ""
+
+##############################################################################
+# Check that if the logdir parameter is given it is consumed by the script
+##############################################################################
+
+echo "Test --logdir is consumed..."
+
+result=$(EuclidWrapper --logdir ${tmpdir} echo)
+if [ "$result" != "" ]; then
+  echo "Error: Test failed: logdir parameter was not consumed by the script" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --logdir=${tmpdir} echo)
+if [ "$result" != "" ]; then
+  echo "Error: Test failed: logdir parameter was not consumed by the script" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+##############################################################################
+# Check that when the --forward-ial-api is passed the --workdir and --logdir
+# parameters are forwarded
+##############################################################################
+
+echo "Test --forward-ial-api parameter..."
+
+result=$(EuclidWrapper --forward-ial-api --workdir ${tmpdir} --logdir ${tmpdir} echo other params)
+if [ "$result" != "other params --workdir ${tmpdir} --logdir ${tmpdir}" ]; then
+  echo "Error: Test failed: IAL API parameters where not forwarded" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --forward-ial-api --workdir=${tmpdir} --logdir=${tmpdir} echo other params)
+if [ "$result" != "other params --workdir ${tmpdir} --logdir ${tmpdir}" ]; then
+  echo "Error: Test failed: IAL API parameters where not forwarded" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper echo other params --forward-ial-api --workdir ${tmpdir} --logdir ${tmpdir})
+if [ "$result" != "other params --workdir ${tmpdir} --logdir ${tmpdir}" ]; then
+  echo "Error: Test failed: IAL API parameters where not forwarded" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper echo other params --forward-ial-api --workdir=${tmpdir} --logdir=${tmpdir})
+if [ "$result" != "other params --workdir ${tmpdir} --logdir ${tmpdir}" ]; then
+  echo "Error: Test failed: IAL API parameters where not forwarded" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# Check that if no hyphen white or black list is given parameters are not
+# modified
+###############################################################################
+
+echo "Test hyphen replacement disabled..."
+
+result=$(EuclidWrapper --workdir ${tmpdir} echo --first_arg=first --second_arg=second)
+if [ "$result" != "--first_arg=first --second_arg=second" ]; then
+  echo "Error: Test failed: Hyphen replacement happened when functionality was disabled" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --workdir ${tmpdir} echo --first_arg first --second_arg second)
+if [ "$result" != "--first_arg first --second_arg second" ]; then
+  echo "Error: Test failed: Hyphen replacement happened when functionality was disabled" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# Check the --hyphen-whitelist parameter
+###############################################################################
+
+echo "Test --hyphen-whitelist parameter..."
+
+result=$(EuclidWrapper --workdir ${tmpdir} --hyphen-whitelist=first_arg,third_arg echo --first_arg=first --second_arg=second --third_arg=third)
+if [ "$result" != "--first-arg=first --second_arg=second --third-arg=third" ]; then
+  echo "Error: Test failed: Failed to replace correctly hyphens when whitelist is given" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --workdir ${tmpdir} --hyphen-whitelist=first_arg,third_arg echo --first_arg first --second_arg second --third_arg third)
+if [ "$result" != "--first-arg first --second_arg second --third-arg third" ]; then
+  echo "Error: Test failed: Failed to replace correctly hyphens when whitelist is given" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# Check the --hyphen-blacklist parameter
+###############################################################################
+
+echo "Test --hyphen-blacklist parameter..."
+
+result=$(EuclidWrapper --workdir ${tmpdir} --hyphen-blacklist=first_arg,third_arg echo --first_arg=first --second_arg=second --third_arg=third)
+if [ "$result" != "--first_arg=first --second-arg=second --third_arg=third" ]; then
+  echo "Error: Test failed: Failed to replace correctly hyphens when blacklist is given" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --workdir ${tmpdir} --hyphen-blacklist=first_arg,third_arg echo --first_arg first --second_arg second --third_arg third)
+if [ "$result" != "--first_arg first --second-arg second --third_arg third" ]; then
+  echo "Error: Test failed: Failed to replace correctly hyphens when blacklist is given" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# Check the empty --hyphen-blacklist parameter converts all the parameters
+###############################################################################
+
+echo "Test --hyphen-blacklist parameter..."
+
+result=$(EuclidWrapper --workdir ${tmpdir} --hyphen-blacklist="" echo --first_arg=first --second_arg=second --third_arg=third)
+if [ "$result" != "--first-arg=first --second-arg=second --third-arg=third" ]; then
+  echo "Error: Test failed: Not all parameters with hyphens were fixed with empty blacklist" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --workdir ${tmpdir} --hyphen-blacklist="" echo --first_arg first --second_arg second --third_arg third)
+if [ "$result" != "--first-arg first --second-arg second --third-arg third" ]; then
+  echo "Error: Test failed: Not all parameters with hyphens were fixed with empty blacklist" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# All tests finished successfully
+###############################################################################
+local_clean_exit 0

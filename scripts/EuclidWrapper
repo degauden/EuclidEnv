@@ -101,9 +101,9 @@ def _replaceUnderscoresWithHyphens(args, whitelist=None, blacklist=None):
 
     if whitelist is None and blacklist is None:
         return args
-    if whitelist:
+    if whitelist is not None:
         whitelist = whitelist.split(',')
-    elif blacklist:
+    elif blacklist is not None:
         blacklist = blacklist.split(',')
     else:
         # Both are None, so we replace nothing
