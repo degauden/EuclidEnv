@@ -8,6 +8,8 @@ from distutils.command.install import install as _install
 from distutils.command.sdist import sdist as _sdist
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 from distutils.command.build import build as _build
+from distutils.command.build_scripts import build_scripts as _build_scripts
+from distutils.util import convert_path
 
 import os
 import sys
@@ -44,6 +46,10 @@ if __usr_loc__ != "/usr":
 this_euclid_base = "/opt/euclid"
 this_use_custom_prefix = "no"
 
+if not dist_exp_version:
+    pytest_cmd = "py.test"
+else:
+    pytest_cmd = "py.test-%s" % dist_exp_version
 
 def get_data_files(input_dir, output_dir):
     result = []
@@ -142,6 +148,9 @@ for a in sys.argv:
         sys.argv.remove(a)
 
 
+fixscript_name = "FixInstallPath"
+
+
 def getRMD160Digest(filepath):
     return check_output(["openssl", "dgst", "-rmd160", filepath]).split()[-1]
 
@@ -150,13 +159,25 @@ def getSHA256Digest(filepath):
     return check_output(["openssl", "dgst", "-sha256", filepath]).split()[-1]
 
 
-class my_build(_build):
+class MyBuild(_build):
 
     def run(self):
         _build.run(self)
 
 
-class my_sdist(_sdist):
+class MyBuildScripts(_build_scripts):
+
+    def copy_scripts(self):
+        # local fixscript. Before installation
+        fixscript = os.path.join("scripts", fixscript_name)
+        _build_scripts.copy_scripts(self)
+        scripts_build_dir = self.build_dir
+        for script in self.scripts:
+            script = convert_path(script)
+            outfile = os.path.join(self.build_dir, os.path.basename(script))
+            call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, outfile])
+
+class MySdist(_sdist):
 
     @staticmethod
     def _get_template_target(filename):
@@ -210,7 +231,7 @@ class my_sdist(_sdist):
         self.expand_templates()
 
 
-class my_bdist_rpm(_bdist_rpm):
+class MyBdistRpm(_bdist_rpm):
 
     @staticmethod
     def run():
@@ -219,13 +240,13 @@ class my_bdist_rpm(_bdist_rpm):
         sys.exit(1)
 
 
-class my_install(_install):
+class MyInstall(_install):
 
     def initialize_options(self):
 
         _install.initialize_options(self)
 
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
 
         dist_dir = os.path.join(parent_dir, "dist")
 
@@ -265,30 +286,27 @@ class my_install(_install):
         return this_install
 
     def fix_etc_install_path(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_config_scripts()
         this_install = os.path.join(self.get_etc_install_root(), "etc")
         for p in proc_list:
-            print("Fixing %s with the %s prefix path" % (p, this_install))
             call([__exec__, fixscript, "-n", "this_etc_install_prefix", this_install, p])
 
     def fix_install_path(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_login_scripts() + self.get_config_scripts()
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
             proc_list.append(file2fix)
         proc_list += self.get_profile_scripts()
         for p in proc_list:
-            print("Fixing %s with the %s prefix path" % (p, os.path.dirname(self.install_scripts)))
             call([__exec__, fixscript, os.path.dirname(self.install_scripts), p])
         self.fix_etc_install_path()
 
     def fix_version(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
-            print("Fixing %s with the %s version" % (file2fix, __version__))
             call(
                 [__exec__, fixscript, "-n", "this_install_version", __version__, file2fix])
 
@@ -312,32 +330,28 @@ class my_install(_install):
         return p_list
 
     def fix_euclid_base(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_sysconfig_files()
         proc_list += self.get_config_scripts()
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
             proc_list.append(file2fix)
         for p in proc_list:
-            print("Fixing %s with the %s euclid base" % (p, this_euclid_base))
             call(
                 [__exec__, fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
     def fix_use_custom_prefix(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_sysconfig_files()
         for p in proc_list:
-            print("Fixing %s with the %s use custom prefix" % (p, this_use_custom_prefix))
             call(
                 [__exec__, fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
 
     def fix_python_version(self):
-        fixscript_name = "FixInstallPath"
         fixscript = os.path.join(self.install_scripts, fixscript_name)
         for s in get_script_files():
             if s != fixscript_name:
                 full_s = os.path.join(self.install_scripts, s)
-                print("Fixing %s with the %s python version" % (full_s, dist_exp_version))
                 call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, full_s])
 
     def create_extended_init(self):
@@ -392,17 +406,34 @@ class PyTest(Command):
 
     @staticmethod
     def _get_python_path():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(parent_dir, "python")
 
     @staticmethod
+    def _get_scripts_path():
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(parent_dir, "scripts")
+
+    @staticmethod
+    def _get_scripts_build_path():
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(parent_dir, "build", "scripts-%s" % sys.version[0:3])
+
+
+    @staticmethod
     def _get_tests_files():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         return glob(os.path.join(parent_dir, "tests", "*Test.py"))
+
+    @staticmethod
+    def _get_executable_tests_files():
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
+        tst_list = glob(os.path.join(parent_dir, "tests", "*"))
+        return [f for f in tst_list if not os.path.splitext(f)[1] and not os.path.isdir(f)]
 
     def _generate_runtests_file(self):
         import subprocess
-        errno = subprocess.call(["py.test", "--genscript=%s" % self.runtests_filename])
+        errno = subprocess.call([pytest_cmd, "--genscript=%s" % self.runtests_filename])
         print("%s generated. Please consider to add it to your sources" % self.runtests_filename)
         if errno != 0:
             raise SystemExit(errno)
@@ -410,12 +441,12 @@ class PyTest(Command):
     def run(self):
         import subprocess
         import sys
-        if not os.path.exists(os.path.join(os.getcwd(), self.runtests_filename)) :
-            self._generate_runtests_file()
-
         sys.path.insert(0, self._get_python_path())
         os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
-        errno = subprocess.call([sys.executable, 'runtests.py'] + self._get_tests_files())
+        from Euclid.Path import envPathPrepend
+        envPathPrepend("PATH", self._get_scripts_path())
+        envPathPrepend("PATH", self._get_scripts_build_path())
+        errno = subprocess.call([pytest_cmd] + self._get_tests_files())
         raise SystemExit(errno)
 
 
@@ -433,7 +464,7 @@ class Purge(Command):
 
         import shutil
 
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
 
         for d in ["build", "dist"]:
             full_d = os.path.join(parent_dir, d)
@@ -459,7 +490,7 @@ class Uninstall(Command):
     def run(self):
 
         import shutil
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         record = os.path.join(parent_dir, "dist", "installed_files.txt")
         with open(record) as rf:
             for l in rf:
@@ -483,17 +514,18 @@ setup(name=__project__,
       author="Hubert Degaudenzi",
       author_email="Hubert.Degaudenzi@unige.ch",
       url="http://www.isdc.unige.ch/redmine/projects/euclidenv",
-      package_dir={"Euclid": os.path.join("python", "Euclid")},
-#      packages=find_packages(where="python"),
-      packages=["Euclid", "Euclid.Run"],
+      package_dir={"Euclid": os.path.join("python", "Euclid"),
+                   "EuclidWrapper": os.path.join("python", "EuclidWrapper")},
+      packages=["Euclid", "Euclid.Run", "EuclidWrapper"],
       scripts=[os.path.join("scripts", s) for s in get_script_files()],
       data_files=etc_files + these_files,
-      cmdclass={"install": my_install,
-                "build": my_build,
-                "sdist": my_sdist,
-                "bdist_rpm": my_bdist_rpm,
+      cmdclass={"install": MyInstall,
+                "build": MyBuild,
+                "sdist": MySdist,
+                "bdist_rpm": MyBdistRpm,
                 "test": PyTest,
                 "purge": Purge,
                 "uninstall": Uninstall,
+                "build_scripts": MyBuildScripts,
                 },
       )

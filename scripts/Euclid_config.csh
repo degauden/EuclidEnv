@@ -44,6 +44,10 @@ end
 unset c
 unset cfgfiles
 
+if (! $?EUCLID_CONFIG_FILE) then
+  setenv EUCLID_CONFIG_FILE ""
+endif
+
 if ( "${EUCLID_CONFIG_FILE}" != "${euclid_config_file_current}" ) then
 
 # default values if no config file is found

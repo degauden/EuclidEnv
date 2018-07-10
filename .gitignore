@@ -11,3 +11,5 @@ __pycache__
 /runtests.pyc
 /EuclidEnv.egg-info/
 *.pyc
+/.pytest_cache
+/.cache
