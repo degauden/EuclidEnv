@@ -9,4 +9,5 @@ dist:
 
 validate:
   script:
+    - pip install pytest
     - python setup.py test
