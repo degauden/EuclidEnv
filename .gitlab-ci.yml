@@ -10,5 +10,6 @@ dist:
 validate:
   script:
     - pip install pytest
+    - pip install lxml
     - python setup.py build
     - python setup.py test
