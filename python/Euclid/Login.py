@@ -349,10 +349,12 @@ The type is to be chosen among the following list:
             ev["HOME"] = os.path.join(ev["HOMEDRIVE"], ev["HOMEPATH"])
             log.debug("Setting HOME to %s" % ev["HOME"])
         if sys.platform != "win32":
-            username = ev["USER"]
+            user_var = "USER"
         else:
-            username = ev["USERNAME"]
-        log.debug("User name is %s" % username)
+            user_var = "USERNAME"
+        username = ev.get(user_var, None)
+        if username:
+            log.debug("User name is %s" % username)
 
         if sys.platform != "win32" and self.targetShell() == "sh" and "HOME" in ev:
             hprof = os.path.join(ev["HOME"], ".bash_profile")

@@ -59,7 +59,7 @@ class PathTestCase(unittest.TestCase):
 
     def testHasCommand(self):
         self.assertFalse(hasCommand("ddkfhd"))
-        self.assertTrue(hasCommand("ls"))
+        self.assertTrue(hasCommand("python"))
 
     def testUpWalk(self):
         p1 = "/usr/local/bin"
