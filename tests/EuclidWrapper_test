@@ -197,6 +197,202 @@ fi
 echo ""
 
 ###############################################################################
+# Check the default ECDM configuration XML file parsing
+###############################################################################
+
+echo "Test default ECDM configuration..."
+
+cat > ${tmpdir}/default_ecdm_conf.xml << EOF
+<Testing>
+    <ConfigurationFile>
+        <ModuleName>echo</ModuleName>
+        <FileContainer filestatus="PROPOSED">
+            <FileName>
+                MyExecutable.conf
+            </FileName>
+        </FileContainer>
+    </ConfigurationFile>
+    <ConfigurationFile>
+        <ModuleName>OtherExecutable</ModuleName>
+        <FileContainer filestatus="PROPOSED">
+            <FileName>
+                OtherExecutable.conf
+            </FileName>
+        </FileContainer>
+    </ConfigurationFile>
+</Testing>
+EOF
+
+result=$(EuclidWrapper --workdir ${tmpdir} echo --ecdm_config_xml=default_ecdm_conf.xml)
+if [ "$result" != "--config-file data/MyExecutable.conf" ]; then
+  echo "Error: Test failed: Failed to retrieve the correct conf file from the XML" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --workdir ${tmpdir} echo --ecdm_config_xml default_ecdm_conf.xml)
+if [ "$result" != "--config-file data/MyExecutable.conf" ]; then
+  echo "Error: Test failed: Failed to retrieve the correct conf file from the XML" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# Check custom XPath for searching in the ECDM configuration file
+###############################################################################
+
+echo "Test custom ECDM configuration XPath..."
+
+cat > ${tmpdir}/custom_xpath_ecdm_conf.xml << EOF
+<Testing>
+    <ConfigurationFile>
+        <ModuleName>echo</ModuleName>
+        <SubModuleIdentifier>sub1</SubModuleIdentifier>
+        <DataContainer filestatus="PROPOSED">
+            <FileName>
+                sub1.conf
+            </FileName>
+        </DataContainer>
+    </ConfigurationFile>
+    <ConfigurationFile>
+        <ModuleName>echo</ModuleName>
+        <SubModuleIdentifier>config-file</SubModuleIdentifier>
+        <DataContainer filestatus="PROPOSED">
+            <FileName>
+                MyExecutable.conf
+            </FileName>
+        </DataContainer>
+    </ConfigurationFile>
+    <ConfigurationFile>
+        <ModuleName>echo</ModuleName>
+        <SubModuleIdentifier>sub2</SubModuleIdentifier>
+        <DataContainer filestatus="PROPOSED">
+            <FileName>
+                sub2.conf
+            </FileName>
+        </DataContainer>
+    </ConfigurationFile>
+</Testing>
+EOF
+
+result=$(EuclidWrapper --workdir ${tmpdir} echo --ecdm_config_xml=custom_xpath_ecdm_conf.xml --ecdm_config_xpath="//ConfigurationFile[ModuleName='{}'][SubModuleIdentifier='config-file']/DataContainer/FileName")
+if [ "$result" != "--config-file data/MyExecutable.conf" ]; then
+  echo "Error: Test failed: Failed to retrieve the correct conf file from the XML" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --workdir ${tmpdir} echo --ecdm_config_xml custom_xpath_ecdm_conf.xml --ecdm_config_xpath "//ConfigurationFile[ModuleName='{}'][SubModuleIdentifier='config-file']/DataContainer/FileName")
+if [ "$result" != "--config-file data/MyExecutable.conf" ]; then
+  echo "Error: Test failed: Failed to retrieve the correct conf file from the XML" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# Check forwarding of the ECDM configuration XML file
+###############################################################################
+
+echo "Test forwarding of the ECDM configuration XML file..."
+
+cat > ${tmpdir}/default_ecdm_conf.xml << EOF
+<Testing>
+    <ConfigurationFile>
+        <ModuleName>echo</ModuleName>
+        <FileContainer filestatus="PROPOSED">
+            <FileName>
+                MyExecutable.conf
+            </FileName>
+        </FileContainer>
+    </ConfigurationFile>
+    <ConfigurationFile>
+        <ModuleName>OtherExecutable</ModuleName>
+        <FileContainer filestatus="PROPOSED">
+            <FileName>
+                OtherExecutable.conf
+            </FileName>
+        </FileContainer>
+    </ConfigurationFile>
+</Testing>
+EOF
+
+result=$(EuclidWrapper --workdir ${tmpdir} --forward_ecdm_config_xml=xmlconf echo --ecdm_config_xml=default_ecdm_conf.xml)
+if [ "$result" != "--config-file data/MyExecutable.conf --xmlconf default_ecdm_conf.xml" ]; then
+  echo "Error: Test failed: ECDM configuration XML file was not forwarded" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# Check overriding the EuclidWrapper functionality with module in default
+# package (EuclidWrapper.EXEC_NAME)
+###############################################################################
+
+echo "Test overriding EuclidWrapper functionality..."
+
+mkdir -p ${tmpdir}/python_default/EuclidWrapper
+
+cat > ${tmpdir}/python_default/EuclidWrapper/__init__.py << EOF
+import pkgutil
+__path__ = pkgutil.extend_path(__path__, __name__)
+EOF
+
+cat > ${tmpdir}/python_default/EuclidWrapper/echo.py << EOF
+import argparse
+def defineWrapperProgramOptions():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--in-test-arg', type=str)
+    return parser
+def getOptionsToAppend(args, executable):
+    if args.in_test_arg:
+        return ['--out-test-arg', args.in_test_arg]
+    else:
+        return []
+EOF
+
+export PYTHONPATH=${tmpdir}/python_default:$PYTHONPATH
+
+result=$(EuclidWrapper --workdir ${tmpdir} echo --in-test-arg test_value)
+if [ "$result" != "--out-test-arg test_value" ]; then
+  echo "Error: Test failed: EuclidWrapper functionality was not overridden" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
+# Check overriding the EuclidWrapper functionality using the --wrapper-module
+###############################################################################
+
+echo "Test --wrapper-module parameter..."
+
+mkdir -p ${tmpdir}/python_custom/MyPackage
+
+touch ${tmpdir}/python_custom/MyPackage/__init__.py
+
+cat > ${tmpdir}/python_custom/MyPackage/MyModule.py << EOF
+import argparse
+def defineWrapperProgramOptions():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--in-test-arg', type=str)
+    return parser
+def getOptionsToAppend(args, executable):
+    if args.in_test_arg:
+        return ['--out-test-arg-custom', args.in_test_arg]
+    else:
+        return []
+EOF
+
+export PYTHONPATH=${tmpdir}/python_custom:$PYTHONPATH
+
+result=$(EuclidWrapper --workdir ${tmpdir} --wrapper-module MyPackage.MyModule echo --in-test-arg test_value)
+if [ "$result" != "--out-test-arg-custom test_value" ]; then
+  echo "Error: Test failed: EuclidWrapper functionality was not overridden" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
 # All tests finished successfully
 ###############################################################################
 local_clean_exit 0
