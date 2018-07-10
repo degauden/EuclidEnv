@@ -7,6 +7,6 @@ dist:
   script:
     - python setup.py sdist
 
-#validate:
-#  script:
-#    - python setup.py test
+validate:
+  script:
+    - python setup.py test
