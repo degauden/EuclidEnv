@@ -5,7 +5,6 @@ import os
 import sys
 from subprocess import Popen, PIPE
 
-
 class Path(object):
 
     def __init__(self, varname=None):
@@ -309,12 +308,26 @@ def isCVMFS(path):
     return _FSType(path) == "cvmfs"
 
 #-------------------------------------------------------------------------
+def which(program):
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, _ = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
 
 
 def hasCommand(cmd):
     hascmd = False
-    f = os.popen("which %s >& /dev/null" % cmd)
-    f.read()
-    if f.close() is None:
+    cmd_file = which(cmd)
+    if cmd_file is not None:
         hascmd = True
     return hascmd
