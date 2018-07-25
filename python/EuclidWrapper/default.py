@@ -3,9 +3,8 @@ from __future__ import division, print_function
 import argparse
 import os
 from lxml import etree
-import logging
 
-logger = logging.getLogger('EuclidWrapper')
+from EuclidWrapper.logging import logger
 
 
 def defineWrapperProgramOptions():
