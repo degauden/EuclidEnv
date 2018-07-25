@@ -9,7 +9,17 @@ import subprocess
 import sys
 import logging
 
-logger = logging.getLogger('EuclidWrapper')
+
+def _createLogger():
+    l = logging.getLogger('EuclidWrapper')
+    l.setLevel(logging.INFO)
+    _console = logging.StreamHandler()
+    _formatter = logging.Formatter(fmt='%(asctime)s %(name)s %(levelname)5s : %(message)s', datefmt='%Y-%m-%dT%X%Z')
+    _console.setFormatter(_formatter)
+    l.addHandler(_console)
+    return l
+
+logger = createLogger()
 
 
 def _addWrapperArguments(parser):
@@ -143,7 +153,7 @@ if __name__ == '__main__':
     if len(all_args) == 0:
         # The user didn't give an executable to wrap so we add the true command
         # which does nothing
-        logger.warn('No executable to wrap. Will execute "true"')
+        logger.warning('No executable to wrap. Will execute "true"')
         all_args.append('true')
 
     # Parse the arguments of the EuclidWrapper
