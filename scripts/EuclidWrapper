@@ -19,7 +19,7 @@ def _createLogger():
     l.addHandler(_console)
     return l
 
-logger = createLogger()
+logger = _createLogger()
 
 
 def _addWrapperArguments(parser):
