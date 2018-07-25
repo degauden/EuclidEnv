@@ -179,6 +179,10 @@ if __name__ == '__main__':
     # Parse the arguments that are handled by the user methods
     user_args, app_args = user_parser.parse_known_args(custom_args)
 
+    # If the user has defined a preActions() method we call it
+    if hasattr(wrapper_module, 'preActions'):
+        wrapper_module.preActions(user_args)
+
     # Replace the underscores with hyphens to all application arguments
     app_args = _replaceUnderscoresWithHyphens(app_args, wrapper_args.hyphen_whitelist,
                                               wrapper_args.hyphen_blacklist)
@@ -198,5 +202,12 @@ if __name__ == '__main__':
     cmd = [wrapper_args.executable] + app_args + extra_args
     logger.info('Executing command: {}'.format(cmd))
     exit_code = subprocess.call(cmd)
-    sys.exit(exit_code)
+    # If the command returned an error exit code we terminate here and we do
+    # not do any post actions
+    if exit_code != 0:
+        sys.exit(exit_code)
+
+    # If the user has defined a postActions() method we call it
+    if hasattr(wrapper_module, 'postActions'):
+        wrapper_module.postActions(user_args)
 
