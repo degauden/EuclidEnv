@@ -45,6 +45,8 @@ def _addWrapperArguments(parser):
     parser.add_argument('--hyphen-blacklist', type=str,
                         help='A comma separated list of arguments to keep the '
                              'underscores (all other will be replaced by hyphens)')
+    parser.add_argument('--python-wrapping', action='store_true',
+                        help='Prefix the execution with the EDEN version of python')
     parser.add_argument('executable', metavar='EXECUTABLE', type=str,
                         help='The wrapped executable')
 
@@ -187,7 +189,13 @@ if __name__ == '__main__':
     extra_args += wrapper_module.getOptionsToAppend(user_args, wrapper_args.executable)
 
     # Now execute the command
-    cmd = [wrapper_args.executable] + app_args + extra_args
+    if wrapper_args.python_wrapping:
+        logger.info('Python wrapping is enabled. Executable will be called using ' + sys.executable)
+        full_exec_path = subprocess.getoutput('which ' + wrapper_args.executable)
+        cmd = [sys.executable, full_exec_path]
+    else:
+        cmd = [wrapper_args.executable]
+    cmd += app_args + extra_args
     logger.info('Executing command: {}'.format(cmd))
     exit_code = subprocess.call(cmd)
     # If the command returned an error exit code we terminate here and we do
