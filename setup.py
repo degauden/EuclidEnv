@@ -37,14 +37,16 @@ dist_usr_prefix = "/usr"
 dist_exp_version = __exec_exp_vers
 dist_full_exec_python = __full_exec__
 
+this_use_custom_prefix = "no"
+
 if __usr_loc__ != "/usr":
     dist_euclid_base = os.path.join(__root_loc__, dist_euclid_base.lstrip("/"))
     dist_etc_prefix = os.path.join(__root_loc__, dist_etc_prefix.lstrip("/"))
     dist_usr_prefix = os.path.join(__root_loc__, dist_usr_prefix.lstrip("/"))
+    this_use_custom_prefix = "yes"
 
 # variable interpolated at install time
 this_euclid_base = "/opt/euclid"
-this_use_custom_prefix = "no"
 
 if not dist_exp_version:
     pytest_cmd = "py.test"
