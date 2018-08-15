@@ -58,18 +58,6 @@ if python_loc:
     sys.path.insert(0, python_loc)
 
 #============================================================================
-# get the explicit python version used to call this script
-
-__full_exec__ = sys.executable
-__exec__ = os.path.basename(__full_exec__)
-__exec_maj_vers = "%d" % sys.version_info[0]
-__exec_exp_vers = ""
-
-if __exec__.endswith(__exec_maj_vers) :
-    __exec_exp_vers = __exec_maj_vers
-
-
-#============================================================================
 
 from Euclid.Platform import getBinaryOfType, build_types, default_build_type
 from Euclid.Platform import getBinaryTypeName
@@ -600,8 +588,23 @@ The type is to be chosen among the following list:
 
         log.debug("CMAKE_PROJECT_PATH is set to %s" % ev["CMAKE_PROJECT_PATH"])
 
-        if __exec_exp_vers and not opts.no_explicit_python_version:
-            ev["CMAKEFLAGS"] += " -DPYTHON_EXPLICIT_VERSION=%s" % __exec_exp_vers
+        if not opts.no_explicit_python_version:
+
+            # get the explicit python version used to call this script
+
+            __full_exec__ = sys.executable
+            __exec__ = os.path.basename(__full_exec__)
+            __exec_maj_vers = "%d" % sys.version_info[0]
+            __exec_exp_vers = ""
+
+            if __exec__.endswith(__exec_maj_vers) :
+                __exec_exp_vers = __exec_maj_vers
+
+            if __exec_exp_vers:
+                log.debug("Using python explicit version: %s" % __exec_exp_vers)
+                ev["CMAKEFLAGS"] += " -DPYTHON_EXPLICIT_VERSION=%s" % __exec_exp_vers
+
+
 
         if "MACPORT_LOCATION" in ev:
             if "CMAKEFLAGS" in ev:
