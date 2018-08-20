@@ -1,0 +1,109 @@
+#!groovy
+@Library('integration-library@master') _
+
+pipeline{
+    
+    agent any
+    environment{
+        CREDENTIAL="197f250d-f707-499e-8039-7231e098d887"
+        GIT_TAG = 'null' // TODO
+        MINOR_VERSION = '1' // TODO
+    }
+
+    stages{
+
+        stage ('build-dev'){
+            agent{ label 'EDEN 2.0 Dev'}
+            when{
+                allOf{
+                    branch 'develop'
+                }
+            }
+            steps{             
+                script{
+                    sh "$PYTHON3_EDEN setup.py build"
+				}
+			}
+		}
+
+        
+        stage('test-dev'){
+            agent{ label 'EDEN 2.0 Dev'}
+            when{
+                allOf{
+                    branch "develop"
+                }
+            }
+            steps{
+                 script{
+                     sh "$PYTHON3_EDEN setup.py test"
+                 }
+            }
+        }
+        
+        stage('dist-dev'){
+            agent{ label 'EDEN 2.0 Dev'}
+            when{
+                allOf{
+                    branch "develop"
+                }
+            }
+            steps{
+                 script{
+                    sh "$PYTHON3_EDEN setup.py sdist"
+                    sh "mkdir -p ./rpm/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}"
+                    sh "mv ./dist/EuclidEnv.spec ./rpm/rpmbuild/SPECS"
+                    sh "mv ./dist/EuclidEnv-*.tar.gz ./rpm/rpmbuild/SOURCES"
+                    sh 'rpmbuild --define "_topdir $PWD/rpm/rpmbuild" -ba ./rpm/rpmbuild/SPECS/EuclidEnv.spec'
+                    sh "mv ./rpm/rpmbuild/RPMS/noarch/*.rpm ./dist"
+                    sh "rm -rf ./rpm"
+                }
+            }
+        }
+        stage('upload-dev'){
+            agent{ label 'EDEN 2.0 Dev'}
+            when{
+                allOf{
+                    branch "develop"
+                }
+            }
+            steps{
+                 script{
+                    def rpm = sh(returnStdout:true, script: 'ls ./dist/*.rpm').trim()
+                    def version = sh(returnStdout:true, script:"rpm -qp $rpm --queryformat '%{VERSION}'").trim()
+                    def artifactId = "EuclidEnv"
+                    def repo = "el7.euclid.2.0.DEV"
+                    def groupId = "x86_64"
+                    nexusArtifactUploader artifacts: [[artifactId: "${artifactId}", classifier: '', file: "${rpm}", type: 'rpm']], credentialsId: "${env.CREDENTIAL}", groupId: "${groupId}", nexusUrl: "${NEXUS_REPOSITORY}/nexus", nexusVersion: 'nexus2', protocol: 'https', repository: "${repo}", version: "${version}"
+                }
+            }
+        }
+        stage('deploy'){
+            agent{ label 'master'}
+            when{
+                anyOf{
+                    allOf{
+                        branch 'master'
+                        expression{ return (env.GIT_TAG != 'null') && isEven(env.MINOR_VERSION);}
+                    }
+                    allOf{
+                        branch 'develop'
+                        expression{!isEven(env.MINOR_VERSION);}
+                    }
+                }
+            }
+
+            steps{
+                 script{
+  					if(isEven(env.MINOR_VERSION)){
+						sh 'ssh ansible@localhost "/usr/local/bin/deploy_eden-pp.sh"'
+					}
+					sh 'ssh ansible@localhost "/usr/local/bin/deploy_eden.dev-pp.sh"'
+
+                }
+            }
+        }  
+    }
+}
+ 
+
