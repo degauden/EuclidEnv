@@ -3,7 +3,6 @@
 import os
 import sys
 
-
 from Euclid.Path import multiPathGetFirst
 
 try:
@@ -31,7 +30,7 @@ except:
 
     # use another fallback if CMAKE_PREFIX_PATH is not defined.
 
-from Euclid.Run.Lookup import getEnvXmlPath, findProject
+from Euclid.Run.Lookup import getEnvXmlPath
 from Euclid.Run.Version import isValidVersion, expandVersionAlias
 
 # auto_override_projects = [('Compat', 'latest')]

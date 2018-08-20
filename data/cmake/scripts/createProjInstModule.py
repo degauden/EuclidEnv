@@ -1,9 +1,11 @@
+""" Script module to generate the project installation python module """
 import os
 import re
 from optparse import OptionParser
 
 
 def main():
+    """ main function of the script module """
     parser = OptionParser(
         usage="ERROR: Usage %prog <project> <location> <used_projects> <outputfile>")
     parser.add_option("-q", "--quiet", action="store_true",
@@ -34,8 +36,9 @@ def main():
         os.makedirs(outdir)
 
     # Prepare data to be written
-    outputdata = """# Automatically generated file: do not modify!
-"""
+    outputdata = """''' %(project)s Python Installation Module '''
+# Automatically generated file: do not modify!
+""" % { 'project': project}
     for p in used_projects:
         outputdata += """from %(proj)s_INSTALL import %(proj)s_INSTALL_LOCATION
 """ % { 'proj': p.upper() }

@@ -3,35 +3,55 @@
 # Author:    $Format:%an$
 # Date  :    $Format:%ad$
 
-
 from distutils.core import setup, Command
 from distutils.command.install import install as _install
 from distutils.command.sdist import sdist as _sdist
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 from distutils.command.build import build as _build
-
-from setuptools import find_packages
+from distutils.command.build_scripts import build_scripts as _build_scripts
+from distutils.util import convert_path
 
 import os
 import sys
 from subprocess import call, check_output
 from glob import glob
 
-
 from string import Template
 
-__version__ = "3.4"
+__version__ = "3.8"
 __project__ = "EuclidEnv"
+__full_exec__ = sys.executable
+__usr_loc__ = os.path.dirname(os.path.dirname(__full_exec__))
+__root_loc__ = os.path.dirname(__usr_loc__)
+__exec__ = os.path.basename(__full_exec__)
+__exec_maj_vers = "%d" % sys.version_info[0]
+__exec_exp_vers = ""
+
+if __exec__.endswith(__exec_maj_vers) :
+    __exec_exp_vers = __exec_maj_vers
 
 # variable used for the package creation
 dist_euclid_base = "/opt/euclid"
 dist_etc_prefix = "/etc"
 dist_usr_prefix = "/usr"
+dist_exp_version = __exec_exp_vers
+dist_full_exec_python = __full_exec__
+
+this_use_custom_prefix = "no"
+
+if __usr_loc__ != "/usr":
+    dist_euclid_base = os.path.join(__root_loc__, dist_euclid_base.lstrip("/"))
+    dist_etc_prefix = os.path.join(__root_loc__, dist_etc_prefix.lstrip("/"))
+    dist_usr_prefix = os.path.join(__root_loc__, dist_usr_prefix.lstrip("/"))
+    this_use_custom_prefix = "yes"
 
 # variable interpolated at install time
 this_euclid_base = "/opt/euclid"
-this_use_custom_prefix = "no"
 
+if not dist_exp_version:
+    pytest_cmd = "py.test"
+else:
+    pytest_cmd = "py.test-%s" % dist_exp_version
 
 def get_data_files(input_dir, output_dir):
     result = []
@@ -43,9 +63,18 @@ def get_data_files(input_dir, output_dir):
             (os.sep.join([output_dir] + root.split(os.sep)[1:]), da_files))
     return result
 
+
 these_files = get_data_files("data/cmake", __project__)
 these_files += get_data_files("data/texmf", __project__)
 these_files += get_data_files("data/make", __project__)
+
+
+def get_script_files():
+    result = []
+    for root, dirs, files in os.walk("scripts"):
+        for f in files:
+            result.append(f)
+    return result
 
 
 # Please note the that the local install is
@@ -56,7 +85,6 @@ for a in sys.argv:
     for b in ["--user", "--prefix", "--home"]:
         if a.startswith(b):
             use_local_install = True
-
 
 etc_install_root = None
 install_root = None
@@ -75,7 +103,6 @@ for a in sys.argv:
         if len(r_base) == 1:
             install_root = r_base[0]
 
-
 if not etc_install_root:
     if use_local_install:
         etc_install_prefix = "../etc"
@@ -84,13 +111,11 @@ if not etc_install_root:
 else:
     etc_install_prefix = os.path.join(etc_install_root, "etc")
 
-
 etc_files = [(os.path.join(etc_install_prefix, "profile.d"), [os.path.join("data", "profile", "euclid.sh"),
                                        os.path.join("data", "profile", "euclid.csh")]),
              (os.path.join(etc_install_prefix, "sysconfig"),
                   [os.path.join("data", "sys", "config", "euclid")])
             ]
-
 
 use_custom_install_root = False
 for a in sys.argv:
@@ -99,9 +124,7 @@ for a in sys.argv:
         # RPM. This will prevent the post install treatment.
         use_custom_install_root = True
 
-
 skip_install_fix = False
-
 
 # disable the postinstall script if needed. This is especially needed for the RPM
 # creation. In that case the postinstall is done by the RPM spec file.
@@ -127,6 +150,9 @@ for a in sys.argv:
         sys.argv.remove(a)
 
 
+fixscript_name = "FixInstallPath"
+
+
 def getRMD160Digest(filepath):
     return check_output(["openssl", "dgst", "-rmd160", filepath]).split()[-1]
 
@@ -135,12 +161,25 @@ def getSHA256Digest(filepath):
     return check_output(["openssl", "dgst", "-sha256", filepath]).split()[-1]
 
 
-class my_build(_build):
+class MyBuild(_build):
+
     def run(self):
         _build.run(self)
 
 
-class my_sdist(_sdist):
+class MyBuildScripts(_build_scripts):
+
+    def copy_scripts(self):
+        # local fixscript. Before installation
+        fixscript = os.path.join("scripts", fixscript_name)
+        _build_scripts.copy_scripts(self)
+        scripts_build_dir = self.build_dir
+        for script in self.scripts:
+            script = convert_path(script)
+            outfile = os.path.join(self.build_dir, os.path.basename(script))
+            call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, outfile])
+
+class MySdist(_sdist):
 
     @staticmethod
     def _get_template_target(filename):
@@ -174,7 +213,10 @@ class my_sdist(_sdist):
                 changelog=changelog_content,
                 euclid_base=dist_euclid_base,
                 usr_prefix=dist_usr_prefix,
-                etc_prefix=dist_etc_prefix)
+                etc_prefix=dist_etc_prefix,
+                python_explicit_version=dist_exp_version,
+                full_exec_python=dist_full_exec_python
+                )
         with open(out_fname, "w") as out_f:
             out_f.write(src)
 
@@ -191,7 +233,7 @@ class my_sdist(_sdist):
         self.expand_templates()
 
 
-class my_bdist_rpm(_bdist_rpm):
+class MyBdistRpm(_bdist_rpm):
 
     @staticmethod
     def run():
@@ -200,13 +242,13 @@ class my_bdist_rpm(_bdist_rpm):
         sys.exit(1)
 
 
-class my_install(_install):
+class MyInstall(_install):
 
     def initialize_options(self):
 
         _install.initialize_options(self)
 
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
 
         dist_dir = os.path.join(parent_dir, "dist")
 
@@ -245,35 +287,30 @@ class my_install(_install):
 
         return this_install
 
-
     def fix_etc_install_path(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_config_scripts()
         this_install = os.path.join(self.get_etc_install_root(), "etc")
         for p in proc_list:
-            print("Fixing %s with the %s prefix path" % (p, this_install))
-            call(["python", fixscript, "-n", "this_etc_install_prefix", this_install, p])
-
+            call([__exec__, fixscript, "-n", "this_etc_install_prefix", this_install, p])
 
     def fix_install_path(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_login_scripts() + self.get_config_scripts()
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
             proc_list.append(file2fix)
         proc_list += self.get_profile_scripts()
         for p in proc_list:
-            print("Fixing %s with the %s prefix path" % (p, os.path.dirname(self.install_scripts)))
-            call(["python", fixscript, os.path.dirname(self.install_scripts), p])
+            call([__exec__, fixscript, os.path.dirname(self.install_scripts), p])
         self.fix_etc_install_path()
 
     def fix_version(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
-            print("Fixing %s with the %s version" % (file2fix, __version__))
             call(
-                ["python", fixscript, "-n", "this_install_version", __version__, file2fix])
+                [__exec__, fixscript, "-n", "this_install_version", __version__, file2fix])
 
     def get_sysconfig_files(self):
         p_list = []
@@ -295,24 +332,29 @@ class my_install(_install):
         return p_list
 
     def fix_euclid_base(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_sysconfig_files()
         proc_list += self.get_config_scripts()
         file2fix = os.path.join(self.install_lib, "Euclid", "Login.py")
         if os.path.exists(file2fix):
             proc_list.append(file2fix)
         for p in proc_list:
-            print("Fixing %s with the %s euclid base" % (p, this_euclid_base))
             call(
-                ["python", fixscript, "-n", "this_euclid_base", this_euclid_base, p])
+                [__exec__, fixscript, "-n", "this_euclid_base", this_euclid_base, p])
 
     def fix_use_custom_prefix(self):
-        fixscript = os.path.join(self.install_scripts, "FixInstallPath")
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
         proc_list = self.get_sysconfig_files()
         for p in proc_list:
-            print("Fixing %s with the %s use custom prefix" % (p, this_use_custom_prefix))
             call(
-                ["python", fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
+                [__exec__, fixscript, "-n", "this_use_custom_prefix", this_use_custom_prefix, p])
+
+    def fix_python_version(self):
+        fixscript = os.path.join(self.install_scripts, fixscript_name)
+        for s in get_script_files():
+            if s != fixscript_name:
+                full_s = os.path.join(self.install_scripts, s)
+                call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, full_s])
 
     def create_extended_init(self):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
@@ -331,6 +373,7 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
         self.fix_version()
         self.fix_euclid_base()
         self.fix_use_custom_prefix()
+        self.fix_python_version()
         self.create_extended_init()
 
     def print_install_locations(self):
@@ -352,6 +395,7 @@ __path__ = extend_path(__path__, __name__)  # @ReservedAssignment
 #            self.print_install_locations()
             self.custom_post_install()
 
+
 class PyTest(Command):
     user_options = []
     runtests_filename = "runtests.py"
@@ -364,32 +408,49 @@ class PyTest(Command):
 
     @staticmethod
     def _get_python_path():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         return os.path.join(parent_dir, "python")
 
     @staticmethod
+    def _get_scripts_path():
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(parent_dir, "scripts")
+
+    @staticmethod
+    def _get_scripts_build_path():
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(parent_dir, "build", "scripts-%s" % sys.version[0:3])
+
+
+    @staticmethod
     def _get_tests_files():
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         return glob(os.path.join(parent_dir, "tests", "*Test.py"))
+
+    @staticmethod
+    def _get_executable_tests_files():
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
+        tst_list = glob(os.path.join(parent_dir, "tests", "*"))
+        return [f for f in tst_list if not os.path.splitext(f)[1] and not os.path.isdir(f)]
 
     def _generate_runtests_file(self):
         import subprocess
-        errno = subprocess.call(["py.test", "--genscript=%s" % self.runtests_filename])
+        errno = subprocess.call([pytest_cmd, "--genscript=%s" % self.runtests_filename])
         print("%s generated. Please consider to add it to your sources" % self.runtests_filename)
         if errno != 0:
             raise SystemExit(errno)
 
-
     def run(self):
         import subprocess
         import sys
-        if not os.path.exists(os.path.join(os.getcwd(), self.runtests_filename)) :
-            self._generate_runtests_file()
-
         sys.path.insert(0, self._get_python_path())
         os.environ["PYTHONPATH"] = os.pathsep.join(sys.path)
-        errno = subprocess.call([sys.executable, 'runtests.py'] + self._get_tests_files())
+        from Euclid.Path import envPathPrepend
+        envPathPrepend("PATH", self._get_scripts_path())
+        envPathPrepend("PATH", self._get_scripts_build_path())
+        errno = subprocess.call([pytest_cmd] + self._get_tests_files())
         raise SystemExit(errno)
+
 
 class Purge(Command):
     user_options = []
@@ -405,7 +466,7 @@ class Purge(Command):
 
         import shutil
 
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
 
         for d in ["build", "dist"]:
             full_d = os.path.join(parent_dir, d)
@@ -431,7 +492,7 @@ class Uninstall(Command):
     def run(self):
 
         import shutil
-        parent_dir = os.path.dirname(__file__)
+        parent_dir = os.path.dirname(os.path.abspath(__file__))
         record = os.path.join(parent_dir, "dist", "installed_files.txt")
         with open(record) as rf:
             for l in rf:
@@ -455,32 +516,18 @@ setup(name=__project__,
       author="Hubert Degaudenzi",
       author_email="Hubert.Degaudenzi@unige.ch",
       url="http://www.isdc.unige.ch/redmine/projects/euclidenv",
-      package_dir={"Euclid": os.path.join("python", "Euclid")},
-      packages=find_packages(where="python"),
-      scripts=[os.path.join("scripts", "ELogin.sh"),
-               os.path.join("scripts", "ELogin.csh"),
-               os.path.join("scripts", "Euclid_config.sh"),
-               os.path.join("scripts", "Euclid_config.csh"),
-               os.path.join("scripts", "Euclid_group_login.sh"),
-               os.path.join("scripts", "Euclid_group_login.csh"),
-               os.path.join("scripts", "Euclid_group_setup.sh"),
-               os.path.join("scripts", "Euclid_group_setup.csh"),
-               os.path.join("scripts", "runpy"),
-               os.path.join("scripts", "StripPath.csh"),
-               os.path.join("scripts", "StripPath.sh"),
-               os.path.join("scripts", "WhereAmI"),
-               os.path.join("scripts", "E-Run"),
-               os.path.join("scripts", "eclipse_pythonpath_fix"),
-               os.path.join("scripts", "FixInstallPath"),
-               os.path.join("scripts", "ERun_autocompletion.sh"),
-               ],
+      package_dir={"Euclid": os.path.join("python", "Euclid"),
+                   "EuclidWrapper": os.path.join("python", "EuclidWrapper")},
+      packages=["Euclid", "Euclid.Run", "EuclidWrapper"],
+      scripts=[os.path.join("scripts", s) for s in get_script_files()],
       data_files=etc_files + these_files,
-      cmdclass={"install": my_install,
-                "build": my_build,
-                "sdist": my_sdist,
-                "bdist_rpm": my_bdist_rpm,
+      cmdclass={"install": MyInstall,
+                "build": MyBuild,
+                "sdist": MySdist,
+                "bdist_rpm": MyBdistRpm,
                 "test": PyTest,
                 "purge": Purge,
                 "uninstall": Uninstall,
+                "build_scripts": MyBuildScripts,
                 },
       )

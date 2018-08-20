@@ -56,6 +56,7 @@ else:
 
 if python_loc:
     sys.path.insert(0, python_loc)
+
 #============================================================================
 
 from Euclid.Platform import getBinaryOfType, build_types, default_build_type
@@ -156,6 +157,11 @@ The type is to be chosen among the following list:
                           dest="strip_path",
                           action="store_true",
                           help="activate the cleanup of invalid entries in pathes [default: %default]")
+        parser.set_defaults(no_explicit_python_version=False)
+        parser.add_option("--no-explicit-python-version",
+                          dest="no_explicit_python_version",
+                          action="store_true",
+                          help="inhibits the setup of variable for an explicit python version")
 # specific native platform options
         if self._nativemachine.OSType() == "Darwin":
             parser.add_option("--macport-location",
@@ -349,10 +355,12 @@ The type is to be chosen among the following list:
             ev["HOME"] = os.path.join(ev["HOMEDRIVE"], ev["HOMEPATH"])
             log.debug("Setting HOME to %s" % ev["HOME"])
         if sys.platform != "win32":
-            username = ev["USER"]
+            user_var = "USER"
         else:
-            username = ev["USERNAME"]
-        log.debug("User name is %s" % username)
+            user_var = "USERNAME"
+        username = ev.get(user_var, None)
+        if username:
+            log.debug("User name is %s" % username)
 
         if sys.platform != "win32" and self.targetShell() == "sh" and "HOME" in ev:
             hprof = os.path.join(ev["HOME"], ".bash_profile")
@@ -580,6 +588,26 @@ The type is to be chosen among the following list:
 
         log.debug("CMAKE_PROJECT_PATH is set to %s" % ev["CMAKE_PROJECT_PATH"])
 
+        if not opts.no_explicit_python_version:
+
+            # get the explicit python version used to call this script
+
+            __full_exec__ = sys.executable
+            __exec__ = os.path.basename(__full_exec__)
+            __exec_maj_vers = "%d" % sys.version_info[0]
+            __exec_exp_vers = ""
+
+            if __exec__.endswith(__exec_maj_vers) :
+                __exec_exp_vers = __exec_maj_vers
+
+            if __exec_exp_vers:
+                log.debug("Using python explicit version: %s" % __exec_exp_vers)
+                if "CMAKEFLAGS" in ev:
+                    ev["CMAKEFLAGS"] += " -DPYTHON_EXPLICIT_VERSION=%s" % __exec_exp_vers
+                else:
+                    ev["CMAKEFLAGS"] = "-DPYTHON_EXPLICIT_VERSION=%s" % __exec_exp_vers
+
+
         if "MACPORT_LOCATION" in ev:
             if "CMAKEFLAGS" in ev:
                 ev["CMAKEFLAGS"] += " -DCMAKE_FIND_FRAMEWORK=LAST"
@@ -588,10 +616,12 @@ The type is to be chosen among the following list:
                 ev["CMAKEFLAGS"] = "-DCMAKE_FIND_FRAMEWORK=LAST"
                 ev["CMAKEFLAGS"] += " -DCMAKE_FIND_ROOT_PATH=%s" % ev["MACPORT_LOCATION"]
 
+
     def setExtraEnv(self):
 
         ev = self.Environment()
         ev["ELEMENTS_NAMING_DB_URL"] = "https://pieclddj00.isdc.unige.ch/elementsnaming"
+        ev["CTEST_OUTPUT_ON_FAILURE"] = "1"
 
     def copyEnv(self):
         ev = self.Environment()

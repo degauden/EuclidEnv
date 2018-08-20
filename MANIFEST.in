@@ -1,5 +1,4 @@
 include ChangeLog
-include runtests.py
 # exclude python/Euclid/__init__.*
 recursive-include tests *
 recursive-include data *

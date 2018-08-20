@@ -1,3 +1,25 @@
+* Mon Aug 20 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.8-1
+- add the CTEST_OUTPUT_ON_FAILURE=1 as default environement variable
+- add the EuclidWrapper new feature (Nikos)
+- remove the generation of the runtests.py script. The "--genscript" 
+  option of py.test has been obsoleted
+- implement the python explicit version handling in the scripts.
+- add the .jenkinsFile.
+- add the full support (distribution and run) for the usage of the 
+  python3 executable from an unusual location. 
+
+* Fri Jun 15 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.6-1
+- update to the latest cmake library of Elements (5.4)
+
+* Thu Mar 29 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch>
+- global fixing of the python 3 explicit version used in the scripts. That
+  version is correctly interpolated for every use. Please note that the
+  explicit version is detected from the base name of the interpreter which 
+  is used
+- the RPM distribution kit (tar.gz and SPEC file) is now using the python 
+  interpreter fullpath to assert the install root. No on-the-fly rpm relocation
+  should be needed then.
+
 * Wed Aug 9 2017 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.3-1
 - data/sys/config/euclid: add an extra post script to be sourced called
   EdenEnv.sh. It is looked in the path and should have no side effect if

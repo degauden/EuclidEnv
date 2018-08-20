@@ -13,7 +13,7 @@ import sys
 import os
 
 
-class PlainScript:
+class PlainScript(object):
     _version = "$Id$".replace(
         "$", "").replace("Id:", "").strip()
     _description = ""

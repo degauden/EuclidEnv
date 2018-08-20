@@ -10,22 +10,9 @@
 set my_own_prefix0 = "%(this_etc_install_prefix)s"
 set my_own_exe_prefix0 = "%(this_install_prefix)s"
 
-# internal guard to avoid double sourcing of the SAME file
-
 if (! $?EUCLID_CONFIG_SCRIPT) then
   setenv EUCLID_CONFIG_SCRIPT ""
 endif
-
-if ( "${EUCLID_CONFIG_SCRIPT}" != "${my_own_exe_prefix0}/bin/Euclid_config.csh" ) then
-
-# default values if no config file is found
-setenv SOFTWARE_BASE_VAR EUCLID_BASE
-setenv EUCLID_BASE %(this_euclid_base)s
-setenv EUCLID_USE_BASE no
-setenv EUCLID_USE_PREFIX no
-setenv EUCLID_CUSTOM_PREFIX %(this_euclid_base)s/../../usr
-setenv EUCLID_USE_CUSTOM_PREFIX no
-
 
 set cfgfiles=""
 if ( $?XDG_CONFIG_HOME ) then
@@ -46,18 +33,37 @@ set cfgfiles="$cfgfiles $my_own_prefix0/sysconfig/euclid"
 set cfgfiles="$cfgfiles /etc/default/Euclid"
 set cfgfiles="$cfgfiles /etc/sysconfig/euclid"
 
+set euclid_config_file_current=""
 foreach c ( $cfgfiles )
   if ( -r $c ) then
-    setenv EUCLID_CONFIG_FILE $c
-    eval `cat $EUCLID_CONFIG_FILE | sed -n -e '/^[^+]/s/\(\\\$[^ ]*\)/"\\\\\1"/' -e '/^[^+]/s/\([^=]*\)[=]\(.*\)/setenv \1 \"\2\";/gp'`
+    set euclid_config_file_current=$c
     break
   endif
 end
 
-setenv EUCLID_CUSTOM_PREFIX `readlink -m ${EUCLID_CUSTOM_PREFIX}`
-
 unset c
 unset cfgfiles
+
+if (! $?EUCLID_CONFIG_FILE) then
+  setenv EUCLID_CONFIG_FILE ""
+endif
+
+if ( "${EUCLID_CONFIG_FILE}" != "${euclid_config_file_current}" ) then
+
+# default values if no config file is found
+setenv SOFTWARE_BASE_VAR EUCLID_BASE
+setenv EUCLID_BASE %(this_euclid_base)s
+setenv EUCLID_USE_BASE no
+setenv EUCLID_USE_PREFIX no
+setenv EUCLID_CUSTOM_PREFIX %(this_euclid_base)s/../../usr
+setenv EUCLID_USE_CUSTOM_PREFIX no
+
+if ( "${euclid_config_file_current}" != "" ) then
+  eval `cat ${euclid_config_file_current} | sed -n -e '/^[^+]/s/\(\\\$[^ ]*\)/"\\\\\1"/' -e '/^[^+]/s/\([^=]*\)[=]\(.*\)/setenv \1 \"\2\";/gp'`
+endif
+
+setenv EUCLID_CUSTOM_PREFIX `readlink -m ${EUCLID_CUSTOM_PREFIX}`
+
 
 set arch_type=`uname -m`
 
@@ -98,7 +104,7 @@ if ( "${EUCLID_USE_BASE}" == "yes" ) then
       endif
     endif
     
-    set my_python_base=`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))"`
+    set my_python_base=`python%(this_python_version)s -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_BASE}'))"`
     if ( -d ${my_python_base} ) then
       if ( $?PYTHONPATH ) then 
         setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
@@ -165,7 +171,7 @@ if ( "${EUCLID_USE_PREFIX}" == "yes" ) then
       endif
     endif
     
-    set my_python_base=`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))"`
+    set my_python_base=`python%(this_python_version)s -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${my_own_exe_prefix0}'))"`
     if ( -d ${my_python_base} ) then
       if ( $?PYTHONPATH ) then 
         setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
@@ -233,7 +239,7 @@ if ( "${EUCLID_USE_CUSTOM_PREFIX}" == "yes" ) then
       endif
     endif
     
-    set my_python_base=`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_CUSTOM_PREFIX}'))"`
+    set my_python_base=`python%(this_python_version)s -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='${EUCLID_CUSTOM_PREFIX}'))"`
     if ( -d ${my_python_base} ) then
       if ( $?PYTHONPATH ) then 
         setenv PYTHONPATH ${my_python_base}:${PYTHONPATH}
@@ -265,9 +271,13 @@ endif
 
 unset arch_type
 
-# end of the guard
-setenv EUCLID_CONFIG_SCRIPT ${my_own_exe_prefix0}/bin/Euclid_config.csh
+setenv EUCLID_CONFIG_FILE ${euclid_config_file_current}
+
 endif
+
+unset euclid_config_file_current
+
+setenv EUCLID_CONFIG_SCRIPT ${my_own_exe_prefix0}/bin/Euclid_config.csh
 
 unset my_own_prefix0
 unset my_own_exe_prefix0

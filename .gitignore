@@ -10,3 +10,6 @@ __pycache__
 /.coverage
 /runtests.pyc
 /EuclidEnv.egg-info/
+*.pyc
+/.pytest_cache
+/.cache
