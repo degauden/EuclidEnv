@@ -602,8 +602,10 @@ The type is to be chosen among the following list:
 
             if __exec_exp_vers:
                 log.debug("Using python explicit version: %s" % __exec_exp_vers)
-                ev["CMAKEFLAGS"] += " -DPYTHON_EXPLICIT_VERSION=%s" % __exec_exp_vers
-
+                if "CMAKEFLAGS" in ev:
+                    ev["CMAKEFLAGS"] += " -DPYTHON_EXPLICIT_VERSION=%s" % __exec_exp_vers
+                else:
+                    ev["CMAKEFLAGS"] = "-DPYTHON_EXPLICIT_VERSION=%s" % __exec_exp_vers
 
 
         if "MACPORT_LOCATION" in ev:
