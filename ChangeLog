@@ -1,3 +1,7 @@
+* Thu Aug 23 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.8.1-1
+- bypass of the tests in the jenkins CI. Please have look at 
+  https://euclid.roe.ac.uk/issues/8257
+
 * Mon Aug 20 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.8-1
 - add the CTEST_OUTPUT_ON_FAILURE=1 as default environement variable
 - add the EuclidWrapper new feature (Nikos)
