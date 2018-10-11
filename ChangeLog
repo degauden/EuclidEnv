@@ -1,3 +1,10 @@
+* Thu Oct 11 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.8.2-1
+- data/RPM/EuclidEnv.spec.in: fix the spec generation if the python explicit
+  version is empty. The RPM post install script were failing in that case 
+- python/EuclidWrapper/logging.py: fix the absolute import of the system
+  logging feature. The EuclidWrapper script was working fine with python3 but 
+  not with the default system python (python 2) 
+
 * Thu Aug 23 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.8.1-1
 - bypass of the tests in the jenkins CI. Please have look at 
   https://euclid.roe.ac.uk/issues/8257
