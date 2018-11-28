@@ -55,6 +55,7 @@ rm -rf $$RPM_BUILD_ROOT
 %{_datadir}/%{name}/cmake/*
 %{_datadir}/%{name}/texmf/*
 %{_datadir}/%{name}/make/*
+%{_datadir}/jupyter/kernels/*
 
 %post
 python_loc=$$(%{__python${python_explicit_version}} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$$RPM_INSTALL_PREFIX0'))")
