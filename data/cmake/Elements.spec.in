@@ -27,12 +27,10 @@ Requires(post):    /sbin/ldconfig
 Requires(postun):  /sbin/ldconfig
 
 %define bin_tag @CPACK_SYSTEM_NAME@
-%if %{without squeeze}
 %define _proj_base_dir @ELEMENTS_BASE_DIR@
 %define _proj_name_dir %{_proj_base_dir}/%{name}
 %define _proj_vers_dir %{_proj_name_dir}/%{version}
 %define _proj_ia_dir %{_proj_vers_dir}/InstallArea
-%endif
 %define _prefix @CPACK_PACKAGING_INSTALL_PREFIX@
 %define build_dir_name @BUILD_SUBDIR@
 
@@ -62,6 +60,7 @@ Requires: %{name} = %{version}-%{release}
 %description devel
 The development part of the %{name} package.
 
+
 %package debuginfo
 Summary: Debug information for package %{name}
 Requires: %{name} = %{version}-%{release}
@@ -69,6 +68,7 @@ Requires: %{name} = %{version}-%{release}
 
 %description debuginfo
 Debug information for package %{name}
+
 
 %package doc
 Summary: Documentation for package %{name}
@@ -78,13 +78,13 @@ Requires: %{name}-devel = %{version}-%{release}
 %description doc
 Documentation for package %{name}
 
+
 %prep
 %setup -q
 
 %build
 export BINARY_TAG=%{bin_tag}
 export VERBOSE=1
-%if %{without squeeze}
 export HAS_ELEMENTS_TOOLCHAIN=@HAS_ELEMENTS_TOOLCHAIN@
 if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
   if [[ ! -z "@ELEMENTS_BASE_DIR@" ]]; then
@@ -93,11 +93,7 @@ if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
 else
   export CMAKE_PROJECT_PATH=$@ELEMENTS_BASE_VAR@
 fi
-%else
-%__mkdir -p $RPM_BUILD_DIR/$BINARY_TAG
-%endif
 @CPACK_CMAKE_PREFIX_PATH_LINE@
-%if %{without squeeze}
 toolchain_name=ElementsToolChain.cmake
 if [[ -f "${PWD}/cmake/${toolchain_name}" ]]; then
   toolchain_file=${PWD}/cmake/${toolchain_name}
@@ -107,9 +103,7 @@ else
   fi
 fi
 %__mkdir -p $RPM_BUILD_DIR/$BINARY_TAG
-%endif
 cd $RPM_BUILD_DIR/$BINARY_TAG
-%if %{without squeeze}
 if [[ -z "${toolchain_file}" ]]; then
   %cmake @CPACK_EXTRA_CMAKEFLAGS@ $RPM_BUILD_DIR/%{name}-%{version}
 else
@@ -119,15 +113,11 @@ else
     %cmake @CPACK_EXTRA_CMAKEFLAGS@ $RPM_BUILD_DIR/%{name}-%{version}
   fi
 fi
-%else
-%cmake @CPACK_EXTRA_CMAKEFLAGS@ $RPM_BUILD_DIR/%{name}-%{version}
-%endif
 %__make VERBOSE=1 %{?_smp_mflags} all
 
 %install
 export BINARY_TAG=%{bin_tag}
 export VERBOSE=1
-%if %{without squeeze}
 if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
   if [[ ! -z "@ELEMENTS_BASE_DIR@" ]]; then
     export CMAKE_PROJECT_PATH=@ELEMENTS_BASE_DIR@
@@ -135,7 +125,6 @@ if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
 else
   export CMAKE_PROJECT_PATH=$@ELEMENTS_BASE_VAR@
 fi
-%endif
 @CPACK_CMAKE_PREFIX_PATH_LINE@
 cd $RPM_BUILD_DIR/$BINARY_TAG
 %__make install VERBOSE=1 DESTDIR=$RPM_BUILD_ROOT
@@ -145,7 +134,6 @@ export CTEST_OUTPUT_ON_FAILURE=1
 export ELEMENTS_NAMING_DB_URL=https://pieclddj00.isdc.unige.ch/elementsnaming
 export BINARY_TAG=%{bin_tag}
 export VERBOSE=1
-%if %{without squeeze}
 if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
   if [[ ! -z "@ELEMENTS_BASE_DIR@" ]]; then
     export CMAKE_PROJECT_PATH=@ELEMENTS_BASE_DIR@
@@ -153,17 +141,17 @@ if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
 else
   export CMAKE_PROJECT_PATH=$@ELEMENTS_BASE_VAR@
 fi
-%endif
 @CPACK_CMAKE_PREFIX_PATH_LINE@
 cd $RPM_BUILD_DIR/$BINARY_TAG
 %__make test
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+%__rm -rf $RPM_BUILD_ROOT
+%__rm -rf $RPM_BUILD_DIR/%{bin_tag}
+%__rm -rf $RPM_BUILD_DIR/@CPACK_RPM_PACKAGE_NAME@-@CPACK_RPM_PACKAGE_VERSION@
 
 %postun
 /sbin/ldconfig
-%if %{without squeeze}
 for d in  %{_proj_ia_dir}  %{_proj_vers_dir} %{_proj_name_dir}; do
   if [[ -d "${d}" ]]; then
     if [[ ! "$(ls -A ${d})" ]]; then
@@ -172,7 +160,6 @@ for d in  %{_proj_ia_dir}  %{_proj_vers_dir} %{_proj_name_dir}; do
     fi
   fi
 done
-%endif
 
 %files
 @CPACK_RPM_REGULAR_FILES@
