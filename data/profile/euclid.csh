@@ -1,3 +1,5 @@
+if ( ! ( "%(this_install_prefix)s" == "/usr" && ( -e /etc/sysconfig/noEuclidDefaultProfile || -e ${HOME}/.noEuclidDefaultProfile ) ) ) then
+
 if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
   set my_own_prefix4 = "%(this_install_prefix)s"
@@ -46,3 +48,4 @@ if ( ! -e ${HOME}/.noEuclidLoginScript ) then
 
 endif
 
+endif
