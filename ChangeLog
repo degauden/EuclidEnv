@@ -1,3 +1,6 @@
+* Fri Apr 12 2019 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.10-1
+- update to the latest make and cmake library of Elements (5.6)
+
 * Thu Oct 11 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.8.2-1
 - data/RPM/EuclidEnv.spec.in: fix the spec generation if the python explicit
   version is empty. The RPM post install script were failing in that case 
