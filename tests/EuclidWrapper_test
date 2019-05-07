@@ -323,6 +323,47 @@ fi
 echo ""
 
 ###############################################################################
+# Check passing additional configuration files
+###############################################################################
+
+echo "Test extra ECDM configuration files..."
+
+cat > ${tmpdir}/extra_ecdm_conf.xml << EOF
+<Testing>
+    <ConfigurationFile>
+        <ModuleName>echo</ModuleName>
+        <FileContainer filestatus="PROPOSED">
+            <FileName>
+                MyExecutable.conf
+            </FileName>
+        </FileContainer>
+    </ConfigurationFile>
+    <ConfigurationFile>
+        <ModuleName>echo</ModuleName>
+        <ParameterName>extra-config-file</ParameterName>
+        <FileContainer filestatus="PROPOSED">
+            <FileName>
+                ExtraConfigFile.conf
+            </FileName>
+        </FileContainer>
+    </ConfigurationFile>
+</Testing>
+EOF
+
+result=$(EuclidWrapper --workdir ${tmpdir} echo --ecdm_config_xml=extra_ecdm_conf.xml)
+if [ "$result" != "--config-file data/MyExecutable.conf --extra-config-file data/ExtraConfigFile.conf" ]; then
+  echo "Error: Test failed: Failed to retrieve the correct extra conf file from the XML" 1>&2
+  local_clean_exit 1
+fi
+result=$(EuclidWrapper --workdir ${tmpdir} echo --ecdm_config_xml extra_ecdm_conf.xml)
+if [ "$result" != "--config-file data/MyExecutable.conf --extra-config-file data/ExtraConfigFile.conf" ]; then
+  echo "Error: Test failed: Failed to retrieve the correct extra conf file from the XML" 1>&2
+  local_clean_exit 1
+fi
+
+echo ""
+
+###############################################################################
 # Check overriding the EuclidWrapper functionality with module in default
 # package (EuclidWrapper.EXEC_NAME)
 ###############################################################################
@@ -395,4 +436,5 @@ echo ""
 ###############################################################################
 # All tests finished successfully
 ###############################################################################
+echo "All test passed!"
 local_clean_exit 0
