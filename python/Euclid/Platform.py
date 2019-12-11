@@ -799,7 +799,7 @@ class NativeMachine:
         wrapper around lsb_release -i
         """
         if not self._lsb_distributor_id and self.OSType() == "Linux":
-            if os.path.exists("/usr/bin/lsb_release"):
+            if hasCommand("lsb_release"):
                 lsbstr = os.popen("lsb_release -i").read()[:-1]
                 if lsbstr:
                     self._lsb_distributor_id = lsbstr.split(":")[-1].strip()
@@ -810,7 +810,7 @@ class NativeMachine:
         wrapper around lsb_release -d
         """
         if not self._lsb_description and self.OSType() == "Linux":
-            if os.path.exists("/usr/bin/lsb_release"):
+            if hasCommand("lsb_release"):
                 lsbstr = os.popen("lsb_release -d").read()[:-1]
                 if lsbstr:
                     self._lsb_description = lsbstr.split(":")[-1].strip()
@@ -821,7 +821,7 @@ class NativeMachine:
         wrapper around lsb_release -r
         """
         if not self._lsb_release and self.OSType() == "Linux":
-            if os.path.exists("/usr/bin/lsb_release"):
+            if hasCommand("lsb_release"):
                 lsbstr = os.popen("lsb_release -r").read()[:-1]
                 if lsbstr:
                     self._lsb_release = lsbstr.split(":")[-1].strip()
@@ -832,7 +832,7 @@ class NativeMachine:
         wrapper around lsb_release -c
         """
         if not self._lsb_codename and self.OSType() == "Linux":
-            if os.path.exists("/usr/bin/lsb_release"):
+            if hasCommand("lsb_release"):
                 lsbstr = os.popen("lsb_release -c").read()[:-1]
                 if lsbstr:
                     self._lsb_codename = lsbstr.split(":")[-1].strip()
