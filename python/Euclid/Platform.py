@@ -6,6 +6,9 @@ import os
 import re
 import logging
 
+from subprocess import Popen, PIPE
+
+from .Path import hasCommand
 
 # CMake Build Types
 
@@ -500,20 +503,22 @@ class NativeMachine:
         compiler_root = {"gcc": "g++", "clang": "clang++", "llvm": "clang++"}
 
         compiler_re = dict()
-        compiler_re["gcc"] = re.compile(r"\ +(\d+(?:\.\d+)*)")
-        compiler_re["clang"] = re.compile(r"\([^)]*LLVM *(\d+\.?\d*)")
-        compiler_re["llvm"] = re.compile(r"\ +(\d+(?:\.\d+)*)")
+        compiler_re["gcc"] = re.compile(b"\ +(\d+(?:\.\d+)*)")
+        compiler_re["clang"] = re.compile(b"\([^)]*LLVM *(\d+\.?\d*)")
+        compiler_re["llvm"] = re.compile(b"\ +(\d+(?:\.\d+)*)")
 
         if compiler_name == "vc":
             ncv = "9.0.0"
         else:
             try:
                 gpp = self._findCompiler(compiler_root[compiler_name])
-                compstr = " ".join(
-                    os.popen3(gpp + " --version")[1].readlines())[:-1]
+                compstr = Popen(gpp + " --version", shell=True,
+                                stdin=PIPE, stdout=PIPE, stderr=PIPE,
+                                close_fds=True).communicate()[0]
                 m = compiler_re[compiler_name].search(compstr)
+
                 if m:
-                    ncv = m.group(1)
+                    ncv = m.group(1).decode()
                 else:
                     ncv = None
             except:
