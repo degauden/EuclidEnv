@@ -3,9 +3,17 @@
 # Author:    $Format:%an$
 # Date  :    $Format:%ad$
 
-from distutils.core import setup, Command
-from distutils.command.install import install as _install
-from distutils.command.sdist import sdist as _sdist
+try:
+    from setuptools.command.install import install as _install
+    from setuptools.command.sdist import sdist as _sdist
+    from setuptools import Command
+    from setuptools import setup
+except:
+    from distutils.command.install import install as _install
+    from distutils.command.sdist import sdist as _sdist
+    from distutils.core import Command
+    from distutils.core import setup
+
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
 from distutils.command.build import build as _build
 from distutils.command.build_scripts import build_scripts as _build_scripts
@@ -18,7 +26,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "3.10"
+__version__ = "3.12"
 __project__ = "EuclidEnv"
 __full_exec__ = sys.executable
 __usr_loc__ = os.path.dirname(os.path.dirname(__full_exec__))
@@ -52,6 +60,7 @@ if not dist_exp_version:
     pytest_cmd = "py.test"
 else:
     pytest_cmd = "py.test-%s" % dist_exp_version
+
 
 def get_data_files(input_dir, output_dir):
     result = []
@@ -149,7 +158,6 @@ for a in sys.argv:
             this_euclid_base = e_base[0]
         sys.argv.remove(a)
 
-
 fixscript_name = "FixInstallPath"
 
 
@@ -178,6 +186,7 @@ class MyBuildScripts(_build_scripts):
             script = convert_path(script)
             outfile = os.path.join(self.build_dir, os.path.basename(script))
             call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, outfile])
+
 
 class MySdist(_sdist):
 
