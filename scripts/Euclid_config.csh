@@ -15,11 +15,14 @@ if (! $?EUCLID_CONFIG_SCRIPT) then
 endif
 
 set cfgfiles=""
-if ( $?XDG_CONFIG_HOME ) then
-  set cfgfiles="$cfgfiles $XDG_CONFIG_HOME/Euclid/default"
-endif
-if ( $?HOME ) then
-  set cfgfiles="$cfgfiles $HOME/.config/Euclid/default"
+
+if ( ! -e ${HOME}/.noEuclidUserConfig ) then
+  if ( $?XDG_CONFIG_HOME ) then
+    set cfgfiles="$cfgfiles $XDG_CONFIG_HOME/Euclid/default"
+  endif
+  if ( $?HOME ) then
+    set cfgfiles="$cfgfiles $HOME/.config/Euclid/default"
+  endif
 endif
 
 if ( $?XDG_CONFIG_DIRS ) then

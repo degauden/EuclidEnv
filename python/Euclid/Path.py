@@ -294,7 +294,7 @@ def _FSType(path):
         p = Popen(
             ["df", "--print-type", "--portability", path], stdout=PIPE, stderr=PIPE)
         out, _ = p.communicate()
-        fstype = out.splitlines()[-1].split()[1]
+        fstype = out.splitlines()[-1].split()[1].decode()
     except:
         fstype = "Unknown"
     return fstype

@@ -14,6 +14,7 @@ Vendor:         @CPACK_PACKAGE_VENDOR@
 
 %global __brp_mangle_shebangs_exclude /usr/bin/env python@PYTHON_EXPLICIT_VERSION@
 %global __python @PYTHON_EXECUTABLE@ 
+%global _python_bytecompile_errors_terminate_build @BYTECOMPILE_ERRORS_TERMINATE_BUILD@
 
 @CPACK_RPM_AUTOREQ_LINE@
 
@@ -26,26 +27,24 @@ Vendor:         @CPACK_PACKAGE_VENDOR@
 Requires(post):    /sbin/ldconfig
 Requires(postun):  /sbin/ldconfig
 
-%define bin_tag @CPACK_SYSTEM_NAME@
-%if %{without squeeze}
-%define _proj_base_dir @ELEMENTS_BASE_DIR@
-%define _proj_name_dir %{_proj_base_dir}/%{name}
-%define _proj_vers_dir %{_proj_name_dir}/%{version}
-%define _proj_ia_dir %{_proj_vers_dir}/InstallArea
-%endif
-%define _prefix @CPACK_PACKAGING_INSTALL_PREFIX@
-%define build_dir_name @BUILD_SUBDIR@
+%global bin_tag @CPACK_SYSTEM_NAME@
+%global _proj_base_dir @ELEMENTS_BASE_DIR@
+%global _proj_name_dir %{_proj_base_dir}/%{name}
+%global _proj_vers_dir %{_proj_name_dir}/%{version}
+%global _proj_ia_dir %{_proj_vers_dir}/InstallArea
+%global _prefix @CPACK_PACKAGING_INSTALL_PREFIX@
+%global build_dir_name @BUILD_SUBDIR@
 
-%define libdir @SPEC_LIBDIR@
-%define pydir @SPEC_PYDIR@
-%define pydyndir @SPEC_PYDYNDIR@
-%define scriptsdir @SPEC_SCRIPTSDIR@
-%define cmakedir @SPEC_CMAKEDIR@
-%define makedir @SPEC_MAKEDIR@
-%define confdir @SPEC_CONFDIR@
-%define auxdir @SPEC_AUXDIR@
-%define docdir @SPEC_DOCDIR@
-%define xmldir @SPEC_XMLDIR@
+%global libdir @SPEC_LIBDIR@
+%global pydir @SPEC_PYDIR@
+%global pydyndir @SPEC_PYDYNDIR@
+%global scriptsdir @SPEC_SCRIPTSDIR@
+%global cmakedir @SPEC_CMAKEDIR@
+%global makedir @SPEC_MAKEDIR@
+%global confdir @SPEC_CONFDIR@
+%global auxdir @SPEC_AUXDIR@
+%global docdir @SPEC_DOCDIR@
+%global xmldir @SPEC_XMLDIR@
 
 @RPM_DEBUG_PACKAGE_NIL@
 
@@ -62,6 +61,7 @@ Requires: %{name} = %{version}-%{release}
 %description devel
 The development part of the %{name} package.
 
+
 %package debuginfo
 Summary: Debug information for package %{name}
 Requires: %{name} = %{version}-%{release}
@@ -69,6 +69,7 @@ Requires: %{name} = %{version}-%{release}
 
 %description debuginfo
 Debug information for package %{name}
+
 
 %package doc
 Summary: Documentation for package %{name}
@@ -78,13 +79,13 @@ Requires: %{name}-devel = %{version}-%{release}
 %description doc
 Documentation for package %{name}
 
+
 %prep
 %setup -q
 
 %build
 export BINARY_TAG=%{bin_tag}
-export VERBOSE=1
-%if %{without squeeze}
+@CPACK_EXPORT_VERBOSE_LINE@
 export HAS_ELEMENTS_TOOLCHAIN=@HAS_ELEMENTS_TOOLCHAIN@
 if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
   if [[ ! -z "@ELEMENTS_BASE_DIR@" ]]; then
@@ -93,41 +94,34 @@ if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
 else
   export CMAKE_PROJECT_PATH=$@ELEMENTS_BASE_VAR@
 fi
-%else
-%__mkdir -p $RPM_BUILD_DIR/$BINARY_TAG
-%endif
 @CPACK_CMAKE_PREFIX_PATH_LINE@
-%if %{without squeeze}
 toolchain_name=ElementsToolChain.cmake
-if [[ -f "${PWD}/cmake/${toolchain_name}" ]]; then
-  toolchain_file=${PWD}/cmake/${toolchain_name}
-else
-  if [[ -f "/usr/share/EuclidEnv/cmake/${toolchain_name}" ]]; then
-    toolchain_file=/usr/share/EuclidEnv/cmake/${toolchain_name}
-  fi
-fi
+search_path="${PWD}/cmake/:${CMAKE_PREFIX_PATH}:/usr/share/EuclidEnv/cmake/" 
+for d in ${search_path//:/ }; do
+       if [[ -f "${d}/${toolchain_name}" ]]; then
+               toolchain_file=${d}/${toolchain_name}
+               break
+       fi
+done
+
 %__mkdir -p $RPM_BUILD_DIR/$BINARY_TAG
-%endif
 cd $RPM_BUILD_DIR/$BINARY_TAG
-%if %{without squeeze}
+
+
 if [[ -z "${toolchain_file}" ]]; then
-  %cmake @CPACK_EXTRA_CMAKEFLAGS@ $RPM_BUILD_DIR/%{name}-%{version}
+  @CPACK_CMAKE_MACRO@ @CPACK_EXTRA_CMAKEFLAGS@ $RPM_BUILD_DIR/%{name}-%{version}
 else
   if [[ "${HAS_ELEMENTS_TOOLCHAIN}" = "ON" ]]; then
-    %cmake @CPACK_EXTRA_CMAKEFLAGS@ -DCMAKE_TOOLCHAIN_FILE=${toolchain_file} $RPM_BUILD_DIR/%{name}-%{version}
+    @CPACK_CMAKE_MACRO@ @CPACK_EXTRA_CMAKEFLAGS@ -DCMAKE_TOOLCHAIN_FILE=${toolchain_file} $RPM_BUILD_DIR/%{name}-%{version}
   else
-    %cmake @CPACK_EXTRA_CMAKEFLAGS@ $RPM_BUILD_DIR/%{name}-%{version}
+    @CPACK_CMAKE_MACRO@ @CPACK_EXTRA_CMAKEFLAGS@ $RPM_BUILD_DIR/%{name}-%{version}
   fi
 fi
-%else
-%cmake @CPACK_EXTRA_CMAKEFLAGS@ $RPM_BUILD_DIR/%{name}-%{version}
-%endif
-%__make VERBOSE=1 %{?_smp_mflags} all
+%__make @CPACK_VERBOSE_LINE@ %{?_smp_mflags} all
 
 %install
 export BINARY_TAG=%{bin_tag}
-export VERBOSE=1
-%if %{without squeeze}
+@CPACK_EXPORT_VERBOSE_LINE@
 if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
   if [[ ! -z "@ELEMENTS_BASE_DIR@" ]]; then
     export CMAKE_PROJECT_PATH=@ELEMENTS_BASE_DIR@
@@ -135,17 +129,15 @@ if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
 else
   export CMAKE_PROJECT_PATH=$@ELEMENTS_BASE_VAR@
 fi
-%endif
 @CPACK_CMAKE_PREFIX_PATH_LINE@
 cd $RPM_BUILD_DIR/$BINARY_TAG
-%__make install VERBOSE=1 DESTDIR=$RPM_BUILD_ROOT
+%__make install @CPACK_VERBOSE_LINE@ DESTDIR=$RPM_BUILD_ROOT
 
 %check
 export CTEST_OUTPUT_ON_FAILURE=1
 export ELEMENTS_NAMING_DB_URL=https://pieclddj00.isdc.unige.ch/elementsnaming
 export BINARY_TAG=%{bin_tag}
-export VERBOSE=1
-%if %{without squeeze}
+@CPACK_EXPORT_VERBOSE_LINE@
 if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
   if [[ ! -z "@ELEMENTS_BASE_DIR@" ]]; then
     export CMAKE_PROJECT_PATH=@ELEMENTS_BASE_DIR@
@@ -153,17 +145,17 @@ if [[ -z "$@ELEMENTS_BASE_VAR@" ]]; then
 else
   export CMAKE_PROJECT_PATH=$@ELEMENTS_BASE_VAR@
 fi
-%endif
 @CPACK_CMAKE_PREFIX_PATH_LINE@
 cd $RPM_BUILD_DIR/$BINARY_TAG
 %__make test
 
 %clean
-rm -rf $RPM_BUILD_ROOT
+%__rm -rf $RPM_BUILD_ROOT
+%__rm -rf $RPM_BUILD_DIR/%{bin_tag}
+%__rm -rf $RPM_BUILD_DIR/@CPACK_RPM_PACKAGE_NAME@-@CPACK_RPM_PACKAGE_VERSION@
 
 %postun
 /sbin/ldconfig
-%if %{without squeeze}
 for d in  %{_proj_ia_dir}  %{_proj_vers_dir} %{_proj_name_dir}; do
   if [[ -d "${d}" ]]; then
     if [[ ! "$(ls -A ${d})" ]]; then
@@ -172,7 +164,6 @@ for d in  %{_proj_ia_dir}  %{_proj_vers_dir} %{_proj_name_dir}; do
     fi
   fi
 done
-%endif
 
 %files
 @CPACK_RPM_REGULAR_FILES@

@@ -11,11 +11,14 @@ my_own_prefix0="%(this_etc_install_prefix)s"
 my_own_exe_prefix0="%(this_install_prefix)s"
 
 cfgfiles=""
-if [[  -n "$XDG_CONFIG_HOME" ]]; then
-  cfgfiles="$cfgfiles $XDG_CONFIG_HOME/Euclid/default"
-fi
-if [[ -n "$HOME" ]]; then
-  cfgfiles="$cfgfiles $HOME/.config/Euclid/default"
+
+if [[ ! -e ${HOME}/.noEuclidUserConfig ]]; then
+  if [[  -n "$XDG_CONFIG_HOME" ]]; then
+    cfgfiles="$cfgfiles $XDG_CONFIG_HOME/Euclid/default"
+  fi
+  if [[ -n "$HOME" ]]; then
+    cfgfiles="$cfgfiles $HOME/.config/Euclid/default"
+  fi
 fi
 
 if [[ -n "$XDG_CONFIG_DIRS" ]]; then

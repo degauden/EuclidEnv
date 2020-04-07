@@ -22,20 +22,24 @@ endmacro()
 # Options
 option(USE_DEBUG_PRINT
        "make the debug_print_var macro talkative"
-       ON)
-
-
-macro(debug_print_var var)
-  if(USE_DEBUG_PRINT)
-    message(STATUS "${var} -> ${${var}}")
-  endif()
-endmacro()
-
+       OFF)
 
 macro(debug_message)
   if(USE_DEBUG_PRINT)
     message(${ARGN})
   endif()
+endmacro()
+
+macro(debug_print)
+  debug_message(STATUS ${ARGN})
+endmacro()
+
+macro(debug_print_var var)
+  debug_message(STATUS "${var} -> ${${var}}")
+endmacro()
+
+macro(print_var var)
+  message(STATUS "${var} -> ${${var}}")
 endmacro()
 
 
@@ -118,19 +122,69 @@ function(is_sys_include is_sys dir)
 
 endfunction()
 
+## `(<str:<string>> <search:<string>>)-><bool>`
+##
+## Returns true if "str" starts with the string "search"
+##
+## **Examples**
+##  string_starts_with("substring" "sub") # => true
+##  string_starts_with("substring" "ub") # => false
+##
+##
+function(string_starts_with sws str search)
+  string(FIND "${str}" "${search}" out)
+  if("${out}" EQUAL 0)
+    set(${sws} TRUE PARENT_SCOPE)
+  endif()
+endfunction()
+
 function(starts_with_sys_include starts_with_sys dir)
 
     set(${starts_with_sys} FALSE PARENT_SCOPE)
     get_all_sys_includes(inc_list)
 
     foreach(_inc_dir ${inc_list})
-      if("${dir}" MATCHES "^${_inc_dir}/.*" ) 
+      string_starts_with(out ${dir} ${_inc_dir})
+      if(out)
         set(${starts_with_sys} TRUE PARENT_SCOPE)
-        break()   
+        break()
+      endif()
+#      if("${dir}" MATCHES "^${_inc_dir}/.*" OR "${dir}" STREQUAL "${_inc_dir}")
+#        set(${starts_with_sys} TRUE PARENT_SCOPE)
+#        break()
+#      endif()
+    endforeach()
+
+endfunction()
+
+function(starts_with_loc_include starts_with_loc dir)
+
+    set(${starts_with_sys} FALSE PARENT_SCOPE)
+    file(TO_CMAKE_PATH "$ENV{CMAKE_PROJECT_PATH}" inc_list)
+
+    foreach(_inc_dir ${inc_list})
+      string_starts_with(out ${dir} ${_inc_dir})
+      if(out)
+        set(${starts_with_loc} TRUE PARENT_SCOPE)
+        break()
       endif()
     endforeach()
 
 endfunction()
+
+function(starts_with_this_project starts_with_this dir)
+
+    set(${starts_with_this} FALSE PARENT_SCOPE)
+
+    string_starts_with(out ${dir} ${PROJECT_SOURCE_DIR})
+    string_starts_with(out2 ${dir} ${CMAKE_SOURCE_DIR})
+    string_starts_with(out3 ${dir} ${CMAKE_BINARY_DIR})
+    if(out OR out2 OR out3)
+      set(${starts_with_this} TRUE PARENT_SCOPE)
+    endif()
+
+endfunction()
+
 
 #----------------------------------------------------------------
 # Filename utils
@@ -331,11 +385,13 @@ endmacro(copy_dir)
 
 function(get_full_binary_list binary_tag binary_base full_list)
 
-  if(NOT binary_tag STREQUAL "")
+  if(NOT "${binary_tag}" STREQUAL "")
     list(APPEND the_list "${binary_tag}")
   endif()
 
-  guarded_message(STATUS "Elements use strict binary dependencies: ${ELEMENTS_USE_STRICT_BINARY_DEP}")
+  if(${ELEMENTS_USE_STRICT_BINARY_DEP})
+    guarded_message(STATUS "Elements use strict binary dependencies: ${ELEMENTS_USE_STRICT_BINARY_DEP}")
+  endif()
 
   if(SGS_BUILD_TYPE_SHORT_NAMES AND NOT ELEMENTS_USE_STRICT_BINARY_DEP)
     foreach(_s3 ${SGS_BUILD_TYPE_SHORT_NAMES})
@@ -557,7 +613,7 @@ function(get_project_from_file config_file project version dep_list)
   file(READ ${config_file} config_file_data)
   filter_comments(config_file_data)
 
-  if(cfg_file STREQUAL "CMakeLists.txt")
+  if("${cfg_file}" STREQUAL "CMakeLists.txt")
 
     string(REGEX MATCH "[ \t]*(elements_project)[ \t]*\\(([^)]+)\\)" match_use ${config_file_data})
     set(match_use ${CMAKE_MATCH_2})
@@ -622,7 +678,7 @@ function(check_project_version_from_file config_file project version match_found
 
   get_project_from_file(${config_file} file_project_name file_version_name file_project_dep_list)
 
-  if( (project STREQUAL file_project_name) AND (version STREQUAL file_version_name) )
+  if( ("${project}" STREQUAL "${file_project_name}") AND ("${version}" STREQUAL "${file_version_name}") )
     set(has_found TRUE)
   endif()
 
@@ -665,7 +721,7 @@ function(get_rpm_dep_list project_use package_suffix squeezed_install output_var
   endwhile()
 
   if(NOT squeezed_install)
-    if(package_suffix STREQUAL "")
+    if("${package_suffix}" STREQUAL "")
       set(output_str_list "${output_str_list}, EuclidEnv")
     endif()
   endif()
@@ -697,20 +753,20 @@ function(get_rpm_dep_lines project_use package_suffix squeezed_install line_pref
     endif()
     
     if(package_suffix)
-	  set(other_proj_pack_name "${other_proj_pack_name}-${package_suffix}")
+      set(other_proj_pack_name "${other_proj_pack_name}-${package_suffix}")
     endif()
- 
+
     if(squeezed_install)
       set(other_proj_pack_line "${other_proj_pack_name} = ${other_project_version}")
     else()
       set(other_proj_pack_line "${other_proj_pack_name}")
     endif()
- 
+
     if(line_prefix)
       set(other_proj_pack_line "${line_prefix}: ${other_proj_pack_line}")  
     endif()
 
-    
+
     if( "${output_str_lines}" STREQUAL "")
       set(output_str_lines "${other_proj_pack_line}")
     else()
@@ -720,7 +776,7 @@ ${other_proj_pack_line}")
 
     list(REMOVE_AT ARGN_ 0 1)
   endwhile()
-    
+
   set(${output_var} ${output_str_lines} PARENT_SCOPE)
 
 endfunction()
@@ -778,7 +834,7 @@ function(find_python_module module)
 
     string(TOUPPER ${module} module_upper)
     if(NOT PY_${module_upper})
-        if(ARGC GREATER 1 AND ARGV1 STREQUAL "REQUIRED")
+        if(ARGC GREATER 1 AND "${ARGV1}" STREQUAL "REQUIRED")
             set(${module}_FIND_REQUIRED TRUE)
         endif()
         # A module's location is usually a directory, but for binary modules
@@ -798,4 +854,93 @@ function(find_python_module module)
 
 endfunction(find_python_module)
 
+function(elements_include_directories)
 
+  CMAKE_PARSE_ARGUMENTS(ELEMENTS_INC "AFTER;BEFORE" "" "" ${ARGN})
+
+  set(inc_pos "BEFORE")
+
+  if(ELEMENTS_INC_AFTER)
+    set(inc_pos "AFTER")
+  endif()
+
+  foreach(d ${ELEMENTS_INC_UNPARSED_ARGUMENTS})
+    set(_is_loc FALSE)
+    starts_with_loc_include(_is_loc ${d})
+#    debug_print("${d} is loc: ${_is_loc}")
+    set(_is_this FALSE)
+    starts_with_this_project(_is_this ${d})
+#    debug_print("${d} is this: ${_is_this}")
+
+    if(_is_this)
+      set(_is_loc TRUE)
+    endif()
+   
+    set(use_sys FALSE)
+    if(HIDE_SYSINC_WARNINGS)
+      if(_is_loc)
+        set(use_sys FALSE)
+      else()
+        set(use_sys TRUE)      
+      endif()
+    else()
+      set(use_sys FALSE)
+    endif()
+
+    if(HIDE_OTHERINC_WARNINGS)
+      if(_is_this)
+        set(use_sys FALSE)
+      else()
+        set(use_sys TRUE)      
+      endif()
+    endif()
+
+    if(use_sys)
+        include_directories(${inc_pos} SYSTEM ${d})
+#        debug_print("Include system dir ${d} ${inc_pos}")
+    else()
+        include_directories(${inc_pos} ${d})
+#        debug_print("Include dir ${d} ${inc_pos}")
+    endif()
+
+    set_property(GLOBAL APPEND PROPERTY PROJ_INCLUDE_LIST ${d})
+
+  endforeach()
+
+endfunction(elements_include_directories)
+
+
+function(any_file_exist file_list do_exist)
+
+  print_var(file_list)
+
+
+  set(exist FALSE)
+  foreach(f ${file_list})
+     print_var(f)
+     if(EXISTS $f)
+       message("-------------------------------------->The ${f} file exists")
+       set(exist TRUE)
+     else()
+       message("-------------------------------------->The ${f} file does not exist")
+     endif()
+  endforeach()
+
+  set(${do_exist} ${exist} PARENT_SCOPE)
+
+endfunction()
+
+function(find_first_file file_list first_file)
+
+  set(first_f)
+
+  foreach(f ${file_list})
+     if(EXISTS "${f}")
+       set(first_f ${f})
+       break()
+     endif()  
+  endforeach()
+
+  set(${first_file} ${first_f} PARENT_SCOPE)
+
+endfunction()
