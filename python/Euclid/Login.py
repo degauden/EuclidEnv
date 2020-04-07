@@ -191,19 +191,6 @@ The type is to be chosen among the following list:
         opts = self.options
         log = logging.getLogger()
 
-        if PYTHON_LOC:
-            if "PYTHONPATH" in ev:
-                ev["PYTHONPATH"] = pathPrepend(ev["PYTHONPATH"],
-                                               PYTHON_LOC,
-                                               exist_check=opts.strip_path,
-                                               unique=opts.strip_path)
-            else:
-                if opts.strip_path:
-                    if os.path.exists(PYTHON_LOC):
-                        ev["PYTHONPATH"] = PYTHON_LOC
-                else:
-                    ev["PYTHONPATH"] = PYTHON_LOC
-
         if "PYTHONPATH" in ev:
             log.debug("%s is set to %s" % ("PYTHONPATH", ev["PYTHONPATH"]))
 
