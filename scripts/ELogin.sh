@@ -1,6 +1,7 @@
 # main login script for the Euclid environment
 
 my_own_prefix="%(this_install_prefix)s"
+
 python_loc=`python%(this_python_version)s -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(prefix='$my_own_prefix'))"`
 
 if [[ -r ${python_loc}/Euclid/Login.py ]]; then

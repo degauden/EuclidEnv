@@ -1,3 +1,15 @@
+* Tue Apr 7 2020 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.12-1
+- update to the latest make and cmake library of Elements (5.10)
+- various fixes for the python3 (explicit version) and python (implicit) 
+  version 3 series
+- Modify EuclidWrapper to accept extra config files (Alejandro Alvarez Ayllon).
+- Fix the localisation of the lsb_release utility
+- Use relative import to avoid messing around with the PYTHONPATH
+- Replace distutils by setuptools (Frédéric Leroux)
+
+* Fri Apr 12 2019 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.10-1
+- update to the latest make and cmake library of Elements (5.6)
+
 * Thu Oct 11 2018 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.8.2-1
 - data/RPM/EuclidEnv.spec.in: fix the spec generation if the python explicit
   version is empty. The RPM post install script were failing in that case 

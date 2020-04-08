@@ -38,7 +38,6 @@
 #         backward-compatibility target for the CMT generic Makefile. Tt
 #         ensures that the "all" target has been called before.
 #
-# :Author: Marco Clemencic
 # :Author: Hubert Degaudenzi
 #
 # .. [*] Targets defined by this Makefile.
@@ -63,23 +62,23 @@ ifneq ($(wildcard $(CURDIR)/cmake/$(TOOLCHAIN_NAME)),)
 else
   ifneq ($(CMAKE_PREFIX_PATH),)
     PREFIX_LIST := $(subst :, ,$(CMAKE_PREFIX_PATH))
-    TOOLCHAIN_LIST := $(foreach dir,$(PREFIX_LIST),$(wildcard $(dir)/$(TOOLCHAIN_NAME)))
+    TOOLCHAIN_LIST := $(foreach dir,$(PREFIX_LIST),$(wildcard $(dir)/lib*/cmake/ElementsProject/$(TOOLCHAIN_NAME) $(dir)/$(TOOLCHAIN_NAME)))
     TOOLCHAIN_FILE := $(firstword $(TOOLCHAIN_LIST))
   endif
 endif
 
-override CMAKEFLAGS += --no-warn-unused-cli
+override ALL_CMAKEFLAGS := -Wno-dev --no-warn-unused-cli
 
 ifneq ($(TOOLCHAIN_FILE),)
   # A toolchain has been found. Lets use it.
-  override CMAKEFLAGS += -DCMAKE_TOOLCHAIN_FILE=$(TOOLCHAIN_FILE)
+  override ALL_CMAKEFLAGS += -DCMAKE_TOOLCHAIN_FILE=$(TOOLCHAIN_FILE)
 endif
-
 
 
 BUILD_PREFIX_NAME := build
 
-override CMAKEFLAGS += -DUSE_LOCAL_INSTALLAREA=ON -DBUILD_PREFIX_NAME:STRING=$(BUILD_PREFIX_NAME)
+override ALL_CMAKEFLAGS += -DUSE_LOCAL_INSTALLAREA=ON -DBUILD_PREFIX_NAME:STRING=$(BUILD_PREFIX_NAME)
+override ALL_CMAKEFLAGS += -DUSE_VERSIONED_LIBRARIES=OFF
 
 ifndef BINARY_TAG
   ifdef CMAKECONFIG
@@ -102,7 +101,7 @@ BUILDDIR := $(CURDIR)/$(BUILD_SUBDIR)
 
 ifneq ($(USE_NINJA),)
   # enable Ninja
-  override CMAKEFLAGS += -GNinja
+  override ALL_CMAKEFLAGS += -GNinja
   BUILD_CONF_FILE := build.ninja
   BUILDFLAGS := $(NINJAFLAGS)
   ifneq ($(VERBOSE),)
@@ -112,6 +111,18 @@ else
   BUILD_CONF_FILE := Makefile
 endif
 BUILD_CMD := $(CMAKE) --build $(BUILD_SUBDIR) --target
+
+
+# Use environment variable for extra flags
+
+# Replace the ":" from eclipse variable list to spaces  
+ifneq ($(EXPAND_FLAGS),)
+  CMAKEFLAGS := $(subst :-, -,$(CMAKEFLAGS))
+endif
+
+ifneq ($(CMAKEFLAGS),)
+  override ALL_CMAKEFLAGS += $(CMAKEFLAGS)
+endif
 
 # default target
 all:
@@ -143,6 +154,8 @@ endif
 test: $(BUILDDIR)/$(BUILD_CONF_FILE)
 	$(RM) -r $(BUILDDIR)/Testing $(BUILDDIR)/html
 	-cd $(BUILDDIR) && $(CTEST) -T test $(ARGS)
+	+$(BUILD_CMD) HTMLSummary
+	+$(BUILD_CMD) JUnitSummary
 
 
 # This target ensures that the "all" target is called before
@@ -150,6 +163,8 @@ test: $(BUILDDIR)/$(BUILD_CONF_FILE)
 tests: all
 	$(RM) -r $(BUILDDIR)/Testing $(BUILDDIR)/html
 	-cd $(BUILDDIR) && $(CTEST) -T test $(ARGS)
+	+$(BUILD_CMD) HTMLSummary
+	+$(BUILD_CMD) JUnitSummary
 
 ifeq ($(VERBOSE),)
 # less verbose install
@@ -170,7 +185,7 @@ $(MAKEFILE_LIST):
 
 # trigger CMake configuration
 $(BUILDDIR)/$(BUILD_CONF_FILE): | $(BUILDDIR)
-	cd $(BUILDDIR) && $(CMAKE) $(CMAKEFLAGS) $(CURDIR)
+	cd $(BUILDDIR) && $(CMAKE) $(ALL_CMAKEFLAGS) $(CURDIR)
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)

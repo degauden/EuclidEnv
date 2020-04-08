@@ -35,6 +35,7 @@ def main():
 #include "%(proj)s_VERSION.h"
 #include "%(proj)s_INSTALL.h"
 const std::string THIS_PROJECT_ORIGINAL_VERSION = %(proj)s_ORIGINAL_VERSION;
+const std::string THIS_PROJECT_VCS_VERSION = %(proj)s_VCS_VERSION;
 constexpr std::uint_least64_t THIS_PROJECT_MAJOR_VERSION = %(proj)s_MAJOR_VERSION;
 constexpr std::uint_least64_t THIS_PROJECT_MINOR_VERSION = %(proj)s_MINOR_VERSION;
 constexpr std::uint_least64_t THIS_PROJECT_PATCH_VERSION = %(proj)s_PATCH_VERSION;
@@ -42,6 +43,7 @@ constexpr std::uint_least64_t THIS_PROJECT_VERSION = %(proj)s_VERSION;
 const std::string THIS_PROJECT_VERSION_STRING {%(proj)s_VERSION_STRING};
 const std::string THIS_PROJECT_NAME_STRING {"%(Proj)s"};
 const std::string THIS_PROJECT_INSTALL_LOCATION_STRING {%(proj)s_INSTALL_LOCATION_STRING};
+const bool THIS_PROJECT_USE_SOVERSION {%(proj)s_USE_SOVERSION};
 const std::vector<std::string> THIS_PROJECT_SEARCH_DIRS {%(proj)s_SEARCH_DIRS};
 const std::string CMAKE_INSTALL_PREFIX_STRING {"%(prefix)s"};
 #endif
