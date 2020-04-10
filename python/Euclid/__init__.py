@@ -11,18 +11,21 @@ import sys
 # hooks and other customizations are not used ith iPython
 _is_ipython = hasattr(__builtins__, '__IPYTHON__') or 'IPython' in sys.modules
 
-### Add some infrastructure if we are being imported via a Jupyter Kernel ------
+# Add some infrastructure if we are being imported via a Jupyter Kernel ------
 if _is_ipython:
     from IPython import get_ipython
     ip = get_ipython()
     if hasattr(ip,"kernel"):
         from .Login import LoginScript
-        _ls = LoginScript()
-        _env = _ls.setEnv()
-        _al  = _ls.setAliases()
-        _ex  = _ls.setExtra()
+        # option_list = ["--debug"]
+        option_list = []
+        _login_script = LoginScript()
+        _login_script.parseOpts(option_list)
+        _ev = _login_script.setEnv()
+        _al = _login_script.setAliases()
+        _ex = _login_script.setExtra()
 
-### b/c of circular references, the facade needs explicit cleanup ---------------
+# cleanup 
 import atexit
 def cleanup():
 
@@ -31,8 +34,8 @@ def cleanup():
         if hasattr(ip,"kernel"):
             del _ex
             del _al
-            del _env
-            del _ls
+            del _ev
+            del _login_script
 
     # destroy ROOT module
     del sys.modules[ 'Euclid' ]
