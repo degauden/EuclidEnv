@@ -21,9 +21,10 @@ if _is_ipython:
     if hasattr(_ip,"kernel"):
         from .Login import LoginScript
         # _option_list = ["--debug"]
+        _usage = "ELogin [options] [type]"
         _option_list = []
         _cleanup_list.append(_option_list)
-        _login_script = LoginScript()
+        _login_script = LoginScript(usage=_usage)
         _cleanup_list.append(_login_script)
         _login_script.parseOpts(_option_list)
         _ev = _login_script.setEnv()
@@ -32,6 +33,25 @@ if _is_ipython:
         _cleanup_list.append(_al)
         _ex = _login_script.setExtra()
         _cleanup_list.append(_ex)
+        
+
+        from IPython.core import magic_arguments, magic
+ 
+        @magic.magics_class
+        class Magics(magic.Magics):
+            @magic.line_magic
+            def elogin(self, line):
+                global _login_script
+                global _ev, _al, _ex
+                if line:
+                    option_list = line.split()
+                    _login_script = LoginScript(usage=_usage)
+                    _login_script.parseOpts(option_list)
+                    _ev = _login_script.setEnv()
+                    _al = _login_script.setAliases()
+                    _ex = _login_script.setExtra()
+
+        _ip.register_magics(Magics)
 
 # _cleanup 
 import atexit
