@@ -66,6 +66,7 @@ if _is_ipython:
 import atexit
 def _cleanup():
 
+    import sys
     # destroy Euclid module
     del sys.modules[ 'Euclid' ]
 
