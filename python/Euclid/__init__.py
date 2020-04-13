@@ -58,7 +58,12 @@ if _is_ipython:
                 global _ev
                 if line:
                     option_list = line.split()
-                    _ev = Environment(ERun(option_list)._getEnv())
+                    er = ERun(option_list)
+                    er._makeEnv()
+                    if not er.cmd:
+                        _ev = Environment(er._getEnv())
+                    else:
+                        er.runCmd()
 
         _ip.register_magics(Magics)
 
