@@ -207,6 +207,13 @@ class Script(object):
                 del env["LD_LIBRARY_PATH"]
 
         self.env = env
+        
+    def _getEnv(self):
+
+        if not self.env:
+            self._makeEnv()
+
+        return self.env
 
     def dump(self):
         '''
