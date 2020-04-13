@@ -20,6 +20,7 @@ if _is_ipython:
     _cleanup_list.append(_ip)
     if hasattr(_ip,"kernel"):
         from .Login import LoginScript
+        from .Env import Environment
         # _option_list = ["--debug"]
         _usage = "ELogin [options] [type]"
         _option_list = []
@@ -33,12 +34,12 @@ if _is_ipython:
         _cleanup_list.append(_al)
         _ex = _login_script.setExtra()
         _cleanup_list.append(_ex)
-        
 
         from IPython.core import magic_arguments, magic
  
         @magic.magics_class
         class Magics(magic.Magics):
+
             @magic.line_magic
             def elogin(self, line):
                 global _login_script
@@ -51,16 +52,20 @@ if _is_ipython:
                     _al = _login_script.setAliases()
                     _ex = _login_script.setExtra()
 
+            @magic.line_magic
+            def erun(self, line):
+                from .Run.Script import ERun
+                global _ev
+                if line:
+                    option_list = line.split()
+                    _ev = Environment(ERun(option_list)._getEnv())
+
         _ip.register_magics(Magics)
 
 # _cleanup 
 import atexit
 def _cleanup():
 
-    for s in _cleanup_list:
-        del s
-
-    del _cleanup_list, _is_ipython
     # destroy Euclid module
     del sys.modules[ 'Euclid' ]
 
