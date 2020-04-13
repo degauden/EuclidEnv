@@ -1,4 +1,3 @@
-# $Id$
 from Euclid.Option import Parser
 from Euclid.ConfigFile import addConfigFileOptions, readConfigFile
 from Euclid.ConfigFile import setConfigFileDefaultValues
