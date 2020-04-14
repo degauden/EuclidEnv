@@ -24,16 +24,11 @@ if _is_ipython:
         # _option_list = ["--debug"]
         _usage = "ELogin [options] [type]"
         _option_list = []
-        _cleanup_list.append(_option_list)
         _login_script = LoginScript(usage=_usage)
-        _cleanup_list.append(_login_script)
         _login_script.parseOpts(_option_list)
         _ev = _login_script.setEnv()
-        _cleanup_list.append(_ev)
         _al = _login_script.setAliases()
-        _cleanup_list.append(_al)
         _ex = _login_script.setExtra()
-        _cleanup_list.append(_ex)
 
         from IPython.core import magic_arguments, magic
  
@@ -54,14 +49,19 @@ if _is_ipython:
 
             @magic.line_magic
             def erun(self, line):
+                import site
                 from .Run.Script import ERun
+                from importlib import reload
                 global _ev
                 if line:
                     option_list = line.split()
                     er = ERun(option_list)
                     er._makeEnv()
                     if not er.cmd:
-                        _ev = Environment(er._getEnv())
+                        _ev = Environment()
+                        for key, value in er._getEnv().items():
+                            _ev[key] = value
+                        reload(site)
                     else:
                         er.runCmd()
 
