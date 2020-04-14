@@ -49,9 +49,8 @@ if _is_ipython:
 
             @magic.line_magic
             def erun(self, line):
-                import site
+                import site, os, sys
                 from .Run.Script import ERun
-                from importlib import reload
                 global _ev
                 if line:
                     option_list = line.split()
@@ -61,7 +60,7 @@ if _is_ipython:
                         _ev = Environment()
                         for key, value in er._getEnv().items():
                             _ev[key] = value
-                        reload(site)
+                        sys.path = _ev["PYTHONPATH"].split(os.pathsep) + sys.path
                     else:
                         er.runCmd()
 
