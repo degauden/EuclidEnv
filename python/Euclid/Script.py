@@ -1,4 +1,3 @@
-# $Id$
 from Euclid.Option import Parser
 from Euclid.ConfigFile import addConfigFileOptions, readConfigFile
 from Euclid.ConfigFile import setConfigFileDefaultValues
@@ -84,8 +83,8 @@ class PlainScript(object):
             rc = profiler.runcall(self.main)
             # Using stringIO to print the profile results to a buffer instead
             # of stdout/stderr
-            import StringIO
-            output = StringIO.StringIO()
+            from io import StringIO
+            output = StringIO()
 
             # adapted from Python standard profiler.py
             import pstats

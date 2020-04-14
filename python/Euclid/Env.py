@@ -97,7 +97,6 @@ class Environment:
         """
         Revert the changes on destruction.
         """
-        # print "Restoring the environment"
         self.restore()
 
     def get(self, key, default=None):

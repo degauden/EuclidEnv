@@ -1,4 +1,3 @@
-# $Id$
 """ module for path walk utilities """
 
 import os
