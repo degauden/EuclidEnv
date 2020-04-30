@@ -5,30 +5,54 @@ import sys
 
 from Euclid.Path import multiPathGetFirst
 
+def getEnvConfigPath(exist_check=False):
+    paths = []
+
+    cmake_prefix_path = os.environ.get("CMAKE_PREFIX_PATH", None)
+
+    if cmake_prefix_path:
+
+        for d in cmake_prefix_path.split(os.pathsep):
+            if exist_check and os.path.exists(d):
+                paths.append(d)
+            else:
+                paths.append(d)
+
+        for d in cmake_prefix_path.split(os.pathsep):
+            f = os.path.join(d, "scripts")
+            if exist_check and os.path.exists(f):
+                paths.append(f)
+            else:
+                paths.append(f)
+
+    # use another fallback if CMAKE_PREFIX_PATH is not defined.
+
+    return paths
+
+def lookupPackage(name, prefix_paths=None):
+
+    env_conf_subdir = os.path.join(name, "__init__.py")
+    
+    env_py = ""
+    
+    if not prefix_paths:
+        prefix_paths = getEnvConfigPath()
+
+    for p in prefix_paths:
+        env_conf_init = os.path.join(p, env_conf_subdir)
+        if os.path.exists(env_conf_init):
+            env_py = p
+            break
+
+    return env_py
+
 try:
     import EnvConfig  # @UnresolvedImport @UnusedImport
 except:
-    if os.environ.get("CMAKE_PREFIX_PATH", None):
-        env_conf_subdir = os.sep.join(["EnvConfig", "__init__.py"])
-        env_conf_init = multiPathGetFirst(
-            os.environ["CMAKE_PREFIX_PATH"], env_conf_subdir)
-        if env_conf_init:
-            env_conf = os.path.dirname(env_conf_init)
-            env_py = os.path.dirname(env_conf)
-            sys.path.insert(0, env_py)
-            import EnvConfig  # @UnusedImport @UnresolvedImport @Reimport
-        else:
-            env_conf_subdir = os.sep.join(
-                ["scripts", "EnvConfig", "__init__.py"])
-            env_conf_init = multiPathGetFirst(
-                os.environ["CMAKE_PREFIX_PATH"], env_conf_subdir)
-            if env_conf_init:
-                env_conf = os.path.dirname(env_conf_init)
-                env_py = os.path.dirname(env_conf)
-                sys.path.insert(0, env_py)
-                import EnvConfig  # @UnresolvedImport @Reimport
+    env_py = lookupPackage("EnvConfig")
+    sys.path.insert(0, env_py)
+    import EnvConfig  # @UnresolvedImport @Reimport
 
-    # use another fallback if CMAKE_PREFIX_PATH is not defined.
 
 from Euclid.Run.Lookup import getEnvXmlPath
 from Euclid.Run.Version import isValidVersion, expandVersionAlias
@@ -106,9 +130,7 @@ class ERun(EnvConfig.Script):
             self.version = 'latest'
 
     def _makeEnv(self):
-        # FIXME: when we drop Python 2.4, this should become 'from . import
-        # path'
-        from Euclid.Run import path
+        from . import path
         # prepend dev dirs to the search path
         if self.opts.dev_dirs:
             path[:] = map(str, self.opts.dev_dirs) + path

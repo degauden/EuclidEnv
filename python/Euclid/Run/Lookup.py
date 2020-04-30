@@ -1,4 +1,3 @@
-# FIXME: when we drop Python 2.4, this should become 'from . import path'
 from . import path, Error
 from .Version import getVersionDirs, versionSort
 from ..Platform import getSearchList

@@ -76,6 +76,7 @@ def get_data_files(input_dir, output_dir):
 these_files = get_data_files("data/cmake", __project__)
 these_files += get_data_files("data/texmf", __project__)
 these_files += get_data_files("data/make", __project__)
+# these_files.append((os.path.join("jupyter","kernels","euclid"), [os.path.join("data", "Jupyter", "kernel.json")]))
 
 
 def get_script_files():
