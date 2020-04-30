@@ -1,3 +1,12 @@
+* Thu Apr 30 2020 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.14-1
+- Integration into the jupyter notebooks:
+  - add the magic command for ELogin: %elogin
+  - Add the draft implementation of the erun magic command
+- Add the possibility to run a standalone command with %erun
+  - if a command is passed the environment stays untouched
+  - otherwise the new environment is imported like before
+- fixup of the explicit python in the shebang mangling.
+
 * Wed Apr 8 2020 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.12.1-1
 - update to the latest make and cmake library of Elements (5.10.1)
 

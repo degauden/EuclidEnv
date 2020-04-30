@@ -26,7 +26,7 @@ from glob import glob
 
 from string import Template
 
-__version__ = "3.12.1"
+__version__ = "3.14"
 __project__ = "EuclidEnv"
 __full_exec__ = sys.executable
 __usr_loc__ = os.path.dirname(os.path.dirname(__full_exec__))
@@ -43,6 +43,7 @@ dist_euclid_base = "/opt/euclid"
 dist_etc_prefix = "/etc"
 dist_usr_prefix = "/usr"
 dist_exp_version = __exec_exp_vers
+dist_impl_major_version = __exec_maj_vers
 dist_full_exec_python = __full_exec__
 
 this_use_custom_prefix = "no"
@@ -76,7 +77,6 @@ def get_data_files(input_dir, output_dir):
 these_files = get_data_files("data/cmake", __project__)
 these_files += get_data_files("data/texmf", __project__)
 these_files += get_data_files("data/make", __project__)
-# these_files.append((os.path.join("jupyter","kernels","euclid"), [os.path.join("data", "Jupyter", "kernel.json")]))
 
 
 def get_script_files():
@@ -186,7 +186,7 @@ class MyBuildScripts(_build_scripts):
         for script in self.scripts:
             script = convert_path(script)
             outfile = os.path.join(self.build_dir, os.path.basename(script))
-            call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, outfile])
+            call([__exec__, fixscript, "-n", "this_python_version", dist_impl_major_version, outfile])
 
 
 class MySdist(_sdist):
@@ -225,6 +225,7 @@ class MySdist(_sdist):
                 usr_prefix=dist_usr_prefix,
                 etc_prefix=dist_etc_prefix,
                 python_explicit_version=dist_exp_version,
+                python_implicit_version=dist_impl_major_version,
                 full_exec_python=dist_full_exec_python
                 )
         with open(out_fname, "w") as out_f:
@@ -364,7 +365,7 @@ class MyInstall(_install):
         for s in get_script_files():
             if s != fixscript_name:
                 full_s = os.path.join(self.install_scripts, s)
-                call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, full_s])
+                call([__exec__, fixscript, "-n", "this_python_version", dist_impl_major_version, full_s])
 
     def create_extended_init(self):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
