@@ -68,22 +68,22 @@ python_loc=$$(%{__python${python_explicit_version}} -c "from distutils.sysconfig
 %{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $$RPM_INSTALL_PREFIX2 $$RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
 %{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_euclid_base $$RPM_INSTALL_PREFIX2 $$python_loc/Euclid/Login.py
 %{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_etc_install_prefix $$RPM_INSTALL_PREFIX1 $$RPM_INSTALL_PREFIX0/bin/Euclid_config.{,c}sh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/eclipse_pythonpath_fix
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/ELogin.csh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/ELogin.sh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/E-Run
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/ERun_autocompletion.sh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_config.csh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_config.sh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_group_login.csh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_group_login.sh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_group_setup.csh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_group_setup.sh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/runpy
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/StripPath.csh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/StripPath.sh
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/WhereAmI
-%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_explicit_version}" $$RPM_INSTALL_PREFIX0/bin/EuclidWrapper
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/eclipse_pythonpath_fix
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/ELogin.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/ELogin.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/E-Run
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/ERun_autocompletion.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_config.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_config.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_group_login.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_group_login.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_group_setup.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/Euclid_group_setup.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/runpy
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/StripPath.csh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/StripPath.sh
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/WhereAmI
+%{__python${python_explicit_version}} $${RPM_INSTALL_PREFIX0}/bin/FixInstallPath -n this_python_version "${python_implicit_version}" $$RPM_INSTALL_PREFIX0/bin/EuclidWrapper
 if [[ ! -f "$${python_loc}/Euclid/__init__.py" ]]; then
 cat << EOF > $${python_loc}/Euclid/__init__.py
 from pkgutil import extend_path

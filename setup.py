@@ -43,6 +43,7 @@ dist_euclid_base = "/opt/euclid"
 dist_etc_prefix = "/etc"
 dist_usr_prefix = "/usr"
 dist_exp_version = __exec_exp_vers
+dist_impl_major_version = __exec_maj_vers
 dist_full_exec_python = __full_exec__
 
 this_use_custom_prefix = "no"
@@ -185,7 +186,7 @@ class MyBuildScripts(_build_scripts):
         for script in self.scripts:
             script = convert_path(script)
             outfile = os.path.join(self.build_dir, os.path.basename(script))
-            call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, outfile])
+            call([__exec__, fixscript, "-n", "this_python_version", dist_impl_major_version, outfile])
 
 
 class MySdist(_sdist):
@@ -224,6 +225,7 @@ class MySdist(_sdist):
                 usr_prefix=dist_usr_prefix,
                 etc_prefix=dist_etc_prefix,
                 python_explicit_version=dist_exp_version,
+                python_implicit_version=dist_impl_major_version,
                 full_exec_python=dist_full_exec_python
                 )
         with open(out_fname, "w") as out_f:
