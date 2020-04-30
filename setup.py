@@ -365,7 +365,7 @@ class MyInstall(_install):
         for s in get_script_files():
             if s != fixscript_name:
                 full_s = os.path.join(self.install_scripts, s)
-                call([__exec__, fixscript, "-n", "this_python_version", dist_exp_version, full_s])
+                call([__exec__, fixscript, "-n", "this_python_version", dist_impl_major_version, full_s])
 
     def create_extended_init(self):
         init_file = os.path.join(self.install_lib, "Euclid", "__init__.py")
