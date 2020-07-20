@@ -1,4 +1,5 @@
 * Mon Jul 20 2020 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.16-1
+- update to the latest make and cmake library of Elements (5.12)
 
 * Thu Apr 30 2020 Hubert Degaudenzi <Hubert.Degaudenzi@unige.ch> 3.14-1
 - Integration into the jupyter notebooks:

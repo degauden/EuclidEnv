@@ -1,3 +1,4 @@
+
 import os
 import sys
 assert sys.version_info >= (2, 6), "Python 2.6 required"
@@ -207,13 +208,6 @@ class Script(object):
                 del env["LD_LIBRARY_PATH"]
 
         self.env = env
-        
-    def _getEnv(self):
-
-        if not self.env:
-            self._makeEnv()
-
-        return self.env
 
     def dump(self):
         '''
